@@ -17,5 +17,6 @@ A busca na web (nov/2026) não trouxe material específico sobre como se monta u
 - Caixotes inclinados (0,3 rad) com a frente baixa: nada some atrás da borda, como acontecia com a câmera rasa.
 - Um montinho por caixote (cinco amontoados, ou três em fila para frascos e caixas).
 - A banca se monta para o tamanho da lista: o número de caixotes por degrau e a largura deles saem da quantidade de itens.
-- Preços são só enfeite: não dão pista do que está na lista.
+- Sem plaquinhas de preço e sem balanço dos itens: a banca fica mais limpa de ler.
+- Ao acertar, só um item do monte vai para a cesta; o resto do caixote fica cinza, marcando o que já foi comprado.
 - Sem placa com o nome da feira na frente do balcão.
