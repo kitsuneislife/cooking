@@ -2,35 +2,23 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useRecipe } from "../hooks/useRecipe";
 import { games, DEMO_ID, DIFFICULTY } from "../data/games";
-import { missingIngredients, brokenSteps, comboMultiplier, timeLimit } from "../game/rules";
+import { missingIngredients, brokenSteps, comboMultiplier } from "../game/rules";
 import { sfx, isMuted, toggleMute } from "../game/sound";
-import { pop, shake } from "../game/fx";
+import { pop } from "../game/fx";
+import { THREE } from "../three/kit";
 import StatusMessage from "../components/StatusMessage";
 import Illustration from "../components/Illustration";
 import Icon from "../components/Icon";
 import Chef from "../components/Chef";
-import MarketPhase from "../components/MarketPhase";
-import PrepPhase from "../components/PrepPhase";
-import CookPhase from "../components/CookPhase";
+import Stage3D from "../components/Stage3D";
+import MinigamePhase from "../components/MinigamePhase";
 import ResultPhase from "../components/ResultPhase";
 
 const PHASES = [
-  { key: "market", name: "Mercado", art: "basket", Phase: MarketPhase, hint: "Toque só no que está na lista de compras. Tem intruso na banca!" },
-  { key: "prep", name: "Preparo", art: "board", Phase: PrepPhase, hint: "Leve cada ingrediente para a tábua e escolha o corte que a receita pede." },
-  { key: "cook", name: "Fogão", art: "stove", Phase: CookPhase, hint: "Leia o passo e leve cada ingrediente para a estação certa." },
+  { key: "market", name: "Mercado", art: "basket", hint: "Primeiro, as compras! Pegue só o que está na lista." },
+  { key: "prep", name: "Preparo", art: "board", hint: "Hora de preparar: fatiar, picar e fazer o molho." },
+  { key: "cook", name: "Fogão", art: "stove", hint: "Fogo alto! Agora é no wok." },
 ];
-
-const clock = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-
-function useCountdown(total, running) {
-  const [left, setLeft] = useState(total);
-  useEffect(() => {
-    if (!running) return;
-    const timer = setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
-    return () => clearInterval(timer);
-  }, [running]);
-  return left;
-}
 
 export default function Play() {
   const { id } = useParams();
@@ -57,40 +45,43 @@ export default function Play() {
       </div>
     );
   }
+  // cada partida monta uma cozinha 3D nova: jogar de novo começa tudo limpo
   return <Match key={round} recipe={recipe} game={game} onReplay={() => setRound((r) => r + 1)} />;
 }
 
-// Uma partida: placar, tempo, chef e a fase da vez.
+// Uma partida: placar, chef e a fase da vez, por cima do palco 3D.
 function Match({ recipe, game, onReplay }) {
+  const [world, setWorld] = useState(null);
+  const [failed, setFailed] = useState(null);
   const [phase, setPhase] = useState("intro");
-  const [score, setScore] = useState({ coins: 0, combo: 0, errors: { market: 0, prep: 0, cook: 0 } });
+  const [score, setScore] = useState({ coins: 0, combo: 0 });
+  const [steps, setSteps] = useState([]);
   const [chef, setChef] = useState({ mood: "idle", text: "", n: 0 });
   const [muted, setMuted] = useState(isMuted);
-  const stage = useRef(null);
-  const combo = useRef(0);
-  combo.current = score.combo;
+  const comboRef = useRef(0);
 
   const index = PHASES.findIndex((p) => p.key === phase);
   const current = PHASES[index];
-  const limit = timeLimit(recipe);
-  const left = useCountdown(limit, !!current);
   const multiplier = comboMultiplier(score.combo);
+  const total = Object.values(game.play).reduce((n, list) => n + list.length, 0);
 
   const say = (text, mood = "idle") => setChef((c) => ({ mood, text, n: c.n + 1 }));
 
-  function good(target, text) {
-    const gain = 10 * comboMultiplier(combo.current);
-    setScore((s) => ({ ...s, coins: s.coins + gain, combo: s.combo + 1 }));
-    sfx.good(combo.current);
-    pop(target, `+${gain}`);
+  // o combo vive num ref também: vários acertos no mesmo quadro somam certo
+  function good(point, text) {
+    const combo = comboRef.current++;
+    const gain = 10 * comboMultiplier(combo);
+    setScore((s) => ({ coins: s.coins + gain, combo: s.combo + 1 }));
+    pop(point, `+${gain}`);
+    sfx.good(combo);
     say(text, "happy");
   }
 
-  function bad(text, target) {
-    setScore((s) => ({ ...s, combo: 0, errors: { ...s.errors, [phase]: s.errors[phase] + 1 } }));
+  function bad(point, text) {
+    comboRef.current = 0;
+    setScore((s) => ({ ...s, combo: 0 }));
     sfx.bad();
-    shake(stage.current);
-    if (target) pop(target, "Ops!", "bad");
+    pop(point, "Ops!", "bad");
     say(text, "sad");
   }
 
@@ -99,7 +90,13 @@ function Match({ recipe, game, onReplay }) {
     if (next) say(next.hint);
   }
 
-  // a cada tela nova, o foco vai para o título dela
+  // câmera de abertura gira pela cozinha; no fim, gira em volta do prato pronto
+  useEffect(() => {
+    if (!world) return;
+    if (phase === "intro") world.orbit(new THREE.Vector3(1.5, 1.4, 0), 15, 6, 0.06, 40);
+    if (phase === "result") world.orbit(new THREE.Vector3(9, 0.6, 0.3), 5.4, 2.8, 0.18, 30);
+  }, [world, phase]);
+
   useEffect(() => {
     document.getElementById("phase-title")?.focus();
   }, [phase]);
@@ -110,12 +107,10 @@ function Match({ recipe, game, onReplay }) {
     return () => clearTimeout(timer);
   }, [chef.n]);
 
-  useEffect(() => {
-    if (left === 0) say("O tempo acabou! Termine o prato, mas sem bônus de tempo.", "sad");
-  }, [left]);
-
   return (
-    <div className="game" ref={stage}>
+    <div className="game">
+      <Stage3D onReady={setWorld} onError={setFailed} />
+
       <header className="hud">
         <Link className="hud-btn" to="/" aria-label="Sair da partida"><Icon name="close" /></Link>
         <div className="hud-title">
@@ -130,10 +125,6 @@ function Match({ recipe, game, onReplay }) {
           ))}
         </ol>
         {multiplier > 1 && <p className="hud-combo" key={multiplier}>Combo x{multiplier}</p>}
-        <p className="hud-stat" data-low={left <= 20 || undefined} role="timer" aria-label={`Tempo restante: ${clock(left)}`}>
-          <Icon name="clock" /> {clock(left)}
-          <span className="time-bar" aria-hidden="true"><i style={{ width: `${(left / limit) * 100}%` }} /></span>
-        </p>
         <p className="hud-stat" aria-label={`${score.coins} moedas`}>
           <Icon name="coin" /> <span className="bump" key={score.coins}>{score.coins}</span>
         </p>
@@ -142,22 +133,29 @@ function Match({ recipe, game, onReplay }) {
         </button>
       </header>
 
-      {current && (
+      {current && world && (
         <>
           <div className="chef-strip">
             <Chef mood={chef.mood} />
             {/* fala do chef: cada jogada é lida pelo leitor de tela */}
             <p className="bubble" aria-live="polite"><span key={chef.n}>{chef.text}</span></p>
           </div>
-          <p className="phase-banner" key={phase} aria-hidden="true">
+          <p className="phase-banner" key={`banner-${phase}`} aria-hidden="true">
             <small>Fase {index + 1}</small>{current.name}
           </p>
-          <current.Phase game={game} recipe={recipe} good={good} bad={bad} say={say} onDone={() => go(PHASES[index + 1])} />
+          <h2 id="phase-title" tabIndex={-1} className="visually-hidden">Fase {index + 1}: {current.name}</h2>
+          <MinigamePhase
+            key={phase}
+            world={world} specs={game.play[phase]} game={game} recipe={recipe}
+            good={good} bad={bad} say={say}
+            onStep={(step) => setSteps((list) => [...list, step])}
+            onDone={() => go(PHASES[index + 1])}
+          />
         </>
       )}
 
       {phase === "intro" && (
-        <div className="overlay">
+        <div className="overlay overlay-scene">
           <section className="panel intro" aria-labelledby="phase-title">
             <h2 id="phase-title" tabIndex={-1} className="panel-title">Novo pedido!</h2>
             <img className="dish-photo" src={recipe.image} alt={`Foto do prato ${recipe.name}`} />
@@ -166,19 +164,25 @@ function Match({ recipe, game, onReplay }) {
             <ul className="chips" aria-label="Informações">
               <li>{game.country}</li>
               <li>{DIFFICULTY[recipe.difficulty]}</li>
-              <li>{clock(limit)} de tempo</li>
+              <li>{total} etapas</li>
             </ul>
             <ol className="phase-preview">
               {PHASES.map((p) => (
                 <li key={p.key}><Illustration name={p.art} className="art" />{p.name}</li>
               ))}
             </ol>
-            <button type="button" className="btn btn-big" onClick={() => { sfx.good(); go(PHASES[0]); }}>Começar!</button>
+            {failed ? (
+              <StatusMessage status="error">Este aparelho não conseguiu abrir a cozinha 3D (WebGL). {failed.message}</StatusMessage>
+            ) : world ? (
+              <button type="button" className="btn btn-big" onClick={() => { sfx.go(); go(PHASES[0]); }}>Começar!</button>
+            ) : (
+              <StatusMessage status="loading">Arrumando a cozinha…</StatusMessage>
+            )}
           </section>
         </div>
       )}
 
-      {phase === "result" && <ResultPhase recipe={recipe} game={game} score={score} secondsLeft={left} onReplay={onReplay} />}
+      {phase === "result" && <ResultPhase recipe={recipe} game={game} coins={score.coins} steps={steps} onReplay={onReplay} />}
     </div>
   );
 }

@@ -6,21 +6,11 @@ export const DEMO_ID = 8;
 
 export const DIFFICULTY = { Easy: "Fácil", Medium: "Média" };
 
-export const CUTS = ["Picado fino", "Picado", "Em cubos", "Fatiado", "Ralado"];
-
-// Estação -> nome do desenho em src/art.
-export const STATIONS = {
-  Tábua: "board",
-  Tigela: "mixingBowl",
-  Fogão: "stove",
-  Forno: "oven",
-  Servir: "serve",
-};
-
-// Uma receita nova é só mais uma entrada aqui (e os desenhos que faltarem em src/art).
-// Cada passo diz a estação, o que entra nela (`add`), a ação do jogador (`action`)
-// e o que sai pronto para a bandeja (`makes`, descrito em `products`).
-// Ações: { type: "tap", taps } = tocar várias vezes; { type: "timer", seconds } = tirar no ponto.
+// Uma receita nova é só mais uma entrada aqui (e os modelos que faltarem em src/three/kit.js).
+// `steps` é o modo de preparo, na ordem da API: a estação, o que entra nela (`add`)
+// e o que sai pronto (`makes`, descrito em `products`).
+// `play` diz quais minijogos 3D cada fase joga (ver src/three/games), com os ingredientes
+// (`items`) e o passo da receita (`step`) que cada um encena.
 export const games = {
   8: {
     title: "Carne com brócolis no wok",
@@ -46,28 +36,27 @@ export const games = {
     ],
     products: { sauce: "Molho", seared: "Carne selada", stirfry: "Refogado" },
     steps: [
-      {
-        text: "Preparar o molho", station: "Tigela",
-        add: ["soy", "oyster", "sesame", "cornstarch"],
-        action: { type: "tap", label: "Misturar", taps: 6 }, makes: "sauce",
-      },
-      {
-        text: "Selar a carne no wok", station: "Fogão",
-        add: ["beef"],
-        action: { type: "timer", label: "Tirar do fogo", seconds: 5 }, makes: "seared",
-      },
-      {
-        text: "Saltear brócolis, alho e gengibre", station: "Fogão",
-        add: ["broccoli", "garlic", "ginger"],
-        action: { type: "tap", label: "Saltear", taps: 6 },
-      },
+      { text: "Preparar o molho", station: "Tigela", add: ["soy", "oyster", "sesame", "cornstarch"], makes: "sauce" },
+      { text: "Selar a carne no wok", station: "Fogão", add: ["beef"], makes: "seared" },
+      { text: "Saltear brócolis, alho e gengibre", station: "Fogão", add: ["broccoli", "garlic", "ginger"] },
       { text: "Voltar a carne e juntar o molho", station: "Fogão", add: ["seared", "sauce"] },
-      {
-        text: "Mexer até envolver tudo", station: "Fogão",
-        add: [],
-        action: { type: "tap", label: "Mexer", taps: 8 }, makes: "stirfry",
-      },
+      { text: "Mexer até envolver tudo", station: "Fogão", add: [], makes: "stirfry" },
       { text: "Servir sobre o arroz", station: "Servir", add: ["rice", "stirfry"] },
     ],
+    play: {
+      market: [{ game: "shop" }],
+      prep: [
+        { game: "slice", items: ["beef"] },
+        { game: "mince", items: ["garlic", "ginger"] },
+        { game: "pour", step: 0, items: ["soy", "oyster", "sesame", "cornstarch"] },
+        { game: "whisk", step: 0 },
+      ],
+      cook: [
+        { game: "fry", step: 1, items: ["beef"] },
+        { game: "toss", step: 2, items: ["broccoli", "garlic", "ginger"] },
+        { game: "stir", step: 3 },
+        { game: "plate", step: 5, items: ["rice"] },
+      ],
+    },
   },
 };

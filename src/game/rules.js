@@ -25,21 +25,57 @@ export function brokenSteps(game) {
   return broken;
 }
 
-export function starsFor(errors) {
-  if (errors <= 1) return 3;
-  if (errors <= 3) return 2;
-  if (errors <= 6) return 1;
+// Estrelas do prato pela média das notas das etapas (0 a 1), como nos jogos de culinária.
+export function starsFor(average) {
+  if (average >= 0.85) return 3;
+  if (average >= 0.6) return 2;
+  if (average >= 0.35) return 1;
   return 0;
+}
+
+// Carimbo de cada etapa pela nota dela (0 a 1).
+export const GRADES = [
+  { min: 0.9, key: "perfect", label: "Perfeito!" },
+  { min: 0.7, key: "great", label: "Ótimo!" },
+  { min: 0.45, key: "good", label: "Bom!" },
+  { min: 0, key: "oops", label: "Ops…" },
+];
+export const stepGrade = (score) => GRADES.find((g) => score >= g.min);
+
+export const average = (list) => (list.length ? list.reduce((a, b) => a + b, 0) / list.length : 0);
+
+// Mirar: 1 em cima do alvo, cai até 0 a `tolerance` de distância (corte, prato, despejo).
+export const aimScore = (at, target, tolerance) => Math.max(0, 1 - Math.abs(at - target) / tolerance);
+
+// Despejar até a faixa: 1 dentro dela, cai até 0 a `slack` fora.
+export function bandScore(level, lo, hi, slack) {
+  const off = level < lo ? lo - level : level > hi ? level - hi : 0;
+  return Math.max(0, 1 - off / slack);
+}
+
+// Diferença entre dois ângulos pelo caminho mais curto (-π a π): soma voltas ao mexer.
+export function angleDelta(from, to) {
+  const d = (to - from) % (2 * Math.PI);
+  if (d > Math.PI) return d - 2 * Math.PI;
+  if (d < -Math.PI) return d + 2 * Math.PI;
+  return d;
+}
+
+// Ritmo: a batida ainda livre mais perto de `now`. Dentro de `window` segundos vale,
+// com precisão de 1 (em cima) a 0 (na beira da janela). Fora dela, nada.
+export function judgeBeat(now, beats, taken, window) {
+  let best = -1;
+  beats.forEach((t, i) => {
+    if (taken.has(i)) return;
+    if (best < 0 || Math.abs(t - now) < Math.abs(beats[best] - now)) best = i;
+  });
+  if (best < 0 || Math.abs(beats[best] - now) > window) return null;
+  return { index: best, accuracy: aimScore(now, beats[best], window) };
 }
 
 // Acertos seguidos valem mais: x2 a partir de 4, até x4.
 export function comboMultiplier(combo) {
   return Math.min(1 + Math.floor(combo / 4), 4);
-}
-
-// Tempo da partida, em segundos, a partir dos minutos que a API informa.
-export function timeLimit(recipe) {
-  return (recipe.prepTimeMinutes + recipe.cookTimeMinutes) * 5;
 }
 
 export function finalScore({ coins, secondsLeft, difficulty }) {

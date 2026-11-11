@@ -3,17 +3,16 @@ import { Link } from "react-router-dom";
 import StarRating from "./StarRating";
 import StatusMessage from "./StatusMessage";
 import Icon from "./Icon";
-import { starsFor, finalScore } from "../game/rules";
+import { starsFor, finalScore, average, stepGrade } from "../game/rules";
 import { rateRecipe } from "../services/recipes";
 import { sfx } from "../game/sound";
 import { confetti } from "../game/fx";
 
-const PHASE_NAMES = { market: "Mercado", prep: "Preparo", cook: "Fogão" };
-
-export default function ResultPhase({ recipe, game, score, secondsLeft, onReplay }) {
-  const errors = Object.values(score.errors).reduce((a, b) => a + b, 0);
-  const stars = starsFor(errors);
-  const { timeBonus, total } = finalScore({ coins: score.coins, secondsLeft, difficulty: recipe.difficulty });
+// `steps`: a nota (0 a 1) e o tempo que sobrou em cada etapa jogada.
+export default function ResultPhase({ recipe, game, coins, steps, onReplay }) {
+  const stars = starsFor(average(steps.map((s) => s.score)));
+  const secondsLeft = steps.reduce((n, s) => n + s.spare, 0);
+  const { timeBonus, total } = finalScore({ coins, secondsLeft, difficulty: recipe.difficulty });
   const [rating, setRating] = useState(0);
   const [send, setSend] = useState({ status: "idle" });
 
@@ -39,7 +38,7 @@ export default function ResultPhase({ recipe, game, score, secondsLeft, onReplay
   }
 
   return (
-    <div className="overlay">
+    <div className="overlay overlay-scene overlay-side">
       <section className="panel result" aria-labelledby="phase-title">
         <h2 id="phase-title" tabIndex={-1} className="panel-title">{stars ? "Prato pronto!" : "Quase lá…"}</h2>
         <StarRating value={stars} max={3} />
@@ -50,19 +49,18 @@ export default function ResultPhase({ recipe, game, score, secondsLeft, onReplay
             <table className="score-table">
               <caption className="visually-hidden">Pontuação</caption>
               <tbody>
-                <tr><th scope="row">Moedas da partida</th><td>{score.coins}</td></tr>
+                <tr><th scope="row">Moedas da partida</th><td>{coins}</td></tr>
                 <tr><th scope="row">Bônus de tempo ({secondsLeft}s)</th><td>+{timeBonus}</td></tr>
                 {recipe.difficulty === "Medium" && <tr><th scope="row">Receita média</th><td>x1,5</td></tr>}
                 <tr className="score-total"><th scope="row">Total</th><td><Icon name="coin" /> {total}</td></tr>
               </tbody>
             </table>
-            <ul className="chips" aria-label="Erros por fase">
-              {Object.entries(PHASE_NAMES).map(([key, name]) => (
-                <li key={key} className={score.errors[key] ? "chip-bad" : "chip-ok"}>
-                  {name}: {score.errors[key]} {score.errors[key] === 1 ? "erro" : "erros"}
-                </li>
-              ))}
-            </ul>
+            <ol className="grades" aria-label="Nota de cada etapa">
+              {steps.map((s, n) => {
+                const g = stepGrade(s.score);
+                return <li key={n} data-grade={g.key}><span>{s.title}</span> <b>{g.label}</b></li>;
+              })}
+            </ol>
           </div>
         </div>
 
