@@ -192,7 +192,8 @@ export async function createWorld(host) {
   const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.42, 0.55, 0.9);
+  // só o que passa do branco (faíscas, chamas, brilhos) floresce; o creme da cozinha fica nítido
+  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.22, 0.35, 1.3);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
 
