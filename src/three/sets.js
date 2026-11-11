@@ -410,12 +410,12 @@ export function buildMarket() {
   return { group: m, basket, stall, tick };
 }
 
-/* Banca da partida: `n` caixotes em três degraus, inclinados para o freguês como na feira,
-   cada um com uma plaquinha de preço. Devolve o grupo, onde apoiar cada item e a inclinação. */
+/* Banca da partida: `n` caixotes em três degraus, inclinados para o freguês como na feira.
+   Devolve o grupo, onde apoiar cada item e a inclinação. */
 const CRATE_TILT = 0.3;
 const PAPER = ["#9be3c6", "#ffd9a0", "#f7c3cf"];
 function stall(n) {
-  const g = new THREE.Group(), slots = [], rand = seeded(n * 31 + 7);
+  const g = new THREE.Group(), slots = [];
   const perRow = [0, 1, 2].map((r) => Math.floor(n / 3) + (r >= 3 - (n % 3) ? 1 : 0)); // sobras vão para trás
   const cols = Math.max(...perRow), gap = Math.min(2.55, 12.6 / cols), w = gap - 0.22, d = 1.3;
   const plank = food({ color: "#e2b27a", map: tex("wood"), roughness: 0.7 });
@@ -431,7 +431,6 @@ function stall(n) {
       const paper = mesh(new THREE.PlaneGeometry(w - 0.2, d - 0.15), food({ color: PAPER[(i + tier) % 3], roughness: 0.9, clearcoat: 0 }));
       paper.rotation.x = -Math.PI / 2; paper.position.y = 0.11; paper.receiveShadow = true;
       crate.add(paper);
-      crate.add(priceTag(`R$ ${2 + Math.floor(rand() * 9)},${["00", "50", "90", "99"][Math.floor(rand() * 4)]}`, w, d, rand));
       const x = (i - (count - 1) / 2) * gap, lift = Math.sin(CRATE_TILT) * d / 2; // ergue para a frente não afundar no degrau
       crate.position.set(x, y + lift, z);
       crate.rotation.x = CRATE_TILT;
@@ -443,19 +442,4 @@ function stall(n) {
   });
   castAll(g);
   return { group: g, slots, tilt: CRATE_TILT };
-}
-
-function priceTag(text, w, d, rand) { // lousinha pendurada na frente do caixote, meio torta
-  const board = mesh(new THREE.PlaneGeometry(0.62, 0.34), new THREE.MeshStandardMaterial({
-    map: canvasTex(192, 104, (x) => {
-      x.fillStyle = "#fff6e3"; x.fillRect(0, 0, 192, 104);
-      x.fillStyle = "#2c3a2e"; x.fillRect(6, 6, 180, 92);
-      x.fillStyle = "#fff6e3"; x.font = '400 40px "Lilita One", sans-serif'; x.textAlign = "center"; x.textBaseline = "middle";
-      x.fillText(text, 96, 54);
-    }), roughness: 0.8, side: THREE.DoubleSide,
-  }));
-  board.position.set((rand() - 0.5) * (w - 0.8), 0.12, d / 2 + 0.02);
-  board.rotation.z = (rand() - 0.5) * 0.25;
-  board.userData.noShadow = true;
-  return board;
 }

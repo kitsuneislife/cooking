@@ -25,6 +25,18 @@ const MODELS = {
 };
 const ONLY = { rice: 2 }; // itens que não empilham bem: quantos lado a lado
 
+// Item já comprado: o monte fica cinza e meio transparente (materiais clonados, não afeta o resto).
+function dim(obj) {
+  const grey = new THREE.Color("#9a9a9a");
+  obj.traverse((c) => {
+    if (!c.isMesh) return;
+    c.material = c.material.clone();
+    c.material.color?.lerp(grey, 0.7);
+    c.material.transparent = true; c.material.opacity = 0.45; c.material.depthWrite = false;
+    c.castShadow = false;
+  });
+}
+
 // Monte de feira dentro do caixote: frascos e caixas em fila, o resto amontoado com um por cima.
 function pile(id, crate) {
   const g = new THREE.Group(), copy = (size) => { const m = fit(MODELS[id](), size); castAll(m); return m; };
@@ -65,7 +77,7 @@ export default {
       holder.add(pile(it.id, size));
       holder.position.copy(pos);
       holder.rotation.x = stall.tilt; // deitado junto com o caixote
-      holder.userData = { item: it, phase: n * 0.7, hover: 0 };
+      holder.userData = { item: it, hover: 0 };
       return s.add(holder, group);
     });
     // marcador de seleção pelo teclado: um aro dourado no chão do caixote
@@ -80,11 +92,10 @@ export default {
 
     s.every((dt, t) => {
       for (const h of items) {
-        if (got.has(h.userData.item.id) || h.userData.flying) continue;
-        const on = h === hover || (focus >= 0 && remaining()[focus] === h) ? 1 : 0;
+        const on = !got.has(h.userData.item.id) && (h === hover || (focus >= 0 && remaining()[focus] === h)) ? 1 : 0;
         h.userData.hover += (on - h.userData.hover) * Math.min(1, dt * 12);
         const k = h.userData.hover;
-        h.children[0].position.y = Math.sin(t * 2 + h.userData.phase) * 0.05 + k * 0.35;
+        h.children[0].position.y = k * 0.35;
         h.scale.setScalar(1 + k * 0.14);
       }
       const f = remaining()[focus];
@@ -95,7 +106,7 @@ export default {
     const holderOf = (o) => { while (o && !o.userData?.item) o = o.parent; return o; };
 
     async function choose(h) {
-      if (!h || got.has(h.userData.item.id) || h.userData.flying) return;
+      if (!h || got.has(h.userData.item.id)) return;
       const it = h.userData.item, at = h.getWorldPosition(v3(0, 0, 0)).add(v3(0, 1, 0));
       if (!it.belongs) {
         errors++;
@@ -106,15 +117,19 @@ export default {
         return;
       }
       got.add(it.id);
-      h.userData.flying = true;
       sfx.pick();
       sendList();
       ctx.progress(got.size / game.ingredients.length);
+      // só um vai para a cesta (o de cima do monte); o que sobra no caixote fica apagado
+      const pile = h.children[0], one = pile.children[pile.children.length - 1];
+      const from = one.getWorldPosition(v3(0, 0, 0));
+      s.add(one, group).position.copy(group.worldToLocal(from));
+      one.rotation.set(0, one.rotation.y, 0);
+      dim(pile);
       const n = inBasket++;
       const spot = basket.position.clone().add(v3(((n % 3) - 1) * 0.5, 0.55 + Math.floor(n / 3) * 0.22, ((n * 7) % 3 - 1) * 0.35));
-      const scale = h.scale.x;
-      world.tween(0.6, (k) => h.scale.setScalar(scale + (0.45 - scale) * k));
-      await hop(world, h, spot, { height: 3, dur: 0.6, turn: 3, spin: -stall.tilt });
+      world.tween(0.6, (k) => one.scale.setScalar(1 - 0.25 * k));
+      await hop(world, one, spot, { height: 3, dur: 0.6, turn: 3 });
       sfx.plop();
       squash(world, basket, 0.12);
       world.fx.sparkle(basket.getWorldPosition(v3(0, 0, 0)).add(v3(0, 1.4, 0)), 10);
@@ -129,8 +144,8 @@ export default {
       start() {
         live = true;
         world.input = {
-          move: (e) => { hover = holderOf(world.pick(e, items)?.object); world.canvas.style.cursor = hover ? "pointer" : ""; },
-          down: (e) => { if (live) choose(holderOf(world.pick(e, items)?.object)); },
+          move: (e) => { hover = holderOf(world.pick(e, remaining())?.object); world.canvas.style.cursor = hover ? "pointer" : ""; },
+          down: (e) => { if (live) choose(holderOf(world.pick(e, remaining())?.object)); },
         };
       },
       key(e, down) {
