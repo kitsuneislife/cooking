@@ -19,19 +19,24 @@ function tone(freq, { dur = 0.12, type = "triangle", vol = 0.14, delay = 0, to }
 }
 
 // Chiado filtrado: faca na tábua (curto) ou comida na chapa (longo).
-function noise(dur, freq, vol) {
+// `to` faz o filtro deslizar (o "vush" de jogar a comida para cima).
+function noise(dur, freq, vol, { to, flat = false } = {}) {
   if (muted) return;
   const a = audio(), length = Math.floor(a.sampleRate * dur);
   const buffer = a.createBuffer(1, length, a.sampleRate), data = buffer.getChannelData(0);
-  for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length);
+  for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (flat ? Math.sin(Math.PI * i / length) : 1 - i / length);
   const source = a.createBufferSource(), filter = a.createBiquadFilter(), gain = a.createGain();
   source.buffer = buffer;
   filter.type = "bandpass";
-  filter.frequency.value = freq;
+  filter.frequency.setValueAtTime(freq, a.currentTime);
+  if (to) filter.frequency.exponentialRampToValueAtTime(to, a.currentTime + dur);
   gain.gain.value = vol;
   source.connect(filter).connect(gain).connect(a.destination);
   source.start();
 }
+
+// Vibração curta no celular a cada corte ou batida (quem não tem, ignora).
+const buzz = (ms) => { if (!muted) navigator.vibrate?.(ms); };
 
 export const sfx = {
   pick: () => tone(520, { dur: 0.07 }),
@@ -47,8 +52,21 @@ export const sfx = {
     noise(0.07, 1700 + Math.random() * 500, 0.5);
     tone(140, { dur: 0.06, type: "square", vol: 0.06 });
     if (perfect) tone(1320, { dur: 0.12, type: "sine", vol: 0.08, delay: 0.03 });
+    buzz(perfect ? 25 : 12);
   },
-  sizzle: () => noise(1.2, 5200, 0.18),
+  sizzle: (vol = 0.18) => noise(1.2, 5200, vol, { flat: true }),
+  pour: () => noise(0.3, 900, 0.22, { flat: true }),
+  whisk: () => noise(0.12, 3800 + Math.random() * 800, 0.3, { flat: true }),
+  toss: () => { noise(0.35, 500, 0.4, { to: 2400, flat: true }); buzz(20); },
+  flame: () => noise(0.6, 260, 0.5, { to: 120 }),
+  plop: () => { tone(220, { dur: 0.14, type: "sine", vol: 0.2, to: 110 }); buzz(15); },
+  swish: () => noise(0.18, 1200, 0.25, { to: 3000, flat: true }),
+  tick: () => tone(880, { dur: 0.05, type: "square", vol: 0.05 }),
+  go: () => { tone(660, { dur: 0.1 }); tone(990, { dur: 0.25, delay: 0.1 }); },
+  stamp: (good = true) => good
+    ? [784, 988, 1175].forEach((f, i) => tone(f, { dur: 0.16, delay: i * 0.07 }))
+    : tone(240, { dur: 0.3, type: "triangle", to: 160, vol: 0.12 }),
+  reveal: () => [523, 784, 1047, 1568].forEach((f, i) => tone(f, { dur: 0.3, type: "sine", delay: i * 0.09, vol: 0.12 })),
   win: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, { dur: 0.22, delay: i * 0.11 })),
 };
 
