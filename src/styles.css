@@ -235,10 +235,13 @@ main.main-game { max-width: none; padding: 0; overflow-x: clip; } /* o tremor do
 .chef-strip { display: flex; align-items: flex-end; gap: 4px; min-height: 80px; }
 .bubble {
   position: relative; margin: 0 0 14px 10px; padding: 10px 18px; max-width: 640px;
-  background: #fff; border: 3px solid var(--wood-dark); border-radius: 20px; box-shadow: 0 4px 0 var(--wood-dark);
+  background: #fff; border: 3px solid var(--wood-dark); border-radius: 20px; filter: drop-shadow(0 4px 0 var(--wood-dark));
   font-weight: 500; font-size: 1.05rem;
 }
-.bubble::before { content: ""; position: absolute; left: -13px; bottom: 12px; width: 20px; height: 20px; background: #fff; border-left: 3px solid var(--wood-dark); border-bottom: 3px solid var(--wood-dark); transform: rotate(45deg); border-radius: 0 0 0 5px; }
+/* bico: triângulo marrom (contorno) com um branco menor por cima, que apaga a borda do balão */
+.bubble::before, .bubble::after { content: ""; position: absolute; border-style: solid; border-color: transparent; border-left-width: 0; }
+.bubble::before { left: -19px; bottom: 10px; border-width: 10px 19px 10px 0; border-right-color: var(--wood-dark); }
+.bubble::after { left: -14px; bottom: 13px; border-width: 7px 15px 7px 0; border-right-color: #fff; }
 .bubble span { display: block; position: relative; animation: say .35s var(--spring); }
 @keyframes say { from { transform: scale(.85); opacity: 0; } }
 
@@ -246,6 +249,18 @@ main.main-game { max-width: none; padding: 0; overflow-x: clip; } /* o tremor do
 .phase-banner {
   position: fixed; left: 0; right: 0; top: 34%; z-index: 60; margin: 0; text-align: center; pointer-events: none;
   font-size: clamp(3rem, 12vw, 6.5rem); line-height: 1; opacity: 0; animation: banner 1.7s ease both;
+}
+/* atrás do texto: raios de sol girando e uma faixa escura que dá contraste */
+.phase-banner::before, .phase-banner::after { content: ""; position: absolute; left: 50%; top: 50%; z-index: -1; translate: -50% -50%; }
+.phase-banner::before {
+  width: min(120vw, 1300px); aspect-ratio: 1;
+  background: repeating-conic-gradient(#ffd54a66 0 9deg, transparent 9deg 18deg);
+  mask: radial-gradient(closest-side, #000 25%, transparent 100%);
+  animation: spin 8s linear infinite;
+}
+.phase-banner::after {
+  width: 100%; height: 1.5em;
+  background: linear-gradient(90deg, transparent, #2a1404cc 20% 80%, transparent);
 }
 .phase-banner small { display: block; font-size: .3em; color: var(--sun); -webkit-text-stroke-width: 4px; }
 @keyframes banner {
