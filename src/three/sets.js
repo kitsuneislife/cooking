@@ -340,37 +340,13 @@ export function buildMarket() {
   const front = mesh(new RoundedBoxGeometry(18.2, 0.9, 0.2, 2, 0.08), glossy({ color: "#e5484d" }));
   front.position.set(0, -0.7, 2.95);
   m.add(counter, front);
-  const sign = mesh(new RoundedBoxGeometry(5, 1.1, 0.12, 2, 0.08), new THREE.MeshStandardMaterial({
-    map: canvasTex(512, 112, (x) => {
-      x.fillStyle = "#2c3a2e"; x.fillRect(0, 0, 512, 112);
-      x.strokeStyle = "#c98a4e"; x.lineWidth = 10; x.strokeRect(0, 0, 512, 112);
-      x.fillStyle = "#fff6e3"; x.font = '400 64px "Lilita One", sans-serif'; x.textAlign = "center"; x.textBaseline = "middle";
-      x.fillText("FEIRA DO BAIRRO", 256, 60);
-    }), roughness: 0.8,
-  }));
-  sign.position.set(0, -1.6, 3.07);
-  m.add(sign);
 
-  const slots = [];
+  // degraus de madeira: ficam fixos; os caixotes de cada partida vêm de stall()
   for (let tier = 0; tier < 3; tier++) {
-    const y = tier * 1.15, z = -tier * 1.5 + 0.9;
-    const step = mesh(new RoundedBoxGeometry(13.2, 0.2 + tier * 1.15, 1.6, 2, 0.06), wood);
-    step.position.set(0, (0.2 + tier * 1.15) / 2 - 0.05, z); step.receiveShadow = true;
+    const h = 0.2 + tier * 1.15;
+    const step = mesh(new RoundedBoxGeometry(13.6, h, 1.6, 2, 0.06), wood);
+    step.position.set(0, h / 2 - 0.05, -tier * 1.5 + 0.9); step.receiveShadow = true;
     m.add(step);
-    for (let i = 0; i < 5; i++) {
-      const x = (i - 2) * 2.55;
-      const crate = new THREE.Group();
-      for (const [w, h, d, px, py, pz] of [[2.3, 0.1, 1.35, 0, 0.05, 0], [2.3, 0.45, 0.1, 0, 0.27, 0.62], [2.3, 0.45, 0.1, 0, 0.27, -0.62], [0.1, 0.45, 1.35, 1.1, 0.27, 0], [0.1, 0.45, 1.35, -1.1, 0.27, 0]]) {
-        const p = mesh(new RoundedBoxGeometry(w, h, d, 1, 0.03), food({ color: "#e2b27a", map: tex("wood"), roughness: 0.7 }));
-        p.position.set(px, py, pz); crate.add(p);
-      }
-      const paper = mesh(new THREE.PlaneGeometry(2.1, 1.2), food({ color: ["#9be3c6", "#ffd9a0", "#f7c3cf"][(i + tier) % 3], roughness: 0.9, clearcoat: 0 }));
-      paper.rotation.x = -Math.PI / 2; paper.position.y = 0.11; paper.receiveShadow = true;
-      crate.add(paper);
-      crate.position.set(x, y + 0.15, z);
-      m.add(crate);
-      slots.push(new THREE.Vector3(x, y + 0.27, z));
-    }
   }
 
   // postes e toldo listrado, ondulado na borda
@@ -393,7 +369,8 @@ export function buildMarket() {
 
   // varal de lampadinhas que brilham
   const bulbs = [];
-  const bulbMat = new THREE.MeshBasicMaterial({ color: new THREE.Color("#ffe39a").multiplyScalar(2.4) });
+  const bulbBase = new THREE.Color("#ffe39a").multiplyScalar(2.4);
+  const bulbMat = new THREE.MeshBasicMaterial({ color: bulbBase.clone() });
   for (let i = 0; i <= 22; i++) {
     const t = i / 22, x = -9 + t * 18, y = 5.5 - Math.sin(t * Math.PI) * 0.8;
     const b = mesh(new THREE.SphereGeometry(0.12, 12, 8), bulbMat);
@@ -403,11 +380,82 @@ export function buildMarket() {
   m.add(wire);
   const warm = new THREE.PointLight("#ffc98a", 14, 16, 1.4); warm.position.set(0, 4.6, 4.5); m.add(warm);
 
+  // bandeirinhas de festa entre os postes, balançando com o vento
+  const flags = [];
+  const flagGeo = new THREE.BufferGeometry().setFromPoints([V2(-0.28, 0), V2(0.28, 0), V2(0, -0.62)].map((p) => new THREE.Vector3(p.x, p.y, 0)));
+  flagGeo.computeVertexNormals();
+  const flagColors = ["#e5484d", "#ffd23f", "#2a8199", "#4cbb5f", "#ff9a1f", "#7a5cc8"];
+  for (let i = 0; i < 26; i++) {
+    const t = (i + 0.5) / 26, x = -8.8 + t * 17.6, y = 6.1 - Math.sin(t * Math.PI) * 0.35; // acima da banca: não tapa o degrau de cima
+    const f = mesh(flagGeo, food({ color: flagColors[i % flagColors.length], roughness: 0.8, clearcoat: 0 }));
+    f.position.set(x, y, 3.05); f.userData.noShadow = true; flags.push(f); m.add(f);
+  }
+  const cord = mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(Array.from({ length: 13 }, (_, i) => {
+    const t = i / 12; return new THREE.Vector3(-9 + t * 18, 6.1 - Math.sin(t * Math.PI) * 0.35, 3.05);
+  })), 60, 0.015, 4), glossy({ color: "#fff6e3" }));
+  m.add(cord);
+
   // cesta de compras no balcão, à direita
-  const basket = build.basket({ filled: false }); basket.scale.setScalar(1.05); basket.position.set(7.6, 0, 1.4); basket.rotation.y = 0.5;
+  const basket = build.basket({ filled: false }); basket.scale.setScalar(1.05); basket.position.set(7.5, 0, 2.0); basket.rotation.y = 0.5;
   m.add(basket);
 
   castAll(m);
   ground.castShadow = false;
-  return { group: m, slots, basket };
+
+  // vento nas bandeirinhas e lâmpadas que piscam devagar, cada uma no seu tempo
+  const tick = (t) => {
+    flags.forEach((f, i) => { f.rotation.x = Math.sin(t * 2.1 + i * 0.7) * 0.25; f.rotation.y = Math.sin(t * 1.3 + i) * 0.15; });
+    bulbMat.color.copy(bulbBase).multiplyScalar(1 + Math.sin(t * 1.5) * 0.1);
+  };
+  return { group: m, basket, stall, tick };
+}
+
+/* Banca da partida: `n` caixotes em três degraus, inclinados para o freguês como na feira,
+   cada um com uma plaquinha de preço. Devolve o grupo, onde apoiar cada item e a inclinação. */
+const CRATE_TILT = 0.3;
+const PAPER = ["#9be3c6", "#ffd9a0", "#f7c3cf"];
+function stall(n) {
+  const g = new THREE.Group(), slots = [], rand = seeded(n * 31 + 7);
+  const perRow = [0, 1, 2].map((r) => Math.floor(n / 3) + (r >= 3 - (n % 3) ? 1 : 0)); // sobras vão para trás
+  const cols = Math.max(...perRow), gap = Math.min(2.55, 12.6 / cols), w = gap - 0.22, d = 1.3;
+  const plank = food({ color: "#e2b27a", map: tex("wood"), roughness: 0.7 });
+  perRow.forEach((count, tier) => {
+    const y = tier * 1.15 + 0.15, z = -tier * 1.5 + 0.9;
+    for (let i = 0; i < count; i++) {
+      const crate = new THREE.Group();
+      // fundo, frente baixa (deixa ver o que tem dentro), fundo alto e laterais
+      for (const [bw, bh, bd, px, py, pz] of [[w, 0.1, d, 0, 0.05, 0], [w, 0.22, 0.1, 0, 0.16, d / 2 - 0.05], [w, 0.55, 0.1, 0, 0.32, -d / 2 + 0.05], [0.1, 0.4, d, w / 2 - 0.05, 0.25, 0], [0.1, 0.4, d, -w / 2 + 0.05, 0.25, 0]]) {
+        const p = mesh(new RoundedBoxGeometry(bw, bh, bd, 1, 0.03), plank);
+        p.position.set(px, py, pz); crate.add(p);
+      }
+      const paper = mesh(new THREE.PlaneGeometry(w - 0.2, d - 0.15), food({ color: PAPER[(i + tier) % 3], roughness: 0.9, clearcoat: 0 }));
+      paper.rotation.x = -Math.PI / 2; paper.position.y = 0.11; paper.receiveShadow = true;
+      crate.add(paper);
+      crate.add(priceTag(`R$ ${2 + Math.floor(rand() * 9)},${["00", "50", "90", "99"][Math.floor(rand() * 4)]}`, w, d, rand));
+      const x = (i - (count - 1) / 2) * gap, lift = Math.sin(CRATE_TILT) * d / 2; // ergue para a frente não afundar no degrau
+      crate.position.set(x, y + lift, z);
+      crate.rotation.x = CRATE_TILT;
+      const wedge = mesh(new RoundedBoxGeometry(w * 0.9, lift * 2, 0.2, 1, 0.03), plank); // calço sob a borda de trás
+      wedge.position.set(x, y + lift, z - d / 2 + 0.15);
+      g.add(crate, wedge);
+      slots.push({ pos: new THREE.Vector3(x, y + lift + 0.1, z), size: w });
+    }
+  });
+  castAll(g);
+  return { group: g, slots, tilt: CRATE_TILT };
+}
+
+function priceTag(text, w, d, rand) { // lousinha pendurada na frente do caixote, meio torta
+  const board = mesh(new THREE.PlaneGeometry(0.62, 0.34), new THREE.MeshStandardMaterial({
+    map: canvasTex(192, 104, (x) => {
+      x.fillStyle = "#fff6e3"; x.fillRect(0, 0, 192, 104);
+      x.fillStyle = "#2c3a2e"; x.fillRect(6, 6, 180, 92);
+      x.fillStyle = "#fff6e3"; x.font = '400 40px "Lilita One", sans-serif'; x.textAlign = "center"; x.textBaseline = "middle";
+      x.fillText(text, 96, 54);
+    }), roughness: 0.8, side: THREE.DoubleSide,
+  }));
+  board.position.set((rand() - 0.5) * (w - 0.8), 0.12, d / 2 + 0.02);
+  board.rotation.z = (rand() - 0.5) * 0.25;
+  board.userData.noShadow = true;
+  return board;
 }

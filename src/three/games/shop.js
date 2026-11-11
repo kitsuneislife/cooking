@@ -23,6 +23,26 @@ const MODELS = {
   garlic: build.garlic, ginger: build.ginger, cornstarch: cornstarchBox, rice: () => build.rice({ sticks: false }),
   shrimp: build.shrimp, tofu: build.tofu, carrot: build.carrot, mushroom: build.mushroom, teriyaki: build.teriyaki,
 };
+const ONLY = { rice: 2 }; // itens que não empilham bem: quantos lado a lado
+
+// Monte de feira dentro do caixote: frascos e caixas em fila, o resto amontoado com um por cima.
+function pile(id, crate) {
+  const g = new THREE.Group(), copy = (size) => { const m = fit(MODELS[id](), size); castAll(m); return m; };
+  const probe = copy(1), dim = new THREE.Box3().setFromObject(probe).getSize(v3(0, 0, 0));
+  const tall = dim.y > Math.max(dim.x, dim.z) * 1.1;
+  const place = (m, x, y, z, ry) => { m.position.set(x, y, z); m.rotation.y = ry; g.add(m); };
+  if (tall || ONLY[id]) {
+    const n = ONLY[id] ?? 3, size = tall ? Math.min(1.25, crate * 0.75) : crate / n * 0.95;
+    const step = Math.min((crate - 0.25) / n, (tall ? size * Math.max(dim.x, dim.z) / dim.y : size) * 1.05);
+    for (let i = 0; i < n; i++) place(copy(size), (i - (n - 1) / 2) * step, 0, i % 2 ? -0.15 : 0.1, (Math.random() - 0.5) * 0.5);
+  } else {
+    const size = Math.min(0.95, crate * 0.42);
+    for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) place(copy(size), x * crate * 0.2, 0, z * 0.25, Math.random() * Math.PI * 2);
+    const top = copy(size); place(top, 0, size * dim.y * 0.6, 0, Math.random() * Math.PI * 2);
+    top.rotation.z = (Math.random() - 0.5) * 0.4;
+  }
+  return g;
+}
 
 export default {
   title: "Feira do bairro",
@@ -33,18 +53,18 @@ export default {
   seconds: 45,
 
   create(world, ctx, spec, game) {
-    const s = scope(world), { group, slots, basket } = world.market;
+    const s = scope(world), { group, basket } = world.market;
     const pool = shuffle([
       ...game.ingredients.map((i) => ({ ...i, belongs: true })),
       ...game.intruders.map((i) => ({ ...i, belongs: false })),
     ]);
+    const stall = world.market.stall(pool.length);
+    s.add(stall.group, group);
     const items = pool.map((it, n) => {
-      const holder = new THREE.Group();
-      const model = fit(MODELS[it.id](), it.id === "beef" || it.id === "tofu" || it.id === "carrot" ? 1.7 : 1.35);
-      castAll(model);
-      holder.add(model);
-      holder.position.copy(slots[n]);
-      holder.rotation.y = (Math.random() - 0.5) * 0.6;
+      const holder = new THREE.Group(), { pos, size } = stall.slots[n];
+      holder.add(pile(it.id, size));
+      holder.position.copy(pos);
+      holder.rotation.x = stall.tilt; // deitado junto com o caixote
       holder.userData = { item: it, phase: n * 0.7, hover: 0 };
       return s.add(holder, group);
     });
@@ -93,8 +113,8 @@ export default {
       const n = inBasket++;
       const spot = basket.position.clone().add(v3(((n % 3) - 1) * 0.5, 0.55 + Math.floor(n / 3) * 0.22, ((n * 7) % 3 - 1) * 0.35));
       const scale = h.scale.x;
-      world.tween(0.6, (k) => h.scale.setScalar(scale + (0.42 - scale) * k));
-      await hop(world, h, spot, { height: 3, dur: 0.6, turn: 3 });
+      world.tween(0.6, (k) => h.scale.setScalar(scale + (0.45 - scale) * k));
+      await hop(world, h, spot, { height: 3, dur: 0.6, turn: 3, spin: -stall.tilt });
       sfx.plop();
       squash(world, basket, 0.12);
       world.fx.sparkle(basket.getWorldPosition(v3(0, 0, 0)).add(v3(0, 1.4, 0)), 10);

@@ -13,7 +13,7 @@ export const MARKET_X = -70; // a feira fica longe da cozinha: a câmera "viaja"
 const v = (x, y, z) => new THREE.Vector3(x, y, z);
 // Planos de câmera: posição, para onde olha e abertura vertical (em graus).
 export const SHOTS = {
-  market: { pos: v(MARKET_X, 6.2, 15.5), look: v(MARKET_X, 1.5, 0), fov: 36 },
+  market: { pos: v(MARKET_X, 6.8, 13.6), look: v(MARKET_X, 2.0, 0), fov: 36 },
   wide: { pos: v(1.5, 6.8, 19), look: v(1.5, 2.8, -1), fov: 42 },
   board: { pos: v(STATION_X.board, 9.2, 5.6), look: v(STATION_X.board, 0.1, 0.55), fov: 32 },
   bowl: { pos: v(STATION_X.bowl, 7.6, 6.4), look: v(STATION_X.bowl, 0.7, -0.2), fov: 36 },
@@ -281,6 +281,7 @@ export async function createWorld(host) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
     for (const f of [...tickers]) f(dt, time);
     kitchen.stations.stove.userData.tick(time);
+    market.tick(time);
     fx.update(dt);
     updateCamera(dt);
     composer.render();
