@@ -1,0 +1,495 @@
+:root {
+  --wall: #2a8199;
+  --wall-dark: #123f52;
+  --wood-light: #f4c27c;
+  --wood: #d9964d;
+  --wood-dark: #7a4317;
+  --wood-deep: #4a2508;
+  --cream: #fff6e3;
+  --cream-2: #f6e3bf;
+  --ink: #4b2a12;
+  --ink-soft: #7d5a3c;
+  --sun: #ffd23f;
+  --orange: #ff9a1f;
+  --orange-dark: #c2590a;
+  --red: #e5484d;
+  --red-dark: #a8262b;
+  --green: #4cbb5f;
+  --green-dark: #2b8a3e;
+  --night: #0c2a38;
+  --display: "Lilita One", "Fredoka", system-ui, sans-serif;
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --chunky: 0 5px 0 var(--wood-dark), 0 10px 18px #0005;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: "Fredoka", system-ui, sans-serif;
+  color: var(--ink);
+  line-height: 1.4;
+  /* parede de azulejos da cozinha, com a luz vindo do alto */
+  background:
+    radial-gradient(70% 45% at 50% 0%, #ffe9a84d, transparent 70%),
+    repeating-linear-gradient(0deg, #ffffff12 0 2px, transparent 2px 64px),
+    repeating-linear-gradient(90deg, #ffffff12 0 2px, transparent 2px 64px),
+    linear-gradient(var(--wall), var(--wall-dark));
+  background-attachment: fixed;
+}
+button, input { font: inherit; color: inherit; }
+img { max-width: 100%; display: block; }
+h1, h2, h3 { font-weight: 600; line-height: 1.15; margin: 0 0 .4em; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; }
+p { margin: 0 0 .6em; }
+a { color: var(--orange-dark); }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+.muted { color: var(--ink-soft); font-size: .92rem; }
+
+:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; border-radius: 10px; }
+[tabindex="-1"]:focus { outline: none; }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip-link { position: absolute; left: 12px; top: -60px; background: var(--ink); color: #fff; padding: 8px 14px; border-radius: 10px; z-index: 100; }
+.skip-link:focus { top: 12px; }
+
+/* ---------- Site (fora da partida) ---------- */
+.site-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px max(16px, calc((100% - 1000px) / 2));
+  background: linear-gradient(var(--wood-dark), var(--wood-deep));
+  box-shadow: 0 4px 0 #2a1404, 0 8px 18px #0006;
+  color: var(--cream);
+}
+.logo { font-family: var(--display); font-size: 1.5rem; color: var(--sun); text-decoration: none; text-shadow: 0 2px 0 #2a1404; }
+.site-header nav { display: flex; gap: 6px; flex-wrap: wrap; }
+.site-header nav a { color: var(--cream); text-decoration: none; padding: 6px 14px; border-radius: 99px; font-weight: 500; }
+.site-header nav a:hover { background: #ffffff1f; }
+.site-header nav a.active { background: var(--sun); color: var(--ink); }
+main { max-width: 1000px; margin: 0 auto; padding: 24px 16px 40px; }
+main.main-game { max-width: none; padding: 0; overflow-x: clip; } /* o tremor do erro não cria barra de rolagem */
+.site-footer { text-align: center; padding: 16px; color: #d8eef5; font-size: .9rem; }
+.site-footer a { color: var(--sun); }
+
+.page, .recipe-card, .how li, .status {
+  background: linear-gradient(var(--cream), var(--cream-2));
+  border: 3px solid var(--wood-dark); border-radius: 22px; box-shadow: var(--chunky);
+}
+.page { padding: 20px; }
+.page h1 { font-family: var(--display); font-weight: 400; font-size: clamp(1.6rem, 4vw, 2.2rem); }
+
+/* ---------- Botões e chips ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 3px solid var(--orange-dark); border-radius: 99px; padding: 8px 22px; cursor: pointer;
+  background: linear-gradient(var(--sun), var(--orange)); color: var(--wood-deep);
+  font-family: var(--display); font-size: 1.1rem; letter-spacing: .3px; text-decoration: none;
+  box-shadow: inset 0 3px 0 #fff8, 0 5px 0 var(--orange-dark), 0 9px 14px #0004;
+  transition: transform .2s var(--spring), box-shadow .2s;
+}
+.btn:hover { transform: translateY(-2px) scale(1.03); }
+.btn:active { transform: translateY(4px); box-shadow: inset 0 3px 0 #fff8, 0 1px 0 var(--orange-dark); }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn-ghost { background: linear-gradient(#fff, var(--cream-2)); border-color: var(--wood-dark); box-shadow: inset 0 3px 0 #fff, 0 5px 0 var(--wood-dark), 0 9px 14px #0004; }
+.btn-big { font-size: 1.5rem; padding: 10px 40px; }
+.btn-small { padding: 4px 16px; font-size: .95rem; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
+.chips li, .chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 12px; border-radius: 99px; font-size: .85rem; font-weight: 600;
+  background: #f0d9ae; color: var(--ink);
+}
+.chips .chip-ok, .chip-ok { background: #d5f0d0; color: var(--green-dark); }
+.chips .chip-bad { background: #fbd5d2; color: var(--red-dark); }
+.chip .cut-icon { width: 16px; height: 16px; }
+.icon { width: 1.3em; height: 1.3em; flex: none; }
+
+/* ---------- Mensagens ---------- */
+.status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; margin: 12px 0; border-radius: 16px; }
+.status-error { border-color: var(--red-dark); background: #fde6e2; color: #7a1e16; }
+.status-success { border-color: var(--green-dark); background: #e6f6e0; color: #1f5a2a; }
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--cream-2); border-top-color: var(--orange); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Ilustrações ---------- */
+.art { width: 100%; height: auto; display: block; overflow: visible; }
+.art.mini { width: 44px; }
+.bare > :not(.food):not(defs) { display: none; } /* só a comida, sem o prato */
+.food { animation: bob 3.2s ease-in-out infinite; animation-delay: var(--d, 0s); transform-origin: 100px 140px; }
+.shadow { animation: shadow 3.2s ease-in-out infinite; animation-delay: var(--d, 0s); transform-origin: 100px 150px; }
+.mini .food, .fx .food, .drag-ghost .food { animation: none; }
+@keyframes bob { 50% { transform: translateY(-5px); } }
+@keyframes shadow { 50% { transform: scale(.92); opacity: .75; } }
+.flame { animation: flicker .5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes flicker { to { transform: scaleY(.75) scaleX(1.1); } }
+.steam { animation: steam 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes steam { 0% { opacity: 0; transform: translateY(6px); } 40% { opacity: .7; } 100% { opacity: 0; transform: translateY(-10px); } }
+.glow { animation: glow 1.6s ease-in-out infinite alternate; }
+@keyframes glow { to { opacity: .5; } }
+.sparkle { animation: twinkle 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes twinkle { 50% { transform: scale(.4); opacity: .4; } }
+
+.chef { width: 76px; flex: none; filter: drop-shadow(0 4px 4px #0005); transform-origin: 50% 100%; }
+.chef[data-mood="happy"] { animation: hop .5s var(--spring); }
+.chef[data-mood="sad"] { animation: shake .45s ease; }
+@keyframes hop { 40% { transform: translateY(-12px) scale(1.06); } }
+
+/* ---------- Tela de título ---------- */
+.title-screen { display: grid; gap: 28px; }
+.hero { text-align: center; color: #e6f6fb; font-size: 1.15rem; }
+.hero .chef { width: 120px; margin: 0 auto -6px; display: block; animation: bob 3.2s ease-in-out infinite; }
+.logo-big, .section-title, .phase-banner {
+  font-family: var(--display); font-weight: 400; color: #fff;
+  -webkit-text-stroke: 6px var(--wood-deep); paint-order: stroke fill;
+  text-shadow: 0 6px 0 var(--wood-deep), 0 12px 18px #0006;
+}
+.logo-big { font-size: clamp(3rem, 12vw, 6rem); line-height: .95; margin: 0 0 12px; transform: rotate(-3deg); }
+.logo-big span { color: var(--sun); display: block; }
+.section-title { font-size: 1.7rem; -webkit-text-stroke-width: 4px; text-shadow: 0 4px 0 var(--wood-deep); margin-bottom: 12px; }
+
+.recipe-card { display: grid; grid-template-columns: minmax(0, 220px) 1fr; gap: 18px; align-items: center; padding: 14px; }
+.recipe-card img, .detail-photo, .dish-photo { border-radius: 16px; border: 4px solid #fff; box-shadow: 0 4px 0 var(--wood-dark), 0 10px 18px #0004; aspect-ratio: 1; object-fit: cover; width: 100%; }
+.recipe-card img { transform: rotate(-3deg); }
+.recipe-card h3 { font-family: var(--display); font-weight: 400; font-size: 1.6rem; margin: 0; }
+.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.how li { padding: 12px 16px 16px; text-align: center; }
+.how .art { max-width: 170px; margin: 0 auto; }
+.how h3 { font-family: var(--display); font-weight: 400; font-size: 1.3rem; }
+.how p { margin: 0; color: var(--ink-soft); }
+
+/* ---------- Detalhe ---------- */
+.detail { display: grid; grid-template-columns: minmax(0, 340px) 1fr; gap: 28px; align-items: start; }
+.detail-body ul:not(.chips), .detail-body ol, .full-recipe ul, .full-recipe ol { padding-left: 22px; list-style: revert; }
+.detail-body li { margin-bottom: 4px; }
+.detail-body .btn { margin: 4px 0 18px; }
+
+/* ---------- Partida: palco ---------- */
+.game {
+  position: relative; min-height: 100dvh; display: flex; flex-direction: column; gap: 8px;
+  padding: 10px max(12px, calc((100% - 1180px) / 2)) 16px;
+  user-select: none; -webkit-user-select: none;
+}
+/* chão da cozinha, atrás de tudo */
+.game::before {
+  content: ""; position: fixed; inset: auto 0 0; height: 26%; z-index: -1;
+  background: repeating-linear-gradient(90deg, #0000001a 0 3px, transparent 3px 120px), linear-gradient(#8a4f20, #4a2508);
+  border-top: 8px solid #f4c27c; box-shadow: 0 -6px 18px #0006;
+}
+.game-waiting { align-items: center; justify-content: center; }
+
+.hud { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hud p, .hud h1 { margin: 0; }
+.hud-btn, .hud-stat, .hud-phases, .hud-title {
+  background: linear-gradient(#174960, var(--night)); color: #fff;
+  border: 3px solid #fff3; border-radius: 99px; box-shadow: 0 4px 0 #061821, 0 8px 14px #0005;
+}
+.hud-btn { width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer; padding: 0; transition: transform .2s var(--spring); }
+.hud-btn:hover { transform: scale(1.1) rotate(-6deg); }
+.hud-title { padding: 4px 18px; margin-right: auto; }
+.hud-title h1 { font-family: var(--display); font-weight: 400; font-size: 1.15rem; color: var(--sun); }
+.hud-title p { font-size: .78rem; opacity: .85; line-height: 1.1; }
+.hud-phases { display: flex; gap: 2px; padding: 4px; }
+.hud-phases li { display: flex; align-items: center; gap: 6px; padding: 2px 12px 2px 3px; border-radius: 99px; font-weight: 600; font-size: .9rem; color: #9fc4d2; }
+.phase-num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #ffffff22; font-family: var(--display); }
+.hud-phases .current { background: #fff; color: var(--ink); }
+.hud-phases .current .phase-num { background: var(--orange); color: #fff; }
+.hud-phases .done .phase-num { background: var(--green); color: #fff; }
+.hud-stat { position: relative; display: flex; align-items: center; gap: 6px; padding: 6px 16px 6px 10px; min-height: 44px; font-family: var(--display); font-size: 1.3rem; overflow: hidden; }
+.hud-stat .icon { width: 28px; height: 28px; }
+.time-bar { position: absolute; inset: auto 0 0; height: 5px; background: #0006; }
+.time-bar i { display: block; height: 100%; background: var(--green); transition: width 1s linear; }
+.hud-stat[data-low] { color: #ff8a8a; animation: pulse .5s ease-in-out infinite alternate; }
+.hud-stat[data-low] .time-bar i { background: var(--red); }
+.bump { display: inline-block; animation: bump .4s var(--spring); }
+@keyframes bump { from { transform: scale(1.7); color: var(--sun); } }
+@keyframes pulse { to { transform: scale(1.07); } }
+.hud { position: relative; z-index: 4; }
+.hud-combo {
+  position: absolute; right: 56px; top: calc(100% + 4px); /* pendurado no painel, sem empurrar os outros */
+  font-family: var(--display); font-size: 1.2rem; color: #fff; padding: 4px 14px; border-radius: 99px; transform: rotate(-4deg);
+  background: linear-gradient(#ff6b6b, var(--red-dark)); border: 3px solid #fff; box-shadow: 0 4px 0 #6e1418;
+  animation: bump .5s var(--spring);
+}
+
+.chef-strip { display: flex; align-items: flex-end; gap: 4px; min-height: 80px; }
+.bubble {
+  position: relative; margin: 0 0 14px 10px; padding: 10px 18px; max-width: 640px;
+  background: #fff; border: 3px solid var(--wood-dark); border-radius: 20px; box-shadow: 0 4px 0 var(--wood-dark);
+  font-weight: 500; font-size: 1.05rem;
+}
+.bubble::before { content: ""; position: absolute; left: -13px; bottom: 12px; width: 20px; height: 20px; background: #fff; border-left: 3px solid var(--wood-dark); border-bottom: 3px solid var(--wood-dark); transform: rotate(45deg); border-radius: 0 0 0 5px; }
+.bubble span { display: block; position: relative; animation: say .35s var(--spring); }
+@keyframes say { from { transform: scale(.85); opacity: 0; } }
+
+/* faixa que anuncia a fase; some sozinha (e nem aparece sem animação) */
+.phase-banner {
+  position: fixed; left: 0; right: 0; top: 34%; z-index: 60; margin: 0; text-align: center; pointer-events: none;
+  font-size: clamp(3rem, 12vw, 6.5rem); line-height: 1; opacity: 0; animation: banner 1.7s ease both;
+}
+.phase-banner small { display: block; font-size: .3em; color: var(--sun); -webkit-text-stroke-width: 4px; }
+@keyframes banner {
+  0% { opacity: 0; transform: translateX(-60%) rotate(-8deg) scale(.6); }
+  18%, 70% { opacity: 1; transform: rotate(-3deg) scale(1); }
+  100% { opacity: 0; transform: translateX(60%) rotate(4deg) scale(.8); }
+}
+
+.phase { flex: 1; animation: phase-in .5s ease both; }
+@keyframes phase-in { from { opacity: 0; transform: translateY(24px); } }
+
+/* ---------- Peças comuns das fases ---------- */
+/* caixote: um ingrediente que dá para tocar ou arrastar */
+.crate {
+  position: relative; display: block; width: 100%; padding: 2px 2px 6px; text-align: center; cursor: grab; touch-action: none;
+  background: linear-gradient(#fffdf6, var(--cream-2)); border: 3px solid var(--wood-dark); border-radius: 16px;
+  box-shadow: inset 0 3px 0 #fff, 0 5px 0 var(--wood-dark), 0 8px 12px #0004;
+  transition: transform .3s var(--spring), box-shadow .3s, opacity .2s;
+}
+button.crate:hover, button.crate:focus-visible { transform: translateY(-6px) rotate(-2deg) scale(1.04); z-index: 2; }
+button.crate:active { transform: translateY(2px) scale(.96); }
+.crate[aria-pressed="true"] { border-color: var(--orange-dark); background: linear-gradient(#fff8d6, var(--sun)); transform: translateY(-8px) scale(1.07); box-shadow: 0 0 0 4px #ffd23f88, 0 5px 0 var(--orange-dark), 0 14px 18px #0005; }
+.crate .art { scale: 1.22; translate: 0 2%; } /* sem o prato sobra espaço: a comida cresce */
+.crate[data-dragging] { opacity: .3; }
+.crate-name { display: block; font-weight: 600; font-size: .82rem; line-height: 1.1; min-height: 2.2em; display: grid; place-items: center; padding: 0 2px; }
+.crate.shake { border-color: var(--red); background: #fde0dc; }
+.shake { animation: shake .5s ease; }
+@keyframes shake {
+  20% { transform: translateX(-8px) rotate(-3deg); } 40% { transform: translateX(8px) rotate(3deg); }
+  60% { transform: translateX(-5px); } 80% { transform: translateX(5px); }
+}
+
+/* papel preso com alfinete: lista de compras, passo da receita */
+.ticket {
+  position: relative; margin: 6px 0 0; padding: 14px 14px 12px; background: #fffdf4; border-radius: 6px 6px 14px 14px;
+  box-shadow: 0 4px 0 #d9c7a0, 0 12px 20px #0005;
+}
+.ticket::before { content: ""; position: absolute; left: 50%; top: -8px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ff9a9a, var(--red) 55%, var(--red-dark)); box-shadow: 0 3px 3px #0005; }
+.ticket h3 { font-family: var(--display); font-weight: 400; font-size: 1.2rem; margin: 0 0 4px; }
+
+.drag-ghost { position: fixed; z-index: 85; width: 110px; pointer-events: none; transform: translate(-50%, -60%) rotate(-8deg) scale(1.1); filter: drop-shadow(0 14px 10px #0006); }
+.badge {
+  position: absolute; right: 50%; bottom: 2%; translate: 50%; min-width: 54px; padding: 2px 10px; border-radius: 99px; text-align: center;
+  font-family: var(--display); font-size: 1.25rem; color: #fff; background: linear-gradient(#ff6b6b, var(--red-dark)); border: 3px solid #fff; box-shadow: 0 4px 0 #6e1418;
+  animation: bump .4s var(--spring);
+}
+
+/* efeitos soltos na tela (src/game/fx.js) */
+.fx { position: fixed; z-index: 90; pointer-events: none; }
+.fx-pop { font-family: var(--display); font-size: 2rem; color: var(--sun); -webkit-text-stroke: 5px var(--wood-deep); paint-order: stroke fill; white-space: nowrap; }
+.fx-pop.bad { color: #ff7b7b; }
+.fx-fly { width: 96px; filter: drop-shadow(0 10px 8px #0005); }
+.fx-bit { width: 11px; height: 11px; border-radius: 3px; }
+.fx-confetti { width: 12px; height: 18px; z-index: 95; }
+
+/* ---------- Fase 1: mercado ---------- */
+.market { display: grid; grid-template-columns: 1fr minmax(200px, 250px); gap: 18px; align-items: start; }
+.stall { background: linear-gradient(#a8662c, #7a4317); border: 3px solid var(--wood-deep); border-radius: 20px; box-shadow: 0 6px 0 var(--wood-deep), 0 14px 24px #0006; padding: 0 12px 14px; }
+/* toldo listrado com barra recortada */
+.awning { position: relative; height: 34px; margin: 0 -22px 26px; border-radius: 14px 14px 0 0; background: repeating-linear-gradient(90deg, var(--red) 0 36px, #fff 36px 72px); box-shadow: inset 0 4px 0 #fff5, inset 0 -6px 8px #0002; }
+.awning::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 18px; filter: drop-shadow(0 5px 3px #0004);
+  background: radial-gradient(circle at 18px 0, var(--red) 17.5px, transparent 18px), radial-gradient(circle at 54px 0, #fff 17.5px, transparent 18px);
+  background-size: 72px 18px;
+}
+.shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 12px 10px; }
+.empty-slot { border: 3px dashed #ffffff40; border-radius: 16px; min-height: 100px; }
+.market-side { display: grid; gap: 4px; }
+.checklist li { position: relative; padding: 2px 0 2px 28px; border-bottom: 1px dashed #d9c7a0; font-weight: 500; font-size: .95rem; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 4px; width: 16px; height: 16px; border: 2px solid var(--wood-dark); border-radius: 5px; background: #fff; }
+.checklist li.got { color: var(--green-dark); text-decoration: line-through; }
+.checklist li.got::before { background: var(--green); border-color: var(--green-dark); box-shadow: inset 0 0 0 2px #fff; }
+.basket { position: relative; max-width: 230px; margin: 0 auto; width: 100%; transition: transform .3s var(--spring); }
+.basket[data-over] { transform: scale(1.1) rotate(-3deg); }
+.basket-items { position: absolute; left: 16%; right: 16%; top: 22%; display: flex; flex-wrap: wrap; justify-content: center; z-index: 1; pointer-events: none; }
+.basket-items .art.mini { width: 50px; margin: -10px -8px; animation: drop-in .5s var(--spring); }
+@keyframes drop-in { from { transform: translateY(-30px) scale(.5); opacity: 0; } }
+
+/* ---------- Fase 2: preparo ---------- */
+.prep { display: grid; grid-template-columns: 150px 1fr 150px; gap: 16px; align-items: start; }
+.side-shelf { background: linear-gradient(#a8662c, #7a4317); border: 3px solid var(--wood-deep); border-radius: 20px; box-shadow: 0 6px 0 var(--wood-deep), 0 14px 24px #0006; padding: 8px 10px 12px; min-height: 180px; }
+.side-shelf h3 { font-family: var(--display); font-weight: 400; color: var(--sun); text-align: center; text-shadow: 0 2px 0 var(--wood-deep); margin-bottom: 8px; }
+.side-shelf ul { display: grid; gap: 12px; }
+.crate.done { cursor: default; animation: drop-in .5s var(--spring); padding-bottom: 8px; }
+.crate.done .crate-name { min-height: 0; }
+.board-area { display: grid; gap: 10px; justify-items: center; }
+.recipe-says { margin: 6px 0 0; padding: 12px 20px 8px; text-align: center; font-weight: 500; }
+.recipe-says strong { display: block; font-family: var(--display); font-weight: 400; font-size: 1.5rem; color: var(--red-dark); }
+/* a tábua fica sobre um tampo de mármore */
+.board-zone {
+  position: relative; width: 100%; max-width: 420px; padding: 0 8px; cursor: pointer; transition: transform .3s var(--spring);
+  background: linear-gradient(120deg, #fbfdfe, #d5dee4 60%, #eef3f6); border: 3px solid #6f7d88; border-radius: 24px;
+  box-shadow: inset 0 4px 0 #fff, 0 8px 0 #4f5b65, 0 20px 24px #0006;
+}
+.board-zone .board-knife { display: none; } /* a faca do desenho dá lugar à faca animada */
+.board-zone[data-over] { transform: scale(1.05); }
+.board-zone[data-chopping]:active { transform: scale(.97); }
+.on-board { position: absolute; left: 24%; top: 6%; width: 50%; animation: drop-in .45s var(--spring); }
+.slit { position: absolute; top: 40%; bottom: 20%; width: 5px; margin-left: -2px; border-radius: 3px; background: #c98f50; box-shadow: inset 2px 0 2px #7a431788; transform: rotate(8deg); }
+.knife { position: absolute; right: 2%; top: 22%; width: 44%; transform-origin: 95% 50%; transform: rotate(28deg); filter: drop-shadow(0 6px 4px #0005); animation: chop .22s ease-out; }
+@keyframes chop { 0% { transform: rotate(52deg); } 55% { transform: rotate(4deg); } }
+.pips { position: absolute; left: 0; right: 0; bottom: 4%; display: flex; justify-content: center; gap: 6px; }
+.pips i { width: 16px; height: 16px; border-radius: 50%; background: #0004; border: 2px solid #fff; }
+.pips i.on { background: var(--green); }
+.cuts { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.cut-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 88px; padding: 6px 8px; cursor: pointer; font-weight: 600; font-size: .88rem;
+  background: linear-gradient(#fffdf6, var(--cream-2)); border: 3px solid var(--wood-dark); border-radius: 14px; box-shadow: inset 0 3px 0 #fff, 0 5px 0 var(--wood-dark);
+  transition: transform .2s var(--spring), opacity .2s;
+}
+.cut-btn:hover { transform: translateY(-4px) scale(1.05); }
+.cut-btn:active { transform: translateY(3px); }
+.cuts:disabled .cut-btn { opacity: .45; cursor: not-allowed; transform: none; }
+.cut-btn.wrong { border-color: var(--red); background: #fde0dc; color: var(--red-dark); }
+.cut-icon { width: 30px; height: 30px; color: var(--wood-dark); }
+
+/* ---------- Fase 3: fogão ---------- */
+.cook { display: grid; gap: 14px; align-content: start; }
+.step-ticket { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; }
+.step-ticket p { margin: 0; }
+.step-num { font-family: var(--display); font-size: 2.2rem; line-height: 1; color: #fff; background: linear-gradient(var(--orange), var(--orange-dark)); border-radius: 14px; padding: 6px 12px; box-shadow: 0 4px 0 #7a3a06; }
+.step-num small { font-size: .5em; opacity: .85; }
+.step-api { color: var(--ink-soft); font-style: italic; }
+.step-need { font-family: var(--display); font-size: 1.05rem; color: var(--red-dark); background: #fde6c8; border-radius: 99px; padding: 4px 14px; white-space: nowrap; }
+
+/* bancada com as estações */
+.stations {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; padding: 10px;
+  background: linear-gradient(var(--wood-light), var(--wood)); border: 3px solid var(--wood-deep); border-radius: 22px;
+  box-shadow: inset 0 4px 0 #fff6, 0 10px 0 var(--wood-dark), 0 13px 0 var(--wood-deep), 0 24px 28px #0006;
+}
+.station { position: relative; }
+.station-zone {
+  position: relative; width: 100%; padding: 4px 2px 6px; cursor: pointer;
+  background: #7a43171f; border: 3px dashed #7a431766; border-radius: 16px;
+  transition: transform .3s var(--spring), background .2s, border-color .2s;
+}
+.station-zone:hover { background: #fff5; }
+.station-zone[data-ready] { border-color: var(--red); background: #fff7; animation: pulse .6s ease-in-out infinite alternate; }
+.station-zone[data-over] { border-style: solid; border-color: var(--green-dark); background: #c9f2c4; transform: scale(1.06); }
+.station[data-armed] .station-zone { border-style: solid; border-color: var(--orange-dark); background: #fff9; }
+.station-name { display: inline-block; margin-top: 2px; padding: 1px 14px; border-radius: 99px; font-family: var(--display); color: #fff; background: var(--wood-dark); box-shadow: 0 3px 0 var(--wood-deep); }
+.station-items { position: absolute; left: 4px; right: 4px; top: 2px; display: flex; flex-wrap: wrap; justify-content: center; pointer-events: none; }
+.station-items .art.mini { width: 40px; margin: 0 -6px; animation: drop-in .45s var(--spring); filter: drop-shadow(0 2px 2px #0005); }
+/* wok e tigela começam vazios; o fogo só acende durante a ação */
+.station:not([data-filled]) :is(.wok-food, .bowl-sauce),
+.station:not([data-armed]) :is(.flame, .steam) { display: none; }
+
+/* botão redondo da ação, por cima da estação */
+.action {
+  position: absolute; left: 50%; top: 42%; width: min(100%, 124px); aspect-ratio: 1; margin: 0; padding: 12px; translate: -50% -50%;
+  border: 4px solid #fff; border-radius: 50%; cursor: pointer; z-index: 3;
+  box-shadow: 0 6px 0 var(--wood-deep), 0 14px 20px #0007; animation: drop-in .4s var(--spring);
+}
+.action:active { scale: .93; }
+.action-tap { background: conic-gradient(var(--green) calc(var(--p) * 1turn), #0c2a38 0); }
+.action-timer { background: conic-gradient(var(--sun) calc(var(--ready) * 1turn), var(--green) 0 calc(var(--burnt) * 1turn), var(--red) 0); }
+/* ponteiro do cozimento */
+.action-timer::after { content: ""; position: absolute; left: 50%; top: 0; width: 8px; height: 50%; margin-left: -4px; border-radius: 4px; background: linear-gradient(#fff 34%, transparent 0); border-top: 3px solid var(--wood-deep); transform-origin: 50% 100%; transform: rotate(calc(var(--p, 0) * 1turn)); filter: drop-shadow(0 0 2px #000); }
+.action-face { display: grid; place-content: center; width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(var(--sun), var(--orange)); border: 3px solid var(--orange-dark); color: var(--wood-deep); font-family: var(--display); font-size: .95rem; line-height: 1.05; animation: bump .25s var(--spring); }
+.action-face small { font-size: 1.2em; }
+.action[data-cook="ready"] .action-face { background: linear-gradient(#b6f2a8, var(--green)); border-color: var(--green-dark); }
+.action[data-cook="burnt"] .action-face { background: linear-gradient(#ff9a9a, var(--red)); border-color: var(--red-dark); color: #fff; }
+
+.tray { background: linear-gradient(#5c3212, #3a1d08); border: 3px solid #2a1404; border-radius: 20px; box-shadow: inset 0 5px 10px #0008, 0 8px 16px #0005; padding: 12px; min-height: 110px; }
+.tray ul { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.tray li { width: 82px; animation: drop-in .45s var(--spring); }
+
+/* ---------- Painéis: pedido e resultado ---------- */
+.overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 44px 16px 24px; overflow: auto; background: #071c26cc; animation: fade .3s ease; }
+@keyframes fade { from { opacity: 0; } }
+.panel {
+  position: relative; width: 100%; max-width: 440px; padding: 34px 22px 22px; text-align: center;
+  background: linear-gradient(var(--cream), var(--cream-2)); border: 4px solid var(--wood-dark); border-radius: 28px;
+  box-shadow: inset 0 4px 0 #fff, 0 8px 0 var(--wood-deep), 0 30px 60px #000a; animation: panel-in .55s var(--spring);
+}
+@keyframes panel-in { from { transform: scale(.6) translateY(60px); opacity: 0; } }
+.panel-title {
+  position: absolute; left: 50%; top: -26px; translate: -50% 0; margin: 0; padding: 6px 30px; white-space: nowrap;
+  font-family: var(--display); font-weight: 400; font-size: 1.8rem; color: #fff; text-shadow: 0 3px 0 #6e1418;
+  background: linear-gradient(#ff6b6b, var(--red-dark)); border: 4px solid #fff; border-radius: 18px; box-shadow: 0 6px 0 #6e1418, 0 12px 16px #0005;
+}
+.panel .dish-photo { max-width: 190px; margin: 0 auto 10px; transform: rotate(-3deg); }
+.panel .chips, .panel .actions { justify-content: center; }
+.order-name { font-family: var(--display); font-size: 1.6rem; line-height: 1.1; margin: 0; }
+.phase-preview { display: flex; justify-content: center; gap: 8px; margin: 4px 0 16px; }
+.phase-preview li { flex: 1; max-width: 110px; font-weight: 600; counter-increment: fase; }
+.phase-preview li::after { content: none; }
+
+.panel.result { max-width: 600px; }
+.stars { display: inline-flex; gap: 4px; }
+.star { width: 44px; height: 44px; fill: #e2cfa6; stroke: #a8946e; stroke-width: 1; }
+.star-on { fill: var(--sun); stroke: #b07a10; }
+.result > .stars .star { width: 76px; height: 76px; filter: drop-shadow(0 4px 0 #0003); }
+.result > .stars .star:nth-child(2) { width: 96px; height: 96px; margin-top: -14px; }
+.result > .stars .star-on { animation: star-pop .7s var(--spring) both; }
+.result > .stars .star:nth-child(1) { animation-delay: .3s; }
+.result > .stars .star:nth-child(2) { animation-delay: .6s; }
+.result > .stars .star:nth-child(3) { animation-delay: .9s; }
+@keyframes star-pop { from { transform: scale(0) rotate(-140deg); } }
+.result-body { display: grid; grid-template-columns: 170px 1fr; gap: 20px; align-items: center; margin: 6px 0 16px; text-align: left; }
+.result-body .chips { justify-content: flex-start; margin-bottom: 0; }
+.score-table { border-collapse: collapse; width: 100%; margin-bottom: 8px; font-size: 1.05rem; }
+.score-table th { text-align: left; font-weight: 500; padding: 3px 0; }
+.score-table td { text-align: right; font-family: var(--display); }
+.score-total th, .score-total td { border-top: 3px dashed var(--wood); padding-top: 8px; font-family: var(--display); font-weight: 400; font-size: 1.6rem; color: var(--orange-dark); }
+.score-total .icon { vertical-align: -5px; }
+.rate-form { margin-top: 18px; padding: 12px 14px; background: #fff9; border: 2px dashed var(--wood); border-radius: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
+.rate-form .status { flex-basis: 100%; margin: 0; text-align: left; box-shadow: none; }
+.stars-input { border: 0; padding: 0; margin: 0; }
+.stars-input legend { font-weight: 600; margin: 0 auto 2px; }
+.stars-input label { cursor: pointer; display: inline-block; border-radius: 8px; }
+.stars-input .star { width: 34px; height: 34px; transition: transform .2s var(--spring); }
+.stars-input label:hover .star { transform: scale(1.2) rotate(-8deg); }
+.stars-input label:has(input:focus-visible) { outline: 3px solid var(--orange); outline-offset: 2px; }
+.full-recipe { margin-top: 14px; text-align: left; }
+.full-recipe summary { cursor: pointer; font-weight: 600; text-align: center; }
+.full-recipe h3 { margin-top: 10px; }
+.full-recipe li { margin-bottom: 6px; }
+.full-recipe li p { margin: 2px 0 0; }
+
+/* ---------- Telas menores ---------- */
+@media (max-width: 900px) {
+  .phase-name { display: none; }
+  .hud-phases li { padding: 2px 3px; }
+  .hud-title p { display: none; }
+}
+@media (max-width: 720px) {
+  .detail, .recipe-card, .result-body { grid-template-columns: 1fr; }
+  .recipe-card img, .result-body .dish-photo { max-width: 240px; margin: 0 auto; }
+  .recipe-card-body, .result-body { text-align: center; }
+  .recipe-card .chips, .recipe-card .actions, .result-body .chips { justify-content: center; }
+  .hud-title { display: none; }
+  .hud-phases { margin-right: auto; }
+  .chef { width: 56px; }
+  .chef-strip { min-height: 62px; }
+  .bubble { font-size: .92rem; padding: 8px 12px; margin-bottom: 8px; }
+
+  /* lista em cima, banca no meio, cesta presa no rodapé */
+  .market { grid-template-columns: 1fr; gap: 12px; }
+  .market-side { display: contents; }
+  .market .ticket { order: -1; }
+  .checklist { columns: 2; column-gap: 14px; }
+  .checklist li { font-size: .82rem; break-inside: avoid; }
+  .shelf { grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 10px 8px; }
+  .basket { position: sticky; bottom: 4px; z-index: 5; max-width: 150px; }
+
+  .prep { grid-template-columns: 1fr; }
+  .side-shelf { min-height: 0; }
+  .side-shelf ul { grid-template-columns: repeat(3, minmax(0, 110px)); justify-content: center; }
+  .cut-btn { min-width: 0; flex: 1 1 28%; }
+
+  .step-ticket { grid-template-columns: auto 1fr; }
+  .step-need { grid-column: 1 / -1; justify-self: center; }
+  .stations { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tray li { width: 72px; }
+  .crate-name { font-size: .74rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
