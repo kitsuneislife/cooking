@@ -18,6 +18,7 @@ export const SHOTS = {
   board: { pos: v(STATION_X.board, 9.2, 5.6), look: v(STATION_X.board, 0.1, 0.55), fov: 32 },
   bowl: { pos: v(STATION_X.bowl, 7.6, 6.4), look: v(STATION_X.bowl, 0.7, -0.2), fov: 36 },
   wok: { pos: v(STATION_X.stove, 8.8, 5.2), look: v(STATION_X.stove, 1.1, 0.1), fov: 34 },
+  sear: { pos: v(STATION_X.stove + 0.2, 6.4, 4.4), look: v(STATION_X.stove + 0.2, 0.5, 0.1), fov: 25 }, // mais perto: dá para ler os medidores
   plate: { pos: v(STATION_X.plate, 8.2, 5.4), look: v(STATION_X.plate, 0.3, 0.2), fov: 34 },
   hero: { pos: v(STATION_X.plate + 0.4, 3.4, 5.6), look: v(STATION_X.plate, 0.9, 0.3), fov: 30 },
 };
