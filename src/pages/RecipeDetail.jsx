@@ -15,8 +15,8 @@ export default function RecipeDetail() {
 
   return (
     <article className="page detail">
-      <img className="detail-photo" src={recipe.image} alt={`Foto do prato ${recipe.name}`} />
-      <div className="detail-body">
+      <div className="detail-head">
+        <img className="detail-photo" src={recipe.image} alt={`Foto do prato ${recipe.name}`} />
         <h1>{game?.title ?? recipe.name}</h1>
         {game && <p className="muted" lang="en">{recipe.name}</p>}
         <ul className="chips" aria-label="Informações">
@@ -29,12 +29,15 @@ export default function RecipeDetail() {
         {game
           ? <Link className="btn btn-big" to={`/jogar/${recipe.id}`}>Cozinhar</Link>
           : <p>Esta receita ainda não está na demo.</p>}
-
+      </div>
+      <section>
         <h2>Ingredientes</h2>
         <ul lang="en">{recipe.ingredients.map((i) => <li key={i}>{i}</li>)}</ul>
+      </section>
+      <section>
         <h2>Modo de preparo</h2>
         <ol lang="en">{recipe.instructions.map((s) => <li key={s}>{s}</li>)}</ol>
-      </div>
+      </section>
     </article>
   );
 }

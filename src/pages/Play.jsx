@@ -182,7 +182,7 @@ function Match({ recipe, game, onReplay }) {
         </div>
       )}
 
-      {phase === "result" && <ResultPhase recipe={recipe} game={game} coins={score.coins} steps={steps} onReplay={onReplay} />}
+      {phase === "result" && <ResultPhase recipe={recipe} coins={score.coins} steps={steps} onReplay={onReplay} />}
     </div>
   );
 }

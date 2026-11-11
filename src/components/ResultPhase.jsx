@@ -9,7 +9,7 @@ import { sfx } from "../game/sound";
 import { confetti } from "../game/fx";
 
 // `steps`: a nota (0 a 1) e o tempo que sobrou em cada etapa jogada.
-export default function ResultPhase({ recipe, game, coins, steps, onReplay }) {
+export default function ResultPhase({ recipe, coins, steps, onReplay }) {
   const stars = starsFor(average(steps.map((s) => s.score)));
   const secondsLeft = steps.reduce((n, s) => n + s.spare, 0);
   const { timeBonus, total } = finalScore({ coins, secondsLeft, difficulty: recipe.difficulty });
@@ -44,8 +44,8 @@ export default function ResultPhase({ recipe, game, coins, steps, onReplay }) {
         <StarRating value={stars} max={3} />
 
         <div className="result-body">
-          <img className="dish-photo" src={recipe.image} alt={`Foto do prato ${recipe.name}`} />
-          <div>
+          <div className="result-score">
+            <img className="dish-photo" src={recipe.image} alt={`Foto do prato ${recipe.name}`} />
             <table className="score-table">
               <caption className="visually-hidden">Pontuação</caption>
               <tbody>
@@ -55,18 +55,20 @@ export default function ResultPhase({ recipe, game, coins, steps, onReplay }) {
                 <tr className="score-total"><th scope="row">Total</th><td><Icon name="coin" /> {total}</td></tr>
               </tbody>
             </table>
+            <div className="actions">
+              <button type="button" className="btn" onClick={onReplay}>Jogar de novo</button>
+              <Link className="btn btn-ghost" to="/">Voltar ao início</Link>
+            </div>
+          </div>
+          <div>
             <ol className="grades" aria-label="Nota de cada etapa">
               {steps.map((s, n) => {
                 const g = stepGrade(s.score);
                 return <li key={n} data-grade={g.key}><span>{s.title}</span> <b>{g.label}</b></li>;
               })}
             </ol>
+            <Link className="recipe-link" to={`/receitas/${recipe.id}`}>Ver a receita completa</Link>
           </div>
-        </div>
-
-        <div className="actions">
-          <button type="button" className="btn" onClick={onReplay}>Jogar de novo</button>
-          <Link className="btn btn-ghost" to="/">Voltar ao início</Link>
         </div>
 
         <form className="rate-form" onSubmit={submit}>
@@ -80,25 +82,6 @@ export default function ResultPhase({ recipe, game, coins, steps, onReplay }) {
             </StatusMessage>
           )}
         </form>
-
-        <details className="full-recipe">
-          <summary>Receita completa</summary>
-          <h3>Ingredientes</h3>
-          <ul>
-            {game.ingredients.map((i) => (
-              <li key={i.id}>{i.name} <span className="muted" lang="en">({i.api})</span></li>
-            ))}
-          </ul>
-          <h3>Modo de preparo</h3>
-          <ol>
-            {game.steps.map((s, n) => (
-              <li key={n}>
-                {s.text} <span className="chip">{s.station}</span>
-                <p className="muted" lang="en">{recipe.instructions[n]}</p>
-              </li>
-            ))}
-          </ol>
-        </details>
       </section>
     </div>
   );

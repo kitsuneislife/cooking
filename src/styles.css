@@ -24,9 +24,10 @@
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
+/* nada rola: cada tela cabe inteira na janela */
+html, body { height: 100%; overflow: hidden; }
 body {
   margin: 0;
-  min-height: 100dvh;
   font-family: "Fredoka", system-ui, sans-serif;
   color: var(--ink);
   line-height: 1.4;
@@ -36,8 +37,8 @@ body {
     repeating-linear-gradient(0deg, #ffffff12 0 2px, transparent 2px 64px),
     repeating-linear-gradient(90deg, #ffffff12 0 2px, transparent 2px 64px),
     linear-gradient(var(--wall), var(--wall-dark));
-  background-attachment: fixed;
 }
+#root { height: 100%; display: flex; flex-direction: column; }
 button, input { font: inherit; color: inherit; }
 img { max-width: 100%; display: block; }
 h1, h2, h3 { font-weight: 600; line-height: 1.15; margin: 0 0 .4em; }
@@ -71,8 +72,12 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .site-header nav a { color: var(--cream); text-decoration: none; padding: 6px 14px; border-radius: 99px; font-weight: 500; }
 .site-header nav a:hover { background: #ffffff1f; }
 .site-header nav a.active { background: var(--sun); color: var(--ink); }
-main { max-width: 1000px; margin: 0 auto; padding: 24px 16px 40px; }
-main.main-game { max-width: none; padding: 0; overflow-x: clip; } /* o tremor do erro não cria barra de rolagem */
+main { flex: 1; min-height: 0; width: 100%; max-width: 1180px; margin: 0 auto; padding: 16px; display: grid; align-content: center; }
+main.main-game { max-width: none; padding: 0; display: block; }
+/* celular ou janela pequena: só o aviso */
+.desktop-only { justify-items: center; align-content: center; gap: 8px; text-align: center; color: #e6f6fb; font-size: 1.15rem; max-width: 520px; }
+.desktop-only .chef { width: 110px; }
+.desktop-only .logo-big { font-size: 3.4rem; }
 .site-footer { text-align: center; padding: 16px; color: #d8eef5; font-size: .9rem; }
 .site-footer a { color: var(--sun); }
 
@@ -153,40 +158,34 @@ main.main-game { max-width: none; padding: 0; overflow-x: clip; } /* o tremor do
 .logo-big span { color: var(--sun); display: block; }
 .section-title { font-size: 1.7rem; -webkit-text-stroke-width: 4px; text-shadow: 0 4px 0 var(--wood-deep); margin-bottom: 12px; }
 
-.recipe-card { display: grid; grid-template-columns: minmax(0, 220px) 1fr; gap: 18px; align-items: center; padding: 14px; }
+.recipe-card { display: grid; grid-template-columns: minmax(0, 150px) 1fr; gap: 18px; align-items: center; padding: 14px; }
 .recipe-card img, .detail-photo, .dish-photo { border-radius: 16px; border: 4px solid #fff; box-shadow: 0 4px 0 var(--wood-dark), 0 10px 18px #0004; aspect-ratio: 1; object-fit: cover; width: 100%; }
 .recipe-card img { transform: rotate(-3deg); }
 .recipe-card h3 { font-family: var(--display); font-weight: 400; font-size: 1.6rem; margin: 0; }
-.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.how li { padding: 12px 16px 16px; text-align: center; }
-.how .art { max-width: 170px; margin: 0 auto; }
-.how h3 { font-family: var(--display); font-weight: 400; font-size: 1.3rem; }
-.how p { margin: 0; color: var(--ink-soft); }
-/* desktop: hero ao lado do conteúdo para a tela inicial caber sem rolagem */
-@media (min-width: 900px) {
-  main:has(> .title-screen) { max-width: 1180px; padding-block: 16px; }
-  .title-screen { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px 40px; align-items: center; }
-  .title-screen .hero { grid-row: span 2; }
-  .hero .chef { width: clamp(80px, 14vh, 120px); }
-  .logo-big { font-size: clamp(3rem, 11vh, 6rem); }
-  .title-screen .section-title { margin-bottom: 8px; }
-  .title-screen .recipe-card { grid-template-columns: minmax(0, 150px) 1fr; }
-  .how { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-  .how li { padding: 8px 10px 12px; }
-  .how .art { max-width: min(110px, 12vh); }
-  .how h3 { font-size: 1.1rem; }
-  .how p { font-size: .88rem; line-height: 1.3; }
-}
+.how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.how li { padding: 8px 10px 12px; text-align: center; }
+.how .art { max-width: min(110px, 12vh); margin: 0 auto; }
+.how h3 { font-family: var(--display); font-weight: 400; font-size: 1.1rem; }
+.how p { margin: 0; color: var(--ink-soft); font-size: .88rem; line-height: 1.3; }
+/* hero ao lado do conteúdo para a tela inicial caber sem rolagem */
+.title-screen { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px 40px; align-items: center; }
+.title-screen .hero { grid-row: span 2; }
+.hero .chef { width: clamp(80px, 14vh, 120px); }
+.logo-big { font-size: clamp(3rem, 11vh, 6rem); }
+.title-screen .section-title { margin-bottom: 8px; }
 
-/* ---------- Detalhe ---------- */
-.detail { display: grid; grid-template-columns: minmax(0, 340px) 1fr; gap: 28px; align-items: start; }
-.detail-body ul:not(.chips), .detail-body ol, .full-recipe ul, .full-recipe ol { padding-left: 22px; list-style: revert; }
-.detail-body li { margin-bottom: 4px; }
-.detail-body .btn { margin: 4px 0 18px; }
+/* ---------- Detalhe: foto, ingredientes e preparo lado a lado, sem rolar ---------- */
+.detail { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr) minmax(0, 1.5fr); gap: 8px 28px; align-items: start; font-size: clamp(.8rem, 1.6vh, .95rem); line-height: 1.35; }
+.detail-photo { width: min(100%, 34vh); transform: rotate(-2deg); }
+.detail-head h1 { margin-top: 14px; }
+.detail-head .btn { margin-top: 4px; }
+.detail h2 { font-family: var(--display); font-weight: 400; font-size: 1.3rem; color: var(--red-dark); }
+.detail ul:not(.chips), .detail ol { padding-left: 20px; list-style: revert; }
+.detail li { margin-bottom: 3px; }
 
 /* ---------- Partida: palco ---------- */
 .game {
-  position: relative; min-height: 100dvh; display: flex; flex-direction: column; gap: 8px;
+  position: relative; height: 100%; display: flex; flex-direction: column; gap: 8px;
   padding: 10px max(12px, calc((100% - 1180px) / 2)) 16px;
   user-select: none; -webkit-user-select: none;
 }
@@ -194,7 +193,7 @@ main.main-game { max-width: none; padding: 0; overflow-x: clip; } /* o tremor do
 /* a cozinha 3D ocupa a tela toda por baixo; a interface por cima só segura o toque nos controles */
 .stage3d { position: fixed; inset: 0; z-index: 0; background: var(--cream-2); }
 .stage3d-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-.game:has(.stage3d) { height: 100dvh; overflow: hidden; pointer-events: none; }
+.game:has(.stage3d) { overflow: hidden; pointer-events: none; }
 .game :is(.hud > *, .overlay) { pointer-events: auto; }
 .game .stage3d { pointer-events: auto; }
 
@@ -399,9 +398,7 @@ main.main-game { max-width: none; padding: 0; overflow-x: clip; } /* o tremor do
 
 /* abertura e resultado deixam ver a cena 3D girando atrás */
 .overlay-scene { background: radial-gradient(ellipse at center, #071c2600 30%, #071c26aa); }
-@media (min-width: 900px) {
-  .overlay-side { place-items: center end; padding-right: 5vw; }
-}
+.overlay-side { place-items: center end; padding-right: 5vw; }
 .grades { display: grid; gap: 3px; margin: 0; font-size: .92rem; }
 .grades li { display: flex; justify-content: space-between; gap: 10px; padding: 2px 10px; border-radius: 99px; background: #fff8; }
 .grades b { font-family: var(--display); font-weight: 400; }
@@ -409,10 +406,9 @@ main.main-game { max-width: none; padding: 0; overflow-x: clip; } /* o tremor do
 .grades [data-grade="great"] b { color: var(--green-dark); }
 .grades [data-grade="good"] b { color: #2a7fb8; }
 .grades [data-grade="oops"] b { color: #6d5a50; }
-@media (hover: none) { .step-keys { display: none; } }
 
 /* ---------- Painéis: pedido e resultado ---------- */
-.overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 44px 16px 24px; overflow: auto; background: #071c26cc; animation: fade .3s ease; }
+.overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 44px 16px 24px; overflow: hidden; background: #071c26cc; animation: fade .3s ease; }
 @keyframes fade { from { opacity: 0; } }
 .panel {
   position: relative; width: 100%; max-width: 440px; padding: 34px 22px 22px; text-align: center;
@@ -432,25 +428,30 @@ main.main-game { max-width: none; padding: 0; overflow-x: clip; } /* o tremor do
 .phase-preview li { flex: 1; max-width: 110px; font-weight: 600; counter-increment: fase; }
 .phase-preview li::after { content: none; }
 
-.panel.result { max-width: 600px; }
+/* resultado: foto e placar à esquerda, notas das etapas à direita, avaliação no rodapé */
+.panel.result { max-width: 820px; padding-top: 30px; }
 .stars { display: inline-flex; gap: 4px; }
 .star { width: 44px; height: 44px; fill: #e2cfa6; stroke: #a8946e; stroke-width: 1; }
 .star-on { fill: var(--sun); stroke: #b07a10; }
-.result > .stars .star { width: 76px; height: 76px; filter: drop-shadow(0 4px 0 #0003); }
-.result > .stars .star:nth-child(2) { width: 96px; height: 96px; margin-top: -14px; }
+.result > .stars .star { width: min(64px, 7vh); height: min(64px, 7vh); filter: drop-shadow(0 4px 0 #0003); }
+.result > .stars .star:nth-child(2) { width: min(84px, 9vh); height: min(84px, 9vh); margin-top: -12px; }
 .result > .stars .star-on { animation: star-pop .7s var(--spring) both; }
 .result > .stars .star:nth-child(1) { animation-delay: .3s; }
 .result > .stars .star:nth-child(2) { animation-delay: .6s; }
 .result > .stars .star:nth-child(3) { animation-delay: .9s; }
 @keyframes star-pop { from { transform: scale(0) rotate(-140deg); } }
-.result-body { display: grid; grid-template-columns: 170px 1fr; gap: 20px; align-items: center; margin: 6px 0 16px; text-align: left; }
-.result-body .chips { justify-content: flex-start; margin-bottom: 0; }
-.score-table { border-collapse: collapse; width: 100%; margin-bottom: 8px; font-size: 1.05rem; }
+.result-body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: start; margin: 4px 0 14px; text-align: left; }
+.result-score { display: grid; grid-template-columns: 120px 1fr; gap: 6px 16px; align-items: center; }
+.score-table th { white-space: nowrap; }
+.recipe-link { display: block; margin-top: 6px; text-align: right; font-weight: 600; font-size: .9rem; }
+.result-score .dish-photo { transform: rotate(-3deg); }
+.result-score .actions { grid-column: 1 / -1; justify-content: center; margin-top: 10px; }
+.score-table { border-collapse: collapse; width: 100%; font-size: 1rem; }
 .score-table th { text-align: left; font-weight: 500; padding: 3px 0; }
 .score-table td { text-align: right; font-family: var(--display); }
 .score-total th, .score-total td { border-top: 3px dashed var(--wood); padding-top: 8px; font-family: var(--display); font-weight: 400; font-size: 1.6rem; color: var(--orange-dark); }
 .score-total .icon { vertical-align: -5px; }
-.rate-form { margin-top: 18px; padding: 12px 14px; background: #fff9; border: 2px dashed var(--wood); border-radius: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
+.rate-form { padding: 10px 14px; background: #fff9; border: 2px dashed var(--wood); border-radius: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
 .rate-form .status { flex-basis: 100%; margin: 0; text-align: left; box-shadow: none; }
 .stars-input { border: 0; padding: 0; margin: 0; }
 .stars-input legend { font-weight: 600; margin: 0 auto 2px; }
@@ -458,48 +459,6 @@ main.main-game { max-width: none; padding: 0; overflow-x: clip; } /* o tremor do
 .stars-input .star { width: 34px; height: 34px; transition: transform .2s var(--spring); }
 .stars-input label:hover .star { transform: scale(1.2) rotate(-8deg); }
 .stars-input label:has(input:focus-visible) { outline: 3px solid var(--orange); outline-offset: 2px; }
-.full-recipe { margin-top: 14px; text-align: left; }
-.full-recipe summary { cursor: pointer; font-weight: 600; text-align: center; }
-.full-recipe h3 { margin-top: 10px; }
-.full-recipe li { margin-bottom: 6px; }
-.full-recipe li p { margin: 2px 0 0; }
-
-/* ---------- Telas menores ---------- */
-@media (max-width: 900px) {
-  .phase-name { display: none; }
-  .hud-phases li { padding: 2px 3px; }
-  .hud-title p { display: none; }
-}
-@media (max-width: 720px) {
-  .detail, .recipe-card, .result-body { grid-template-columns: 1fr; }
-  .recipe-card img, .result-body .dish-photo { max-width: 240px; margin: 0 auto; }
-  .recipe-card-body, .result-body { text-align: center; }
-  .recipe-card .chips, .recipe-card .actions, .result-body .chips { justify-content: center; }
-  .hud-title { display: none; }
-  .hud-phases { margin-right: auto; }
-  .chef { width: 56px; }
-  .chef-strip { min-height: 62px; }
-  .bubble { font-size: .92rem; padding: 8px 12px; margin-bottom: 8px; }
-
-  /* celular: cartão no rodapé, lista e medidor menores para sobrar cena */
-  .step-card { bottom: 96px; padding: 12px 14px; gap: 4px 12px; }
-  .step-title { font-size: 1.35rem; }
-  .step-how { font-size: .95rem; }
-  .gesture { width: 72px; }
-  .gesture-pad { width: 68px; height: 68px; scale: 1; }
-  .gesture-hand { left: 24px; top: 20px; }
-  .gesture-trail { left: 28px; top: 16px; }
-  .mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) .step-card { top: 62px; width: min(240px, 58vw); }
-  /* na feira a lista divide o topo com o cartão */
-  .mg:has(.shop-list):is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) .step-card { width: calc(100vw - min(180px, 40vw) - 34px); }
-  .mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) .step-how { display: none; }
-  .shop-list { top: 62px; width: min(180px, 40vw); padding: 10px 8px 6px; }
-  .shop-list li { font-size: .7rem; }
-  .gauge-band { right: 10px; }
-  .gauge-tube { width: 40px; height: min(220px, 36vh); }
-  .gauge-beats { bottom: 92px; height: 60px; }
-  .beat { width: 34px; height: 34px; margin: -17px 0 0 -17px; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
