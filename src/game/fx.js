@@ -70,6 +70,24 @@ export function shake(element) {
   );
 }
 
+// Pancada: o elemento afunda um pouco e volta, como a tábua sob a faca.
+export function thud(element) {
+  if (calm()) return;
+  element.animate(
+    [0, 5, -2, 0].map((y) => ({ translate: `0 ${y}px` })),
+    { duration: 220, easing: "ease-out" },
+  );
+}
+
+// Faca de pé (centrada por translate -50%) que desce `depth` px em `left` e sobe de volta.
+export function strike(knife, left, depth) {
+  if (calm()) return;
+  knife.animate(
+    [{ left, transform: `translate(-50%, ${depth}px)` }, { left, transform: "translate(-50%, 0)" }],
+    { duration: 280, easing: "cubic-bezier(.3,.7,.4,1)" },
+  );
+}
+
 export function confetti() {
   if (calm()) return;
   for (let i = 0; i < 70; i++) {

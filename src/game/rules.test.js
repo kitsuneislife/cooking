@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { shuffle, missingIngredients, brokenSteps, starsFor, comboMultiplier, timeLimit, finalScore, cookZone } from "./rules.js";
+import { shuffle, missingIngredients, brokenSteps, starsFor, comboMultiplier, timeLimit, finalScore, cookZone, nextCut } from "./rules.js";
 import { games } from "../data/games.js";
 
 test("shuffle keeps every item and does not change the input", () => {
@@ -43,6 +43,19 @@ test("brokenSteps flags what is neither an ingredient nor an earlier product", (
     steps: [{ add: ["a", "mix"], makes: "mix" }, { add: ["mix", "ghost"] }],
   };
   assert.deepEqual(brokenSteps(game), ["passo 1: mix", "passo 2: ghost"]);
+});
+
+test("nextCut splits what is left evenly and rewards aiming at the guide", () => {
+  const box = { lo: 0, hi: 1 };
+  assert.deepEqual(nextCut(box, [], 4, null), { guide: 0.2, at: 0.2, perfect: true });
+  assert.equal(nextCut(box, [], 4, 0.22).perfect, true);
+  assert.deepEqual(nextCut(box, [], 4, 0.5), { guide: 0.2, at: 0.5, perfect: false });
+  // longe demais: o corte para onde ainda cabem os 3 que faltam
+  assert.equal(nextCut(box, [], 4, 0.99).at, 1 - 0.2 * 0.4 * 4);
+  // fora do ingrediente: corta na guia, sem bônus
+  assert.deepEqual(nextCut({ lo: 0.2, hi: 0.8 }, [], 2, 0.1), { guide: 0.4, at: 0.4, perfect: false });
+  // depois de um corte torto, a guia redivide o resto
+  assert.equal(nextCut(box, [0.5], 4, null).guide, 0.625);
 });
 
 test("every game in the data has steps that can be played", () => {

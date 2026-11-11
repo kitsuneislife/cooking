@@ -42,7 +42,12 @@ export const sfx = {
     tone(base * 1.5, { dur: 0.14, delay: 0.07 });
   },
   bad: () => tone(190, { dur: 0.28, type: "sawtooth", to: 80, vol: 0.12 }),
-  chop: () => { noise(0.07, 1900, 0.5); tone(140, { dur: 0.06, type: "square", vol: 0.06 }); },
+  // corte no ponto certo ganha um "tim" por cima da batida
+  chop: (perfect = false) => {
+    noise(0.07, 1700 + Math.random() * 500, 0.5);
+    tone(140, { dur: 0.06, type: "square", vol: 0.06 });
+    if (perfect) tone(1320, { dur: 0.12, type: "sine", vol: 0.08, delay: 0.03 });
+  },
   sizzle: () => noise(1.2, 5200, 0.18),
   win: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, { dur: 0.22, delay: i * 0.11 })),
 };

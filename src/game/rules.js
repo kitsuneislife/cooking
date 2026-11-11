@@ -48,6 +48,20 @@ export function finalScore({ coins, secondsLeft, difficulty }) {
   return { timeBonus, total };
 }
 
+// Corte na tábua. `lo`..`hi` é a largura do ingrediente (0 a 1 do desenho), `cuts` são
+// as posições já cortadas, da esquerda para a direita, e `total` quantos cortes ele pede.
+// A guia divide o que sobra em partes iguais; o corte cai onde o jogador mirou, mas sempre
+// deixa espaço para os cortes que faltam. `aim` nulo (teclado) ou fora do ingrediente corta na guia.
+export function nextCut({ lo, hi }, cuts, total, aim) {
+  const from = cuts.at(-1) ?? lo, left = total - cuts.length;
+  const step = (hi - lo) / (total + 1);
+  const guide = from + (hi - from) / (left + 1);
+  if (aim == null) return { guide, at: guide, perfect: true };
+  if (aim < lo || aim > hi) return { guide, at: guide, perfect: false };
+  const at = Math.min(Math.max(aim, from + step * 0.4), hi - step * 0.4 * left);
+  return { guide, at, perfect: Math.abs(aim - guide) <= step * 0.3 };
+}
+
 // Ponto do cozimento: progress vai de 0 (acabou de entrar) a 1 (queimou de vez).
 export const COOK_READY = 0.6;
 export const COOK_BURNT = 0.85;

@@ -347,7 +347,7 @@ button.crate:active { transform: translateY(2px) scale(.96); }
 .crate.done { cursor: default; animation: drop-in .5s var(--spring); padding-bottom: 8px; }
 .crate.done .crate-name { min-height: 0; }
 .board-area { display: grid; gap: 10px; justify-items: center; }
-.recipe-says { margin: 6px 0 0; padding: 12px 20px 8px; text-align: center; font-weight: 500; }
+.recipe-says { position: relative; z-index: 2; margin: 6px 0 0; padding: 12px 20px 8px; text-align: center; font-weight: 500; }
 .recipe-says strong { display: block; font-family: var(--display); font-weight: 400; font-size: 1.5rem; color: var(--red-dark); }
 /* a tábua fica sobre um tampo de mármore */
 .board-zone {
@@ -357,14 +357,30 @@ button.crate:active { transform: translateY(2px) scale(.96); }
 }
 .board-zone .board-knife { display: none; } /* a faca do desenho dá lugar à faca animada */
 .board-zone[data-over] { transform: scale(1.05); }
-.board-zone[data-chopping]:active { transform: scale(.97); }
-.on-board { position: absolute; left: 24%; top: 6%; width: 50%; animation: drop-in .45s var(--spring); }
-.slit { position: absolute; top: 40%; bottom: 20%; width: 5px; margin-left: -2px; border-radius: 3px; background: #c98f50; box-shadow: inset 2px 0 2px #7a431788; transform: rotate(8deg); }
-.knife { position: absolute; right: 2%; top: 22%; width: 44%; transform-origin: 95% 50%; transform: rotate(28deg); filter: drop-shadow(0 6px 4px #0005); animation: chop .22s ease-out; }
-@keyframes chop { 0% { transform: rotate(52deg); } 55% { transform: rotate(4deg); } }
+.board-zone[data-chopping] { cursor: crosshair; touch-action: manipulation; }
+.on-board { position: absolute; left: 20%; top: 0; width: 58%; aspect-ratio: 200 / 180; animation: drop-in .45s var(--spring); }
+.on-board .food { animation: none; }
+/* cada pedaço é o desenho recortado na sua faixa; os cortes afastam os pedaços */
+.piece { position: absolute; inset: 0; transform: translateX(calc(var(--k) * var(--spread, 5px))); transition: transform .35s var(--spring); }
+.on-board[data-finished] { --spread: 11px; }
+.piece.fresh { animation: slice-off .3s ease-out; }
+@keyframes slice-off { 40% { translate: 5px -7px; rotate: 5deg; } }
+.guide {
+  position: absolute; width: 0; margin-left: -2px; border-left: 4px dashed #fff; border-radius: 2px;
+  filter: drop-shadow(0 0 2px #7a1626) drop-shadow(0 0 1px #0008); animation: guide-pulse .7s ease-in-out infinite alternate;
+}
+@keyframes guide-pulse { to { opacity: .45; } }
+/* faca de pé, ponta no corte: fica no alto, desce a cada corte e volta */
+.knife {
+  position: absolute; width: 11%; height: auto; overflow: visible; pointer-events: none; z-index: 1;
+  transform: translate(-50%, 0); transition: left .09s ease-out; filter: drop-shadow(4px 6px 3px #0005);
+}
+.knife[data-perfect] { filter: drop-shadow(0 0 6px var(--sun)) drop-shadow(4px 6px 3px #0005); }
 .pips { position: absolute; left: 0; right: 0; bottom: 4%; display: flex; justify-content: center; gap: 6px; }
-.pips i { width: 16px; height: 16px; border-radius: 50%; background: #0004; border: 2px solid #fff; }
-.pips i.on { background: var(--green); }
+.pips i { width: 16px; height: 16px; border-radius: 50%; background: #0004; border: 2px solid #fff; transition: background .2s; }
+.pips i.on { background: var(--green); animation: bump .3s var(--spring); }
+.pips i.gold { background: var(--sun); box-shadow: 0 0 8px var(--sun); }
+@media (prefers-reduced-motion: reduce) { .piece.fresh, .guide { animation: none; } }
 .cuts { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .cut-btn {
   display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 88px; padding: 6px 8px; cursor: pointer; font-weight: 600; font-size: .88rem;
