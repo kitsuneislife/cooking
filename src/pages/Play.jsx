@@ -124,7 +124,6 @@ function Match({ recipe, game, onReplay }) {
             </li>
           ))}
         </ol>
-        {multiplier > 1 && <p className="hud-combo" key={multiplier}>Combo x{multiplier}</p>}
         <p className="hud-stat" aria-label={`${score.coins} moedas`}>
           <Icon name="coin" /> <span className="bump" key={score.coins}>{score.coins}</span>
         </p>
@@ -146,7 +145,7 @@ function Match({ recipe, game, onReplay }) {
           <h2 id="phase-title" tabIndex={-1} className="visually-hidden">Fase {index + 1}: {current.name}</h2>
           <MinigamePhase
             key={phase}
-            world={world} specs={game.play[phase]} game={game} recipe={recipe}
+            world={world} specs={game.play[phase]} game={game} recipe={recipe} combo={multiplier}
             good={good} bad={bad} say={say}
             onStep={(step) => setSteps((list) => [...list, step])}
             onDone={() => go(PHASES[index + 1])}

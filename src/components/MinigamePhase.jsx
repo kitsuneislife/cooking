@@ -9,7 +9,7 @@ const RESCUE_SCORE = 0.25; // etapa que o chef terminou: conta pouco, mas não z
 
 // Uma fase da partida: roda os minijogos 3D dela um depois do outro.
 // Cada etapa: câmera viaja → cartão com o gesto → "Já!" → jogo com tempo → carimbo da nota.
-export default function MinigamePhase({ world, specs, game, recipe, good, bad, say, onStep, onDone }) {
+export default function MinigamePhase({ world, specs, game, recipe, combo, good, bad, say, onStep, onDone }) {
   const [view, setView] = useState(null);
   const [hud, setHud] = useState({ progress: 0, gauge: null, list: null, left: 1, total: 1 });
   const [stamp, setStamp] = useState(null);
@@ -132,17 +132,16 @@ export default function MinigamePhase({ world, specs, game, recipe, good, bad, s
     <div className="mg" data-stage={stage}>
       <section className="step-card" aria-live="polite">
         <GestureIcon kind={mg.gesture} />
+        <Clock left={hud.left} total={hud.total} low={low} />
         <div className="step-text">
           <p className="step-count">Etapa {i + 1} de {specs.length}</p>
           <h2 className="step-title">{mg.title}</h2>
           <p className="step-how">{mg.how}</p>
           <p className="step-keys">{mg.keys}</p>
           {english && <p className="step-en" lang="en">{english}</p>}
+          <span className="bar-progress" aria-hidden="true"><i style={{ width: `${hud.progress * 100}%` }} /></span>
         </div>
-        <div className="step-bars" aria-hidden="true">
-          <span className="bar bar-time" data-low={low || undefined}><i style={{ width: `${(hud.left / hud.total) * 100}%` }} /></span>
-          <span className="bar bar-progress"><i style={{ width: `${hud.progress * 100}%` }} /></span>
-        </div>
+        {combo > 1 && <p className="step-combo" key={combo}>Combo x{combo}</p>}
       </section>
 
       {hud.list && (
@@ -166,6 +165,15 @@ export default function MinigamePhase({ world, specs, game, recipe, good, bad, s
       {stage === "go" && <p className="go-banner" aria-hidden="true">Já!</p>}
       {stamp && <p className="stamp" data-grade={stamp.key} role="status">{stamp.label}</p>}
       {wipe && <div className="wipe" aria-hidden="true" />}
+    </div>
+  );
+}
+
+// Timer de cozinha: a fatia laranja é o tempo que sobra.
+function Clock({ left, total, low }) {
+  return (
+    <div className="clock" data-low={low || undefined} style={{ "--t": left / total }} aria-hidden="true">
+      <span className="clock-num">{Math.ceil(left)}</span>
     </div>
   );
 }

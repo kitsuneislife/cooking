@@ -220,12 +220,6 @@ main.main-game { max-width: none; padding: 0; display: block; }
 @keyframes bump { from { transform: scale(1.7); color: var(--sun); } }
 @keyframes pulse { to { transform: scale(1.07); } }
 .hud { position: relative; z-index: 4; }
-.hud-combo {
-  position: absolute; right: 56px; top: calc(100% + 4px); /* pendurado no painel, sem empurrar os outros */
-  font-family: var(--display); font-size: 1.2rem; color: #fff; padding: 4px 14px; border-radius: 99px; transform: rotate(-4deg);
-  background: linear-gradient(#ff6b6b, var(--red-dark)); border: 3px solid #fff; box-shadow: 0 4px 0 #6e1418;
-  animation: bump .5s var(--spring);
-}
 
 .chef-strip { display: flex; align-items: flex-end; gap: 4px; min-height: 80px; }
 .bubble {
@@ -278,12 +272,12 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .fx-confetti { width: 12px; height: 18px; z-index: 95; }
 
 /* ---------- Minijogos 3D: cartão da etapa, medidores e carimbo ---------- */
-/* o chef fica no canto de baixo, sem tampar a bancada */
-.game:has(.stage3d) .chef-strip { position: fixed; left: 12px; bottom: 10px; z-index: 5; max-width: min(560px, 72vw); pointer-events: none; }
-
+/* o chef fica no canto de baixo, ao lado do cartão da etapa, sem tampar a bancada */
+.game:has(.stage3d) .chef-strip { position: fixed; left: 12px; bottom: 10px; z-index: 5; max-width: max(420px, calc(50% - 310px)); pointer-events: none; }
 .mg { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
+/* tudo o que a etapa pede fica num cartão só, embaixo no meio: tempo, instrução, progresso e combo */
 .step-card {
-  position: fixed; left: 50%; bottom: 16%; translate: -50% 0; width: min(580px, calc(100vw - 32px));
+  position: fixed; left: 50%; bottom: 18px; translate: -50% 0; width: min(580px, calc(100vw - 32px));
   display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; align-items: center; padding: 16px 20px;
   background: linear-gradient(var(--cream), var(--cream-2)); border: 4px solid var(--wood-dark); border-radius: 24px;
   box-shadow: inset 0 4px 0 #fff, 0 7px 0 var(--wood-deep), 0 22px 40px #0007;
@@ -296,25 +290,61 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .step-how { font-weight: 500; font-size: 1.05rem; }
 .step-keys { font-size: .88rem; color: var(--ink-soft); }
 .step-en { margin-top: 6px !important; padding-top: 6px; border-top: 2px dashed #d9c7a0; font-style: italic; font-size: .88rem; color: var(--ink-soft); }
-.step-bars { display: none; }
-.bar { display: block; height: 9px; border-radius: 99px; background: #0003; overflow: hidden; }
-.bar i { display: block; height: 100%; border-radius: inherit; transition: width .12s linear; }
-.bar-time i { background: linear-gradient(90deg, var(--orange), var(--sun)); }
-.bar-time[data-low] i { background: var(--red); animation: pulse .4s ease-in-out infinite alternate; }
-.bar-progress i { background: linear-gradient(90deg, var(--green-dark), var(--green)); transition-duration: .3s; }
+.clock, .bar-progress { display: none; }
 
-/* valendo: o cartão encolhe e vai para o canto, com o tempo e o progresso */
+/* valendo: o cartão fica no mesmo lugar, mais baixo, e troca a mãozinha pelo relógio */
 .mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) .step-card {
-  left: 12px; top: 74px; bottom: auto; translate: none; width: min(330px, calc(100vw - 24px));
-  grid-template-columns: 1fr; gap: 6px; padding: 10px 14px 12px; border-width: 3px; border-radius: 18px;
-  animation: dock-in .4s var(--spring) both;
+  width: min(540px, calc(100vw - 32px)); gap: 4px 16px; padding: 10px 20px 14px 14px;
+  animation: settle .35s var(--spring) both;
 }
-@keyframes dock-in { from { opacity: 0; transform: translateX(-40px) scale(.9); } }
-.mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) :is(.gesture, .step-keys, .step-en, .step-count) { display: none; }
-.mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) .step-title { font-size: 1.2rem; margin: 0; }
-.mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) .step-how { font-size: .86rem; line-height: 1.25; }
-.mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) .step-bars { display: grid; gap: 5px; }
+@keyframes settle { from { transform: scale(1.06); } }
+.mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) :is(.gesture, .step-keys, .step-en) { display: none; }
+.mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) :is(.clock, .bar-progress) { display: block; }
+.mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) .step-count { font-size: .72rem; }
+.mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) .step-title { font-size: 1.4rem; margin: 0; line-height: 1.1; }
+.mg:is([data-stage="live"], [data-stage="rescue"], [data-stage="stamp"]) .step-how { font-size: .92rem; line-height: 1.25; }
 .mg[data-stage="travel"] .step-card { display: none; }
+
+/* relógio de cozinha: a fatia laranja encolhe no sentido do ponteiro; perto do fim fica vermelha e treme */
+.clock {
+  --fill: var(--orange);
+  position: relative; width: 86px; aspect-ratio: 1; margin-top: 8px; border-radius: 50%;
+  background:
+    repeating-conic-gradient(#0000 0 28deg, #7a431766 28deg 30deg),
+    conic-gradient(var(--fill) calc(var(--t) * 1turn), #fff 0);
+  border: 5px solid var(--wood-dark); box-shadow: inset 0 0 0 3px #fff, 0 5px 0 var(--wood-deep), 0 10px 16px #0004;
+}
+/* botão de cima do timer */
+.clock::before {
+  content: ""; position: absolute; left: 50%; top: -15px; width: 20px; height: 11px; margin-left: -10px;
+  border-radius: 6px 6px 2px 2px; background: var(--red); border: 3px solid var(--wood-dark); border-bottom: 0;
+}
+.clock-num {
+  position: absolute; inset: 22%; display: grid; place-items: center; border-radius: 50%;
+  background: var(--cream); box-shadow: 0 0 0 3px var(--wood-dark), inset 0 -3px 0 #0001;
+  font-family: var(--display); font-size: 1.5rem; line-height: 1; color: var(--ink);
+}
+.clock[data-low] { --fill: var(--red); animation: ring .3s ease-in-out infinite alternate; }
+.clock[data-low] .clock-num { color: var(--red-dark); }
+@keyframes ring { from { rotate: -7deg; } to { rotate: 7deg; } }
+
+/* progresso: tubo grosso com listras, cheio quando a etapa termina */
+.bar-progress {
+  height: 20px; margin-top: 6px; border-radius: 99px; overflow: hidden;
+  background: #fff; border: 3px solid var(--wood-dark); box-shadow: inset 0 3px 0 #0001;
+}
+.bar-progress i {
+  display: block; height: 100%; border-radius: inherit; transition: width .3s var(--spring);
+  background: repeating-linear-gradient(-45deg, #ffffff40 0 8px, #0000 8px 16px), linear-gradient(#7fd889, var(--green) 50%, var(--green-dark));
+}
+
+/* combo: selo preso no canto do cartão */
+.step-combo {
+  position: absolute; right: -14px; top: -20px; margin: 0; rotate: 6deg;
+  font-family: var(--display); font-size: 1.25rem; color: #fff; padding: 3px 14px; border-radius: 99px;
+  background: linear-gradient(#ff6b6b, var(--red-dark)); border: 3px solid #fff; box-shadow: 0 4px 0 #6e1418, 0 8px 14px #0005;
+  animation: bump .5s var(--spring);
+}
 
 /* mãozinha do gesto */
 .gesture { margin: 0; display: grid; justify-items: center; gap: 4px; width: 96px; }
@@ -356,7 +386,7 @@ main.main-game { max-width: none; padding: 0; display: block; }
 
 /* linha do tempo do ritmo */
 .gauge-beats {
-  position: fixed; left: 50%; bottom: max(100px, 14vh); translate: -50% 0; width: min(640px, calc(100vw - 32px)); height: 70px;
+  position: fixed; left: 50%; bottom: 170px; translate: -50% 0; /* logo acima do cartão da etapa */ width: min(640px, calc(100vw - 32px)); height: 70px;
   border-radius: 35px; background: linear-gradient(#174960, var(--night)); border: 4px solid #fff5; box-shadow: 0 6px 0 #061821, 0 16px 26px #0006; overflow: hidden;
 }
 .beat-line { position: absolute; top: 8px; bottom: 8px; width: 8px; margin-left: -4px; border-radius: 4px; background: var(--sun); box-shadow: 0 0 14px var(--sun); }
@@ -364,6 +394,12 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .beat[data-near] { scale: 1.15; }
 .beat[data-state="hit"] { background: radial-gradient(circle at 35% 30%, #c9f7c0, var(--green) 60%, var(--green-dark)); scale: 1.3; opacity: .6; transition: scale .2s, opacity .4s; }
 .beat[data-state="miss"] { background: #6b7c86; border-color: #ffffff66; opacity: .5; }
+
+/* tela estreita: sem espaço ao lado do chef, o cartão (e o ritmo) sobem por cima dele */
+@media (max-width: 1460px) {
+  .step-card { bottom: 104px; }
+  .gauge-beats { bottom: 256px; }
+}
 
 /* lista de compras presa no canto, como papel com alfinete */
 .shop-list {
