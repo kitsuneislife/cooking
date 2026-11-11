@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ingredientes – teste visual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --parchment: #e9dfcc;
+    --parchment-dark: #d8cab0;
+    --ink: #4a3b2a;
+    --ink-soft: #7a6850;
+    --frame: #b9a684;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Fredoka", system-ui, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse at 50% 0%, #f3ead9 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 120%, #cdbb9a 0%, transparent 55%),
+      var(--parchment);
+    display: grid;
+    place-items: center;
+    padding: 32px 16px;
+  }
+  h1 { font-weight: 600; font-size: 1.6rem; margin: 0 0 24px; text-align: center; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 340px));
+    gap: 20px;
+  }
+  .card {
+    font: inherit;
+    color: inherit;
+    background: linear-gradient(#f2eadb, #e6dac3);
+    border: 2px solid var(--frame);
+    border-radius: 18px;
+    box-shadow: inset 0 2px 0 #fff8, 0 6px 14px #6b552f33;
+    padding: 10px 10px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1), box-shadow .35s;
+  }
+  .card:hover, .card:focus-visible {
+    transform: translateY(-6px) rotate(-1.5deg);
+    box-shadow: inset 0 2px 0 #fff8, 0 14px 24px #6b552f44;
+    outline: none;
+  }
+  .card:focus-visible { border-color: #c4572f; }
+  svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .food { animation: bob 3.2s ease-in-out infinite; transform-origin: 100px 140px; }
+  .shadow { animation: shadow 3.2s ease-in-out infinite; transform-origin: 100px 150px; }
+  .card:nth-child(2) .food, .card:nth-child(2) .shadow { animation-delay: -.8s; }
+  .card:nth-child(3) .food, .card:nth-child(3) .shadow { animation-delay: -1.6s; }
+  .card:nth-child(4) .food, .card:nth-child(4) .shadow { animation-delay: -2.4s; }
+  .card.pop .food { animation: pop .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes bob { 50% { transform: translateY(-4px); } }
+  @keyframes shadow { 50% { transform: scale(.92); opacity: .75; } }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.15, .88); }
+    60% { transform: scale(.94, 1.08) translateY(-8px); }
+    100% { transform: scale(1); }
+  }
+  .name { font-weight: 600; font-size: 1.15rem; margin-top: 2px; }
+  .tag {
+    display: inline-block; margin-top: 6px; padding: 2px 10px;
+    border-radius: 99px; font-size: .8rem; font-weight: 500;
+    background: var(--parchment-dark); color: var(--ink-soft);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .food, .shadow, .card.pop .food { animation: none; }
+    .card, .card:hover { transition: none; transform: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Despensa – teste de visual</h1>
+  <div class="grid">
+    <button class="card" aria-label="Camarão"><svg viewBox="0 0 200 180" id="shrimp"></svg><div class="name">Camarão</div><span class="tag">Peixes e frutos do mar</span></button>
+    <button class="card" aria-label="Abacaxi"><svg viewBox="0 0 200 180" id="pineapple"></svg><div class="name">Abacaxi</div><span class="tag">Frutas</span></button>
+    <button class="card" aria-label="Cogumelo shiitake"><svg viewBox="0 0 200 180" id="mushroom"></svg><div class="name">Shiitake</div><span class="tag">Legumes e verduras</span></button>
+    <button class="card" aria-label="Alho"><svg viewBox="0 0 200 180" id="garlic"></svg><div class="name">Alho</div><span class="tag">Legumes e verduras</span></button>
+  </div>
+</main>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="grain" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0" result="g"/>
+      <feComponentTransfer in="g" result="soft">
+        <feFuncR type="linear" slope=".35" intercept=".72"/>
+        <feFuncG type="linear" slope=".35" intercept=".72"/>
+        <feFuncB type="linear" slope=".35" intercept=".72"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="soft" mode="multiply" result="b"/>
+      <feComposite in="b" in2="SourceGraphic" operator="in"/>
+    </filter>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+    <filter id="lift" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-color="#3a2410" flood-opacity=".35"/>
+    </filter>
+    <linearGradient id="plateRim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e9ecef"/><stop offset="1" stop-color="#bfc5cc"/>
+    </linearGradient>
+    <radialGradient id="plateWell" cx=".5" cy=".4" r=".6">
+      <stop offset="0" stop-color="#f7f8f9"/><stop offset="1" stop-color="#d6dbe0"/>
+    </radialGradient>
+    <radialGradient id="shrimpBody" gradientUnits="userSpaceOnUse" cx="100" cy="92" r="48">
+      <stop offset=".42" stop-color="#ffe2cf"/><stop offset=".62" stop-color="#ffa477"/>
+      <stop offset=".85" stop-color="#f06a44"/><stop offset="1" stop-color="#c8432b"/>
+    </radialGradient>
+    <linearGradient id="tailFin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb08a"/><stop offset=".7" stop-color="#e5533a"/><stop offset="1" stop-color="#a8301f"/>
+    </linearGradient>
+    <radialGradient id="pineBody" cx=".4" cy=".4" r=".7">
+      <stop offset="0" stop-color="#ffd86a"/><stop offset=".6" stop-color="#e9a530"/><stop offset="1" stop-color="#b8701a"/>
+    </radialGradient>
+    <radialGradient id="scale" cx=".5" cy=".35" r=".7">
+      <stop offset="0" stop-color="#ffe9a8"/><stop offset=".55" stop-color="#f0b443" stop-opacity=".9"/><stop offset="1" stop-color="#a8641a" stop-opacity=".95"/>
+    </radialGradient>
+    <linearGradient id="pineShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#5a2d05" stop-opacity=".45"/>
+    </linearGradient>
+    <linearGradient id="leafBack" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#1f5a33"/><stop offset="1" stop-color="#4f9a4a"/>
+    </linearGradient>
+    <linearGradient id="leafFront" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#2f8048"/><stop offset=".6" stop-color="#5fb55a"/><stop offset="1" stop-color="#b4e07a"/>
+    </linearGradient>
+    <radialGradient id="cap" cx=".42" cy=".3" r=".75">
+      <stop offset="0" stop-color="#c4864f"/><stop offset=".55" stop-color="#8a4c25"/><stop offset="1" stop-color="#4a2510"/>
+    </radialGradient>
+    <linearGradient id="stem" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9b089"/><stop offset=".45" stop-color="#f6eddc"/><stop offset="1" stop-color="#bfa47c"/>
+    </linearGradient>
+    <radialGradient id="gills" cx=".5" cy=".5" r=".55">
+      <stop offset="0" stop-color="#e9dcc0"/><stop offset="1" stop-color="#f8f1e2"/>
+    </radialGradient>
+    <linearGradient id="clove" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d9c8d3"/><stop offset=".5" stop-color="#fdfaf4"/><stop offset="1" stop-color="#d4c2cf"/>
+    </linearGradient>
+    <linearGradient id="cloveBack" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c8b3c3"/><stop offset=".5" stop-color="#efe7e4"/><stop offset="1" stop-color="#c3adbd"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d9ccb5"/><stop offset=".5" stop-color="#f6efe2"/><stop offset="1" stop-color="#cfbfa4"/>
+    </linearGradient>
+    <radialGradient id="bulbShade" cx=".45" cy=".4" r=".6">
+      <stop offset=".55" stop-color="#5a2d55" stop-opacity="0"/><stop offset="1" stop-color="#5a2d55" stop-opacity=".22"/>
+    </radialGradient>
+  </defs>
+</svg>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const el = (parent, tag, attrs = {}) => {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  parent.appendChild(n);
+  return n;
+};
+const pol = (cx, cy, r, deg) => {
+  const a = deg * Math.PI / 180;
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+};
+const f = (p) => p.map(v => v.toFixed(1)).join(",");
+let seed = 7;
+const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function plate(svg) {
+  el(svg, "ellipse", { class: "shadow", cx: 100, cy: 156, rx: 78, ry: 14, fill: "#5a4220", opacity: .35, filter: "url(#soft)" });
+  el(svg, "ellipse", { cx: 100, cy: 146, rx: 82, ry: 27, fill: "url(#plateRim)" });
+  el(svg, "ellipse", { cx: 100, cy: 146, rx: 81, ry: 26, fill: "none", stroke: "#fff", "stroke-width": 1.5, opacity: .9 });
+  el(svg, "ellipse", { cx: 100, cy: 147, rx: 60, ry: 18, fill: "url(#plateWell)" });
+  el(svg, "path", { d: "M 42 141 Q 100 126 158 141", fill: "none", stroke: "#fff", "stroke-width": 2, opacity: .7, "stroke-linecap": "round" });
+  return el(svg, "g", { class: "food" });
+}
+
+/* ---------- Camarão ---------- */
+function shrimp(svg) {
+  const g = el(plate(svg), "g");
+  const C = [100, 92], R = 48, N = 7, A0 = 152, A1 = 392;
+  const ang = k => A0 + k * (A1 - A0) / N;
+  const thick = k => 30 - 17 * (k / N);
+
+  // nadadeiras (patinhas) na barriga
+  const legs = el(g, "g", { stroke: "#f39a78", "stroke-width": 2.2, "stroke-linecap": "round", fill: "none" });
+  for (let k = 1; k < 6; k++) {
+    const a = ang(k) + 16, r = R - thick(k);
+    const p = pol(...C, r + 2, a), q = pol(...C, r - 10, a + 6);
+    el(legs, "path", { d: `M ${f(p)} Q ${f(pol(...C, r - 6, a - 4))} ${f(q)}` });
+  }
+
+  // leque do rabo
+  const P = pol(...C, R - 8, A1 - 2);
+  const tail = el(g, "g", { transform: `translate(${f(P)}) rotate(${A1 - 50})` });
+  for (const [rot, s] of [[-34, .85], [34, .85], [-13, 1], [13, 1]]) {
+    const fin = el(tail, "g", { transform: `rotate(${rot}) scale(${s * 1.15})` });
+    el(fin, "path", { d: "M 0 0 C -8 5 -9 18 -2 27 C 2 29 6 27 7 23 C 9 14 6 5 0 0 Z", fill: "url(#tailFin)", stroke: "#9c2e1c", "stroke-width": .7 });
+    el(fin, "path", { d: "M 0 3 Q 1 14 2 24", stroke: "#ffcdb5", "stroke-width": .8, fill: "none", opacity: .7 });
+  }
+
+  // segmentos do corpo (do rabo para a cabeça)
+  for (let k = N - 1; k >= 0; k--) {
+    const a0 = ang(k), a1 = ang(k + 1) + 5;
+    const r0 = R - thick(k), r1 = R - thick(k + 1);
+    const d = `M ${f(pol(...C, R, a0))} A ${R} ${R} 0 0 1 ${f(pol(...C, R, a1))}
+      L ${f(pol(...C, r1, a1))} A ${(r0 + r1) / 2} ${(r0 + r1) / 2} 0 0 0 ${f(pol(...C, r0, a0))} Z`;
+    el(g, "path", { d, fill: "url(#shrimpBody)", stroke: "#b23c27", "stroke-width": 1, "stroke-opacity": .45, "stroke-linejoin": "round" });
+    // listra mais escura em cada segmento
+    el(g, "path", { d: `M ${f(pol(...C, R - 2, a0 + 3))} A ${R - 2} ${R - 2} 0 0 1 ${f(pol(...C, R - 2, a1 - 6))}`, stroke: "#c2402a", "stroke-width": 3, fill: "none", opacity: .35, "stroke-linecap": "round" });
+  }
+  // brilho nas costas
+  el(g, "path", { d: `M ${f(pol(...C, R - 7, ang(1)))} A ${R - 7} ${R - 7} 0 0 1 ${f(pol(...C, R - 7, ang(5)))}`, stroke: "#fff", "stroke-width": 3, fill: "none", opacity: .55, "stroke-linecap": "round" });
+  el(g, "path", { d: `M ${f(pol(...C, R - 8, ang(2) + 8))} A ${R - 8} ${R - 8} 0 0 1 ${f(pol(...C, R - 8, ang(3) + 10))}`, stroke: "#fff", "stroke-width": 1.6, fill: "none", opacity: .8, "stroke-linecap": "round" });
+
+  // cabeça
+  const H = pol(...C, R - 14, A0 - 8);
+  const head = el(g, "g", { transform: `translate(${f(H)}) rotate(${A0 - 8 + 90})` });
+  // antenas
+  const ant = el(g, "g", { fill: "none", stroke: "#d4553a", "stroke-linecap": "round" });
+  const tip = pol(...C, R - 10, A0 - 26);
+  el(ant, "path", { d: `M ${f(tip)} C ${tip[0] - 40} ${tip[1] - 10}, ${tip[0] - 30} ${tip[1] - 70}, ${tip[0] + 20} ${tip[1] - 92}`, "stroke-width": 1.4 });
+  el(ant, "path", { d: `M ${f(tip)} C ${tip[0] - 25} ${tip[1] + 4}, ${tip[0] - 52} ${tip[1] - 40}, ${tip[0] - 38} ${tip[1] - 84}`, "stroke-width": 1.1 });
+  el(ant, "path", { d: `M ${f(tip)} q -14 -2 -20 -14`, "stroke-width": 1.8 });
+  el(head, "path", { d: "M -16 6 C -18 -14 -4 -26 10 -24 C 20 -18 20 4 14 12 C 4 16 -8 14 -16 6 Z", fill: "url(#shrimpBody)", stroke: "#b23c27", "stroke-width": 1, "stroke-opacity": .5 });
+  el(head, "path", { d: "M -8 -18 C 0 -24 10 -22 14 -14", stroke: "#fff", "stroke-width": 2, fill: "none", opacity: .6, "stroke-linecap": "round" });
+  el(head, "path", { d: "M 6 -23 L 2 -38 L 12 -24 Z", fill: "#e9603f" }); // espinho (rostro)
+  // olho
+  const E = pol(...C, R - 9, A0 - 18);
+  el(g, "circle", { cx: E[0], cy: E[1], r: 3.6, fill: "#2a1712" });
+  el(g, "circle", { cx: E[0] - 1, cy: E[1] - 1.2, r: 1.1, fill: "#fff" });
+  g.style.filter = "url(#grain) drop-shadow(0 2px 2px #3a241055)";
+}
+
+/* ---------- Abacaxi ---------- */
+function pineapple(svg) {
+  const g = el(plate(svg), "g");
+  const cx = 100, cy = 104, rx = 36, ry = 44;
+
+  // coroa: fileira de trás e da frente
+  const crown = el(g, "g", { transform: `translate(${cx} ${cy - ry + 8})` });
+  const leaf = (parent, ang, len, w, fill) => {
+    const lg = el(parent, "g", { transform: `rotate(${ang})` });
+    const bend = ang * .25;
+    el(lg, "path", { d: `M ${-w} 0 Q ${-w - 2 + bend} ${-len * .55} ${bend * 1.6} ${-len} Q ${w + 2 + bend} ${-len * .55} ${w} 0 Z`, fill, stroke: "#1d4a2a", "stroke-width": .7, "stroke-opacity": .6 });
+    el(lg, "path", { d: `M 0 -2 Q ${bend * .6} ${-len * .55} ${bend * 1.5} ${-len + 4}`, stroke: "#d8f29a", "stroke-width": .9, fill: "none", opacity: .6 });
+  };
+  for (let i = 0; i < 9; i++) { const a = -64 + i * 16; leaf(crown, a, 34 + (32 - Math.abs(a) * .3), 5, "url(#leafBack)"); }
+  for (let i = 0; i < 7; i++) { const a = -48 + i * 16; leaf(crown, a, 26 + (30 - Math.abs(a) * .35), 6, "url(#leafFront)"); }
+
+  // corpo
+  const id = "pineClip";
+  const clip = el(el(svg, "defs"), "clipPath", { id });
+  el(clip, "ellipse", { cx, cy, rx, ry });
+  el(g, "ellipse", { cx, cy, rx, ry, fill: "url(#pineBody)" });
+  const sc = el(g, "g", { "clip-path": `url(#${id})` });
+  const ax = 10, ay = 7.5;
+  for (let i = -8; i <= 8; i++) for (let j = -8; j <= 8; j++) {
+    const px = cx + (i - j) * ax, py = cy - 40 + (i + j) * ay;
+    if (((px - cx) / (rx + 8)) ** 2 + ((py - cy) / (ry + 8)) ** 2 > 1) continue;
+    el(sc, "path", { d: `M ${px} ${py - ay} L ${px + ax} ${py} L ${px} ${py + ay} L ${px - ax} ${py} Z`, fill: "url(#scale)", stroke: "#8a4f12", "stroke-width": .8, "stroke-opacity": .7 });
+    el(sc, "path", { d: `M ${px - 1.6} ${py + 2} L ${px} ${py - 2.6} L ${px + 1.6} ${py + 2} Z`, fill: "#5b3410" });
+    el(sc, "circle", { cx: px - 3, cy: py - 2.5, r: 1.2, fill: "#fff6d0", opacity: .7 });
+  }
+  el(g, "ellipse", { cx, cy, rx, ry, fill: "url(#pineShade)" });
+  el(g, "ellipse", { cx, cy, rx, ry, fill: "none", stroke: "#7a4410", "stroke-width": 1.2, opacity: .6 });
+  el(g, "path", { d: `M ${cx - 26} ${cy - 18} Q ${cx - 30} ${cy + 4} ${cx - 20} ${cy + 26}`, stroke: "#fff", "stroke-width": 3, fill: "none", opacity: .35, "stroke-linecap": "round" });
+  g.style.filter = "url(#grain) drop-shadow(0 2px 2px #3a241055)";
+}
+
+/* ---------- Shiitake ---------- */
+function mushroom(svg) {
+  const g = el(plate(svg), "g");
+  seed = 11;
+
+  // cogumelo deitado mostrando as lamelas
+  const s = el(g, "g", { transform: "translate(146 132) rotate(-18) scale(.6)" });
+  el(s, "ellipse", { cx: 0, cy: -4, rx: 44, ry: 19, fill: "url(#cap)" });
+  el(s, "ellipse", { cx: 0, cy: 0, rx: 40, ry: 16, fill: "url(#gills)", stroke: "#e8d8b6", "stroke-width": 1.5 });
+  for (let i = 0; i < 64; i++) {
+    const a = i / 64 * Math.PI * 2;
+    el(s, "line", { x1: Math.cos(a) * 6, y1: Math.sin(a) * 2.6, x2: Math.cos(a) * 39, y2: Math.sin(a) * 15.5, stroke: "#b89d76", "stroke-width": i % 2 ? .5 : .9, opacity: .8 });
+  }
+  el(s, "ellipse", { cx: 0, cy: 0, rx: 8, ry: 4, fill: "#e8d8ba", stroke: "#bfa47c" });
+
+  // cogumelo em pé
+  el(g, "path", { d: "M 86 100 C 84 116 82 128 80 138 C 92 143 108 143 118 138 C 116 128 114 116 114 100 Z", fill: "url(#stem)", stroke: "#a88c64", "stroke-width": .8 });
+  for (let i = 0; i < 7; i++) el(g, "path", { d: `M ${88 + i * 4} 104 Q ${86 + i * 4} 122 ${84 + i * 4.6} 138`, stroke: "#b89c74", "stroke-width": .6, fill: "none", opacity: .5 });
+  el(g, "ellipse", { cx: 100, cy: 101, rx: 26, ry: 6, fill: "#6b3a1c", opacity: .5 });
+
+  // lamelas aparecendo por baixo da borda do chapéu
+  el(g, "ellipse", { cx: 100, cy: 98, rx: 60, ry: 9, fill: "#eadbbd", stroke: "#c2a67c", "stroke-width": .8 });
+  for (let i = 0; i <= 40; i++) {
+    const x = 44 + i * 2.8;
+    el(g, "line", { x1: x, y1: 98, x2: 100 + (x - 100) * .55, y2: 104, stroke: "#b89a70", "stroke-width": .5, opacity: .7 });
+  }
+  const capD = "M 36 98 C 30 60 68 38 100 38 C 132 38 170 60 164 98 C 146 92 54 92 36 98 Z";
+  const clip = el(el(svg, "defs"), "clipPath", { id: "capClip" });
+  el(clip, "path", { d: capD });
+  el(g, "path", { d: capD, fill: "url(#cap)" });
+  const cr = el(g, "g", { "clip-path": "url(#capClip)" });
+  // manchas escuras
+  for (let i = 0; i < 18; i++) {
+    el(cr, "ellipse", { cx: 40 + rand() * 120, cy: 44 + rand() * 50, rx: 6 + rand() * 10, ry: 3 + rand() * 5, fill: "#3e1d0b", opacity: .12 + rand() * .12 });
+  }
+  // rachaduras: linhas quebradas claras, mais densas perto da borda
+  for (let i = 0; i < 110; i++) {
+    const t = Math.sqrt(rand());
+    const a = rand() * Math.PI * 2;
+    let x = 100 + Math.cos(a) * t * 64, y = 70 + Math.sin(a) * t * 30;
+    let dir = rand() * Math.PI * 2;
+    let d = `M ${x.toFixed(1)} ${y.toFixed(1)}`;
+    const steps = 2 + Math.floor(rand() * 3);
+    for (let s = 0; s < steps; s++) {
+      dir += (rand() - .5) * 1.4;
+      x += Math.cos(dir) * (2 + rand() * 3.5);
+      y += Math.sin(dir) * (1.2 + rand() * 2);
+      d += ` L ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }
+    el(cr, "path", { d, fill: "none", stroke: "#efd9b0", "stroke-width": .7 + rand() * 1.5 * t, "stroke-linecap": "round", "stroke-linejoin": "round", opacity: .45 + rand() * .45 });
+  }
+  el(cr, "ellipse", { cx: 84, cy: 54, rx: 32, ry: 11, fill: "#fff", opacity: .12 });
+  el(cr, "ellipse", { cx: 80, cy: 50, rx: 14, ry: 4, fill: "#fff", opacity: .22 });
+  el(cr, "path", { d: "M 36 98 C 54 92 146 92 164 98 L 164 86 C 146 80 54 80 36 86 Z", fill: "#2b1205", opacity: .25 });
+  el(g, "path", { d: "M 37 97 C 55 91 145 91 163 97", stroke: "#f2e2c2", "stroke-width": 2.4, fill: "none", "stroke-linecap": "round", opacity: .95 });
+  el(g, "path", { d: capD, fill: "none", stroke: "#3c1d0a", "stroke-width": 1, opacity: .5 });
+  g.style.filter = "url(#grain) drop-shadow(0 2px 2px #3a241055)";
+}
+
+/* ---------- Alho ---------- */
+function garlic(svg) {
+  const g = el(plate(svg), "g");
+  // raízes
+  const roots = el(g, "g", { stroke: "#b49a72", "stroke-width": .8, fill: "none", "stroke-linecap": "round" });
+  for (let i = 0; i < 14; i++) {
+    const x = 90 + i * 1.5, dx = (i - 7) * 2.2;
+    el(roots, "path", { d: `M ${x} 140 q ${dx * .4} 4 ${dx} ${5 + (i % 3) * 2}` });
+  }
+  // cabeça de alho: bulbo redondo, gomos marcados por sulcos
+  const bulb = "M 100 66 C 132 64 154 86 152 110 C 150 132 128 142 100 142 C 72 142 50 132 48 110 C 46 86 68 64 100 66 Z";
+  el(g, "path", { d: bulb, fill: "url(#clove)", stroke: "#a98ba0", "stroke-width": 1 });
+  // sulcos entre os gomos (de cima até a base)
+  for (const k of [-.78, -.42, 0, .42, .78]) {
+    const xt = 100 + k * 12, xm = 100 + k * 54, xb = 100 + k * 26;
+    el(g, "path", { d: `M ${xt} 70 C ${xm} 84 ${xm} 124 ${xb} 141`, stroke: "#9c7a93", "stroke-width": 1.3, fill: "none", opacity: .55 });
+    el(g, "path", { d: `M ${xt + 2} 72 C ${xm + 3} 86 ${xm + 3} 122 ${xb + 2} 139`, stroke: "#fff", "stroke-width": 1.2, fill: "none", opacity: .6 });
+  }
+  // estrias roxas
+  seed = 5;
+  for (let i = 0; i < 16; i++) {
+    const k = rand() * 2 - 1, xm = 100 + k * 50;
+    el(g, "path", { d: `M ${100 + k * 14} ${78 + rand() * 8} C ${xm} ${92} ${xm} ${118} ${100 + k * 28} ${128 + rand() * 8}`, stroke: "#8e4f86", "stroke-width": .6 + rand() * .8, fill: "none", opacity: .12 + rand() * .2 });
+  }
+  el(g, "path", { d: bulb, fill: "url(#bulbShade)" });
+  // casca solta descascando
+  el(g, "path", { d: "M 140 92 C 152 100 156 114 150 126 C 148 116 144 106 136 100 Z", fill: "#f4ece0", stroke: "#cdb9a2", "stroke-width": .7, opacity: .9 });
+  // pescoço de casca seca, torcido
+  el(g, "path", { d: "M 86 72 C 92 60 94 48 96 34 C 97 30 103 29 104 33 C 105 46 108 60 114 72 C 105 67 95 67 86 72 Z", fill: "url(#paper)", stroke: "#b5a07c", "stroke-width": .8 });
+  for (const x of [92, 98, 104, 109]) el(g, "path", { d: `M ${x} 70 Q ${100 + (x - 100) * .4 - 3} 52 ${100 + (x - 100) * .2} 34`, stroke: "#bfa680", "stroke-width": .6, fill: "none" });
+  el(g, "path", { d: "M 96 34 C 97 28 103 27 104 33", fill: "none", stroke: "#a58d66", "stroke-width": 1.2 });
+  // brilhos
+  el(g, "path", { d: "M 70 86 Q 60 104 66 124", stroke: "#fff", "stroke-width": 3.5, fill: "none", opacity: .65, "stroke-linecap": "round" });
+  el(g, "path", { d: "M 94 78 Q 90 92 92 104", stroke: "#fff", "stroke-width": 2, fill: "none", opacity: .6, "stroke-linecap": "round" });
+  // dente solto
+  const c = el(g, "g", { transform: "translate(156 136) rotate(-58)" });
+  el(c, "path", { d: "M 0 -17 C 9 -12 13 6 3 13 C -6 15 -12 8 -9 -4 C -7 -11 -4 -15 0 -17 Z", fill: "url(#clove)", stroke: "#a98ba0", "stroke-width": .9 });
+  el(c, "path", { d: "M 0 -17 C 4 -6 5 4 3 13", stroke: "#9b6a92", "stroke-width": .8, fill: "none", opacity: .4 });
+  el(c, "path", { d: "M -5 -6 Q -6 2 -3 8", stroke: "#fff", "stroke-width": 1.8, fill: "none", opacity: .8, "stroke-linecap": "round" });
+  g.style.filter = "url(#grain) drop-shadow(0 2px 2px #3a241055)";
+}
+
+shrimp(document.getElementById("shrimp"));
+pineapple(document.getElementById("pineapple"));
+mushroom(document.getElementById("mushroom"));
+garlic(document.getElementById("garlic"));
+
+for (const card of document.querySelectorAll(".card")) {
+  card.addEventListener("click", () => {
+    card.classList.remove("pop");
+    void card.offsetWidth;
+    card.classList.add("pop");
+  });
+}
+</script>
+</body>
+</html>
