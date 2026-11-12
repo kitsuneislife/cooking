@@ -52,7 +52,7 @@ export default {
       ...game.ingredients.map((i) => ({ ...i, belongs: true })),
       ...game.intruders.map((i) => ({ ...i, belongs: false })),
     ]);
-    const stall = world.market.stall(pool.length);
+    const stall = world.market.stall(pool.length), hitMat = new THREE.MeshBasicMaterial({ visible: false });
     s.add(stall.group, group);
     const items = pool.map((it, n) => {
       const holder = new THREE.Group(), { pos, size } = stall.slots[n];
@@ -60,6 +60,13 @@ export default {
       holder.position.copy(pos);
       holder.rotation.x = stall.tilt; // deitado junto com o caixote
       holder.userData = { item: it, hover: 0 };
+      // hitbox fixa do caixote: o monte sobe e cresce no hover, então mirar nele fazia piscar.
+      // baixa o bastante para não tampar o caixote do degrau de trás
+      const hit = s.add(new THREE.Mesh(new THREE.BoxGeometry(size, 1.2, 1.4), hitMat), group);
+      hit.position.copy(pos).add(v3(0, 0.5, 0));
+      hit.rotation.x = stall.tilt;
+      hit.userData.holder = holder;
+      holder.userData.hit = hit;
       return s.add(holder, group);
     });
     // marcador de seleção pelo teclado: um aro dourado no chão do caixote
@@ -85,7 +92,7 @@ export default {
       if (f) { marker.position.set(f.position.x, f.position.y + 0.12, f.position.z); marker.rotation.z = t; }
     });
 
-    const holderOf = (o) => { while (o && !o.userData?.item) o = o.parent; return o; };
+    const holderAt = (e) => world.pick(e, remaining().map((h) => h.userData.hit))?.object.userData.holder ?? null;
 
     async function choose(h) {
       if (!h || got.has(h.userData.item.id)) return;
@@ -126,8 +133,8 @@ export default {
       start() {
         live = true;
         world.input = {
-          move: (e) => { hover = holderOf(world.pick(e, remaining())?.object); world.canvas.style.cursor = hover ? "pointer" : ""; },
-          down: (e) => { if (live) choose(holderOf(world.pick(e, remaining())?.object)); },
+          move: (e) => { hover = holderAt(e); world.canvas.style.cursor = hover ? "pointer" : ""; },
+          down: (e) => { if (live) choose(holderAt(e)); },
         };
       },
       key(e, down) {
