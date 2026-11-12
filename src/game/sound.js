@@ -61,6 +61,12 @@ export const sfx = {
   flame: () => noise(0.6, 260, 0.5, { to: 120 }),
   plop: () => { tone(220, { dur: 0.14, type: "sine", vol: 0.2, to: 110 }); buzz(15); },
   swish: () => noise(0.18, 1200, 0.25, { to: 3000, flat: true }),
+  // motor do liquidificador: ronco que sobe de tom com a velocidade
+  blend: (level = 1) => { tone(70 + level * 110, { dur: 0.24, type: "sawtooth", vol: 0.05 }); noise(0.24, 500 + level * 1600, 0.12, { flat: true }); },
+  ice: () => { tone(1900 + Math.random() * 700, { dur: 0.06, type: "sine", vol: 0.07 }); tone(2700, { dur: 0.05, type: "sine", vol: 0.05, delay: 0.04 }); },
+  shake: () => noise(0.09, 6200, 0.16, { flat: true }),
+  thud: () => { tone(110, { dur: 0.12, type: "sine", vol: 0.22, to: 60 }); buzz(15); },
+  ding: () => { tone(1568, { dur: 0.5, type: "sine", vol: 0.14 }); tone(2093, { dur: 0.6, type: "sine", vol: 0.08, delay: 0.02 }); },
   tick: () => tone(880, { dur: 0.05, type: "square", vol: 0.05 }),
   go: () => { tone(660, { dur: 0.1 }); tone(990, { dur: 0.25, delay: 0.1 }); },
   stamp: (good = true) => good

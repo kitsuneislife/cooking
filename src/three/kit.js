@@ -158,7 +158,7 @@ const TEX = {
 const cache = {};
 export const tex = (k) => cache[k] ??= TEX[k]();
 
-function labelTexture(text, band, ink) {
+export function labelTexture(text, band, ink) {
   return canvasTex(512, 256, (x) => {
     const gr = x.createLinearGradient(0, 0, 512, 0);
     gr.addColorStop(0, "#e2d4ba"); gr.addColorStop(0.5, "#fffaf0"); gr.addColorStop(1, "#e2d4ba");
@@ -240,7 +240,7 @@ export function beefStrip(mat, seared = true) {
 }
 
 // Garrafa de vidro com rótulo de papel e tampa frisada.
-function bottle({ r, shoulder, neckR, neckTop, glass, amber, cap, text, band, ink }) {
+export function bottle({ r, shoulder, neckR, neckTop, glass, amber, cap, text, band, ink }) {
   const g = new THREE.Group();
   const prof = [V2(0, 0), V2(r - 0.06, 0), V2(r, 0.06), V2(r, shoulder), V2(r * 0.9, shoulder + 0.14),
     V2(neckR + 0.08, shoulder + 0.34), V2(neckR, shoulder + 0.46), V2(neckR, neckTop)];
@@ -567,6 +567,9 @@ export const build = {
       return wall.at(-1)[1];
     };
     g.userData.liquid = liquid;
+    g.userData.rim = R * 0.9; // boca: o que cai dentro deste raio entra
+    g.userData.top = H; // altura da borda
+    g.userData.surface = () => liquid.position.y; // altura do líquido, para quem despeja ou mexe
     g.userData.fill = (level) => { // 0 = vazia, 1 = quase na borda
       const y = 0.1 + level * 0.5;
       liquid.visible = level > 0.005;
@@ -699,57 +702,6 @@ export const build = {
       f.scale.set(0.7 + h * 0.3, (0.6 + h * 0.5) * (1 + 0.2 * Math.sin(t * 13 + i * 2.1)), 0.7 + h * 0.3);
       knobs[1].rotation.z = -h * 1.2;
     });
-    return g;
-  },
-
-  oven() {
-    const g = new THREE.Group();
-    const body = mesh(new RoundedBoxGeometry(2.4, 2.2, 2.0, 4, 0.16), metal({ color: "#e4e8ec", roughness: 0.3, roughnessMap: tex("brushed") }));
-    body.position.y = 1.2;
-    g.add(body);
-    for (const x of [-0.95, 0.95]) for (const z of [-0.75, 0.75]) {
-      const foot = mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.12, 12), glossy({ color: "#30353b" }));
-      foot.position.set(x, 0.06, z); g.add(foot);
-    }
-    const panel = mesh(new RoundedBoxGeometry(2.24, 0.42, 0.08, 3, 0.03), glossy({ color: "#4a5058", roughness: 0.25 }));
-    panel.position.set(0, 2.02, 0.98);
-    g.add(panel);
-    for (const x of [-0.85, -0.52, -0.19]) {
-      const knob = mesh(new THREE.CylinderGeometry(0.11, 0.12, 0.1, 24), metal({ color: "#f2f4f6", roughness: 0.2 }));
-      knob.rotation.x = Math.PI / 2; knob.position.set(x, 2.02, 1.06);
-      g.add(knob);
-    }
-    const display = canvasTex(256, 96, (x) => {
-      x.fillStyle = "#16221a"; x.fillRect(0, 0, 256, 96);
-      x.fillStyle = "#7dff9a"; x.font = '400 64px "Lilita One", sans-serif'; x.textAlign = "center"; x.textBaseline = "middle";
-      x.fillText("180°", 128, 54);
-    });
-    const screen = mesh(new THREE.PlaneGeometry(0.62, 0.23), new THREE.MeshStandardMaterial({ map: display, emissiveMap: display, emissive: "#fff", emissiveIntensity: 0.6, roughness: 0.3 }));
-    screen.position.set(0.62, 2.02, 1.025);
-    g.add(screen);
-    const handle = mesh(new THREE.CapsuleGeometry(0.06, 1.5, 6, 16), metal({ color: "#f2f4f6", roughness: 0.15 }));
-    handle.rotation.z = Math.PI / 2; handle.position.set(0, 1.62, 1.2);
-    g.add(handle);
-    for (const x of [-0.72, 0.72]) {
-      const post = mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.22, 10), metal({ color: "#c9d1dc" }));
-      post.rotation.x = Math.PI / 2; post.position.set(x, 1.62, 1.1);
-      g.add(post);
-    }
-    const frame = mesh(new RoundedBoxGeometry(1.9, 1.15, 0.06, 3, 0.03), glossy({ color: "#30353b", roughness: 0.2 }));
-    frame.position.set(0, 0.92, 1.0);
-    const glow = canvasTex(256, 160, (x) => { // janela: forno ligado, resistência vermelha e grades
-      const gr = x.createRadialGradient(128, 92, 6, 128, 92, 150);
-      gr.addColorStop(0, "#ffd884"); gr.addColorStop(0.55, "#e57a20"); gr.addColorStop(1, "#4a1c06");
-      x.fillStyle = gr; x.fillRect(0, 0, 256, 160);
-      x.strokeStyle = "#ff5a2a"; x.lineWidth = 5; x.beginPath();
-      for (let i = 0; i <= 16; i++) x.lineTo(i * 16, i % 2 ? 26 : 14);
-      x.stroke();
-      x.strokeStyle = "rgba(42,18,6,.6)"; x.lineWidth = 3;
-      for (const y of [100, 132]) { x.beginPath(); x.moveTo(0, y); x.lineTo(256, y); x.stroke(); }
-    });
-    const win = mesh(new THREE.PlaneGeometry(1.7, 0.95), new THREE.MeshPhysicalMaterial({ map: glow, emissiveMap: glow, emissive: "#fff", emissiveIntensity: 0.7, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.05 }));
-    win.position.set(0, 0.92, 1.035);
-    g.add(frame, win);
     return g;
   },
 

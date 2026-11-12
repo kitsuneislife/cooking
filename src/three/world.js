@@ -21,6 +21,13 @@ export const SHOTS = {
   sear: { pos: v(STATION_X.stove + 0.2, 6.4, 4.4), look: v(STATION_X.stove + 0.2, 0.5, 0.1), fov: 25 }, // mais perto: dá para ler os medidores
   plate: { pos: v(STATION_X.plate, 8.2, 5.4), look: v(STATION_X.plate, 0.3, 0.2), fov: 34 },
   hero: { pos: v(STATION_X.plate + 0.4, 3.4, 5.6), look: v(STATION_X.plate, 0.9, 0.3), fov: 30 },
+  glasses: { pos: v(STATION_X.plate, 5.2, 10.5), look: v(STATION_X.plate, 2.0, 0.2), fov: 32 },
+  grill: { pos: v(STATION_X.grill + 0.2, 6.6, 4.6), look: v(STATION_X.grill + 0.2, 0.6, 0.1), fov: 27 },
+  oven: { pos: v(STATION_X.oven, 3.6, 9), look: v(STATION_X.oven, 1.3, -0.4), fov: 32 },
+  bench: { pos: v(STATION_X.bench, 9.4, 5.6), look: v(STATION_X.bench, 0.1, 0.6), fov: 32 },
+  blender: { pos: v(STATION_X.blender, 4.8, 9.4), look: v(STATION_X.blender, 2.1, 0.1), fov: 30 },
+  bar: { pos: v(STATION_X.bar, 5.2, 9.6), look: v(STATION_X.bar, 2.0, 0.2), fov: 30 },
+  fridge: { pos: v(STATION_X.fridge, 3.4, 12.5), look: v(STATION_X.fridge, 2, 0), fov: 34 },
 };
 
 const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -280,7 +287,7 @@ export async function createWorld(host) {
   const loop = (now) => {
     const dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
     for (const f of [...tickers]) f(dt, time);
-    kitchen.stations.stove.userData.tick(time);
+    for (const st of Object.values(kitchen.stations)) st.userData.tick?.(time); // chamas, brasas, lâminas
     market.tick(time);
     fx.update(dt);
     updateCamera(dt);
@@ -288,7 +295,6 @@ export async function createWorld(host) {
     raf = requestAnimationFrame(loop);
   };
   raf = requestAnimationFrame(loop);
-
   const every = (f) => { tickers.add(f); return () => tickers.delete(f); };
   // anima de 0 a 1 em `dur` segundos; com movimento reduzido, pula para o fim
   const tween = (dur, f, e = ease.inOut) => new Promise((done) => {
