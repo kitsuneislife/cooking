@@ -80,6 +80,36 @@ Quadros tirados a cada minuto do mesmo vídeo, olhando só para luz, cor e acaba
 | Transições sem corte seco: cartão e carimbo saem com um pulinho, íris de estrela em papel rosa de bolinhas entre lugares longe, giro final que nasce de onde a câmera está | `travelTo` em `MinigamePhase.jsx`, `.wipe` em `src/styles.css`, `orbit` em `world.js` |
 | Nada trava no meio de um movimento: texturas pintadas e shaders compilados antes, com a câmera parada ou a tela coberta | `paintAll` em `kit.js`, `warm` em `world.js` |
 
+## Menus (revisto em 12/11/2026)
+
+Quadros do começo do vídeo (título, menu principal, "como jogar", livro de receitas, "carregando") e do fim de cada receita.
+
+- **Tela de título.** O logotipo fica numa placa rosa com borda de renda, por cima de uma cozinha clara e de uma pilha de legumes. A mascote entra pela direita, grande, com uma frigideira na mão.
+- **Menu principal.** Três "ilhas" redondas, cada uma com um personagem fazendo uma coisa (trocar o visual, cozinhar, ler o livro). Embaixo de cada uma, um botão em pílula azul-piscina com texto branco. A mãozinha aponta o botão da vez.
+- **Painéis.** Fundo branco, moldura grossa azul-clara com uma fileira de coraçõezinhos pontilhados, e um fio dourado por fora. O título do painel é amarelo com contorno azul-escuro e, embaixo, um traço laranja que termina em pontinhos, como uma colher.
+- **Faixa de título.** Pílula rosa-clara com borda vinho e uma costura branca tracejada por dentro ("Beef Steak", "Dessert Recipes").
+- **Botões de canto.** Voltar é um quadrado lilás arredondado com seta; fechar é um quadrado de xadrez rosa com um X vermelho.
+- **Livro de receitas.** Caderno de duas páginas com espiral no meio e setas verdes para virar. Cada receita é uma foto com moldura branca sobre papel colorido, três estrelas em cima e o nome numa fita adesiva estampada embaixo. Bolinha vermelha marca o que é novo.
+- **"Como jogar".** Três quadros em fila, "Passo 1, 2, 3", com a imagem de cada parte e o nome embaixo.
+- **Carregando.** Mosaico de quadrados em tons de bala (amarelo, rosa, verde, azul) com legumes em relevo, e a carinha da mascote no meio.
+- **Prato pronto.** Sobre toalhinha de renda numa mesa de madeira amarela, com três estrelas grandes em pedestais e a mascote com olhos de coração.
+
+### O que levamos para os nossos menus
+
+| Ideia | Onde entrou |
+|---|---|
+| A tela fora da partida é a mesma cozinha do jogo: parede menta listrada, faixa de azulejo pastel e tampo amarelo | fundo do `body` em `src/styles.css` |
+| Logotipo numa placa recortada com renda, letras gordas e uma colher embaixo | `src/components/Logo.jsx` |
+| Painel branco com moldura azul de coraçõezinhos e fio dourado | `.panel` e `.book` em `src/styles.css` |
+| Faixa de título rosa com costura | `.ribbon` |
+| Pedido como foto sobre toalhinha de renda, nome em fita adesiva | `RecipeCard` |
+| Receita como caderno de duas páginas com espiral no meio | `RecipeDetail` |
+| Botão voltar quadrado lilás no canto | `.corner-btn` |
+| "Como jogar" com três quadros e a imagem de cada parte, tirada da própria cozinha 3D | `world.snapshot` e o pedido em `Play.jsx` |
+| Chef com poucas caras bem lidas, piscando e respirando | `src/components/Chef.jsx` |
+
+O mascote, o nome, o logotipo, as falas e a arte continuam sendo só deles: nosso chef, nossa placa e nossas cores são desenhos próprios.
+
 ## Avisos
 
 - Algumas etapas do vídeo são só "toque várias vezes". Entre duas etapas seguidas, mudamos o gesto.
