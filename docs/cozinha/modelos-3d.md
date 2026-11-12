@@ -199,7 +199,7 @@ Ficaram de fora desta leva o brócolis (a proposta pesa muito em vértices) e o 
 
 **Próximas levas.** O mesmo vai ser feito com os outros modelos, progressivamente: primeiro os ingredientes da feira que aparecem mais, depois os pratos prontos da tela de resultado. Para cada um: abrir os modelos de referência parecidos, anotar o que eles fazem melhor, fazer a proposta fora do jogo, comparar lado a lado e só então trazer.
 
-**Blender (para testar depois).** Queremos testar o MCP do Blender para modelar. A ideia é um caminho misto: o que fica parado na cena (pratos prontos, embalagens, pratos com muita mistura, como o refogado) é modelado no Blender e exportado como `.glb`, com a textura já assada; o que muda durante o minijogo (massa que abre, queijo que derrete, líquido que enche) continua em código. Ainda não começou. O primeiro teste deve ser o refogado, justamente onde o código sozinho não chegou lá.
+**Blender (para testar depois).** Queremos testar o MCP do Blender para modelar. A ideia é um caminho misto: o que fica parado na cena (pratos prontos, embalagens, pratos com muita mistura, como o refogado) é modelado no Blender e exportado como `.glb`, com a textura já assada; o que muda durante o minijogo (massa que abre, queijo que derrete, líquido que enche) continua em código. Ainda não começou. O primeiro teste deve ser o refogado, justamente onde o código sozinho não chegou lá. Todo trabalho no Blender segue a skill [blender](../skills/blender/SKILL.md).
 
 ## Para a próxima etapa
 

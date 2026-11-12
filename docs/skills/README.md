@@ -5,6 +5,7 @@ Instruções que o Claude segue ao trabalhar neste projeto.
 | Skill | Para quê |
 |---|---|
 | [ilustracao-svg](ilustracao-svg/SKILL.md) | Desenhar as ilustrações do jogo em SVG, com o processo, o estilo e os erros já corrigidos. |
+| [blender](blender/SKILL.md) | Modelar, texturizar, assar e exportar `.glb` no Blender pelo MCP. Compilada de 8 skills públicas (fontes no fim do arquivo). Ler antes de qualquer trabalho no Blender. |
 
 Para o Claude Code carregar uma skill sozinho, ela precisa estar em `.claude/skills/<nome>/SKILL.md`. Aqui em `docs/skills` elas ficam como documentação; para usar, peça ao Claude para ler o arquivo antes de desenhar.
 
