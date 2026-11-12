@@ -17,6 +17,15 @@
   --green: #4cbb5f;
   --green-dark: #2b8a3e;
   --night: #0c2a38;
+  --pink: #ff5c9a;
+  --pink-dark: #b02a5b;
+  --aqua: #4cc6d8;
+  --aqua-dark: #17687a;
+  --frame: #9fd9f2;
+  --frame-dark: #3f8fbf;
+  --gold: #f5c451;
+  --lilac: #b79cf5;
+  --lilac-dark: #6c4fc0;
   --display: "Lilita One", "Fredoka", system-ui, sans-serif;
   --spring: cubic-bezier(.34, 1.56, .64, 1);
   --chunky: 0 5px 0 var(--wood-dark), 0 10px 18px #0005;
@@ -31,12 +40,20 @@ body {
   font-family: "Fredoka", system-ui, sans-serif;
   color: var(--ink);
   line-height: 1.4;
-  /* parede de azulejos da cozinha, com a luz vindo do alto */
+  /* a mesma cozinha do jogo: parede menta listrada, faixa de azulejo pastel e tampo de madeira
+     amarela embaixo, com a luz vindo do alto (ver buildKitchen em src/three/sets.js) */
+  --counter: 19vh;
   background:
-    radial-gradient(70% 45% at 50% 0%, #ffe9a84d, transparent 70%),
-    repeating-linear-gradient(0deg, #ffffff12 0 2px, transparent 2px 64px),
-    repeating-linear-gradient(90deg, #ffffff12 0 2px, transparent 2px 64px),
-    linear-gradient(var(--wall), var(--wall-dark));
+    radial-gradient(80% 60% at 50% 0%, #fffbe9cc, #fffbe900 70%),
+    linear-gradient(#fff9 0 3px, #ffe9a6 3px 8px, #0000 8px) left 0 bottom calc(var(--counter) - 8px) / 100% 8px no-repeat,
+    repeating-linear-gradient(90deg, #0000 0 170px, #dba13a66 170px 172px) left 0 bottom 0 / 100% var(--counter) no-repeat,
+    linear-gradient(#f9d26a, #f2bd47 40%, #e9ad38) left 0 bottom 0 / 100% var(--counter) no-repeat,
+    linear-gradient(#0000, #b5794a33) left 0 bottom var(--counter) / 100% 26px no-repeat,
+    repeating-linear-gradient(90deg, #fff 0 3px, #0000 3px 52px) left 0 bottom var(--counter) / 100% 104px no-repeat,
+    repeating-linear-gradient(#fff 0 3px, #0000 3px 52px) left 0 bottom var(--counter) / 100% 104px no-repeat,
+    conic-gradient(#ffd3e2 0 25%, #c8efe1 0 50%, #fff0b3 0 75%, #e2d8ff 0) left 0 bottom var(--counter) / 104px 104px repeat-x,
+    repeating-linear-gradient(90deg, #c2ebdd 0 36px, #d4f3e9 36px 72px);
+  background-color: #cfefe4;
 }
 #root { height: 100%; display: flex; flex-direction: column; }
 button, input { font: inherit; color: inherit; }
@@ -60,134 +77,277 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .skip-link:focus { top: 12px; }
 
 /* ---------- Site (fora da partida) ---------- */
-.site-header {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  padding: 10px max(16px, calc((100% - 1000px) / 2));
-  background: linear-gradient(var(--wood-dark), var(--wood-deep));
-  box-shadow: 0 4px 0 #2a1404, 0 8px 18px #0006;
-  color: var(--cream);
+/* fora da partida o cabeçalho é só o botão de voltar e o logotipo pequeno, soltos no canto */
+.site-header { display: flex; align-items: center; gap: 14px; padding: 12px max(16px, calc((100% - 1180px) / 2)) 0; }
+.logo-link { display: block; border-radius: 20px; transition: transform .25s var(--spring); }
+.logo-link:hover { transform: rotate(-3deg) scale(1.05); }
+.logo-link .logo { width: 150px; }
+.corner-btn {
+  display: grid; place-items: center; width: 54px; height: 54px; flex: none; border-radius: 18px; cursor: pointer;
+  background: linear-gradient(#e2d6ff, var(--lilac) 60%, #9b7ce8); border: 4px solid #fff;
+  box-shadow: inset 0 -4px 0 #0001, 0 5px 0 var(--lilac-dark), 0 10px 16px #4a2a9a44;
+  transition: transform .2s var(--spring);
 }
-.logo { font-family: var(--display); font-size: 1.5rem; color: var(--sun); text-decoration: none; text-shadow: 0 2px 0 #2a1404; }
-.site-header nav { display: flex; gap: 6px; flex-wrap: wrap; }
-.site-header nav a { color: var(--cream); text-decoration: none; padding: 6px 14px; border-radius: 99px; font-weight: 500; }
-.site-header nav a:hover { background: #ffffff1f; }
-.site-header nav a.active { background: var(--sun); color: var(--ink); }
+.corner-btn svg { width: 30px; fill: none; stroke: #fff; stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 2px 0 var(--lilac-dark)); }
+.corner-btn:hover { transform: translateY(-2px) rotate(-6deg); }
+.corner-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--lilac-dark); }
 main { flex: 1; min-height: 0; width: 100%; max-width: 1180px; margin: 0 auto; padding: 16px; display: grid; align-content: center; }
 main.main-game { max-width: none; padding: 0; display: block; }
 /* celular ou janela pequena: só o aviso */
-.desktop-only { justify-items: center; align-content: center; gap: 8px; text-align: center; color: #e6f6fb; font-size: 1.15rem; max-width: 520px; }
-.desktop-only .chef { width: 110px; }
-.desktop-only .logo-big { font-size: 3.4rem; }
-.site-footer { text-align: center; padding: 16px; color: #d8eef5; font-size: .9rem; }
-.site-footer a { color: var(--sun); }
+.desktop-only { justify-items: center; align-content: center; gap: 8px; text-align: center; font-size: 1.15rem; font-weight: 500; max-width: 520px; }
+.desktop-only .chef { width: 120px; }
+.desktop-only .logo-big { width: min(100%, 340px); }
+.site-footer { text-align: center; padding: 10px 16px 14px; color: #8a5414; font-size: .85rem; font-weight: 500; }
+.site-footer a { color: var(--pink-dark); font-weight: 600; }
 
-.page, .recipe-card, .status {
-  background: linear-gradient(var(--cream), var(--cream-2));
-  border: 3px solid var(--wood-dark); border-radius: 22px; box-shadow: var(--chunky);
+/* moldura dos painéis: miolo branco, borda grossa azul-clara pontilhada de branco e um fio dourado por fora */
+.panel, .book, .hero-bubble {
+  border: 12px solid #0000; border-radius: 30px;
+  background:
+    linear-gradient(#fff, #fffaf2) padding-box,
+    radial-gradient(circle, #fffd 1.7px, #0000 2.3px) 0 0 / 12px 12px border-box,
+    linear-gradient(#bfe8f8, var(--frame) 50%, #86cdec) border-box;
+  box-shadow: inset 0 0 0 3px #d8f1fb, 0 0 0 3px var(--gold), 0 0 0 6px #fff, 0 10px 0 6px #0000001a, 0 26px 50px #3a5a6a55;
 }
-.page { padding: 20px; }
-.page h1 { font-family: var(--display); font-weight: 400; font-size: clamp(1.6rem, 4vw, 2.2rem); }
+
+/* faixa de título: pílula rosa com borda vinho e costura branca por dentro */
+.ribbon, .panel-title {
+  display: inline-block; margin: 0; padding: 6px 34px 8px; white-space: nowrap;
+  font-family: var(--display); font-weight: 400; font-size: 1.8rem; line-height: 1.1; color: #fff;
+  -webkit-text-stroke: 6px var(--pink-dark); paint-order: stroke fill; text-shadow: 0 3px 0 var(--pink-dark);
+  background: linear-gradient(#ffe2ec, #ffb9d1 60%, #ff9cc0); border: 4px solid var(--pink-dark); border-radius: 99px;
+  outline: 2.5px dashed #fff; outline-offset: -10px;
+  box-shadow: inset 0 3px 0 #fff9, 0 5px 0 #7d1c40, 0 12px 18px #7d1c4040;
+}
 
 /* ---------- Botões e chips ---------- */
+/* pílula de bala com brilho em cima: rosa é a ação principal, azul-piscina a secundária */
 .btn {
+  --b: #ff5c9a; --b-top: #ffa3c7; --b-low: #e8407f; --b-dark: var(--pink-dark);
+  position: relative; isolation: isolate;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  border: 3px solid var(--orange-dark); border-radius: 99px; padding: 8px 22px; cursor: pointer;
-  background: linear-gradient(var(--sun), var(--orange)); color: var(--wood-deep);
-  font-family: var(--display); font-size: 1.1rem; letter-spacing: .3px; text-decoration: none;
-  box-shadow: inset 0 3px 0 #fff8, 0 5px 0 var(--orange-dark), 0 9px 14px #0004;
+  border: 3px solid #fff; border-radius: 99px; padding: 8px 24px; cursor: pointer;
+  background: linear-gradient(var(--b-top), var(--b) 55%, var(--b-low)); color: #fff;
+  font-family: var(--display); font-size: 1.15rem; letter-spacing: .4px; text-decoration: none;
+  -webkit-text-stroke: 4px var(--b-dark); paint-order: stroke fill;
+  box-shadow: inset 0 -4px 0 #0001, 0 5px 0 var(--b-dark), 0 10px 16px color-mix(in srgb, var(--b-dark) 35%, #0000);
   transition: transform .2s var(--spring), box-shadow .2s;
 }
-.btn:hover { transform: translateY(-2px) scale(1.03); }
-.btn:active { transform: translateY(4px); box-shadow: inset 0 3px 0 #fff8, 0 1px 0 var(--orange-dark); }
+.btn::before {
+  content: ""; position: absolute; z-index: -1; left: 12%; right: 12%; top: 3px; height: 40%; border-radius: 99px;
+  background: linear-gradient(#fffc, #fff2); pointer-events: none;
+}
+.btn:hover { transform: translateY(-2px) scale(1.05); }
+.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--b-dark); }
 .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-.btn-ghost { background: linear-gradient(#fff, var(--cream-2)); border-color: var(--wood-dark); box-shadow: inset 0 3px 0 #fff, 0 5px 0 var(--wood-dark), 0 9px 14px #0004; }
-.btn-big { font-size: 1.5rem; padding: 10px 40px; }
-.btn-small { padding: 4px 16px; font-size: .95rem; }
+.btn-ghost { --b: var(--aqua); --b-top: #a6eef6; --b-low: #29a8bf; --b-dark: var(--aqua-dark); }
+.btn-big { font-size: 1.6rem; padding: 10px 44px; -webkit-text-stroke-width: 5px; }
+.btn-small { padding: 4px 16px; font-size: .95rem; -webkit-text-stroke-width: 3.5px; }
 .actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
 .chips li, .chip {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 12px; border-radius: 99px; font-size: .85rem; font-weight: 600;
-  background: #f0d9ae; color: var(--ink);
+  background: #fff; color: var(--ink); box-shadow: 0 2px 0 #0000001f;
 }
-.chips .chip-ok, .chip-ok { background: #d5f0d0; color: var(--green-dark); }
-.chips .chip-bad { background: #fbd5d2; color: var(--red-dark); }
-.chip .cut-icon { width: 16px; height: 16px; }
 .icon { width: 1.3em; height: 1.3em; flex: none; }
 
 /* ---------- Mensagens ---------- */
-.status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; margin: 12px 0; border-radius: 16px; }
+.status {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 18px; margin: 12px 0; border-radius: 20px;
+  background: #fff; border: 4px solid var(--frame); box-shadow: 0 5px 0 #0000001a; font-weight: 500;
+}
 .status-error { border-color: var(--red-dark); background: #fde6e2; color: #7a1e16; }
 .status-success { border-color: var(--green-dark); background: #e6f6e0; color: #1f5a2a; }
 .spinner { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--cream-2); border-top-color: var(--orange); animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ---------- Ilustrações ---------- */
-.art { width: 100%; height: auto; display: block; overflow: visible; }
-.art.mini { width: 44px; }
-.bare > :not(.food):not(defs) { display: none; } /* só a comida, sem o prato */
-.food { animation: bob 3.2s ease-in-out infinite; animation-delay: var(--d, 0s); transform-origin: 100px 140px; }
-.shadow { animation: shadow 3.2s ease-in-out infinite; animation-delay: var(--d, 0s); transform-origin: 100px 150px; }
-.mini .food, .fx .food, .drag-ghost .food { animation: none; }
-@keyframes bob { 50% { transform: translateY(-5px); } }
-@keyframes shadow { 50% { transform: scale(.92); opacity: .75; } }
-.flame { animation: flicker .5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
-@keyframes flicker { to { transform: scaleY(.75) scaleX(1.1); } }
-.steam { animation: steam 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
-@keyframes steam { 0% { opacity: 0; transform: translateY(6px); } 40% { opacity: .7; } 100% { opacity: 0; transform: translateY(-10px); } }
-.glow { animation: glow 1.6s ease-in-out infinite alternate; }
-@keyframes glow { to { opacity: .5; } }
-.sparkle { animation: twinkle 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-@keyframes twinkle { 50% { transform: scale(.4); opacity: .4; } }
-
-.chef { width: 76px; flex: none; filter: drop-shadow(0 4px 4px #0005); transform-origin: 50% 100%; }
+/* ---------- Chef (src/components/Chef.jsx) ---------- */
+/* respira, pisca e mexe os braços; a cara muda pelo `data-mood` */
+.chef { width: 92px; flex: none; overflow: visible; filter: drop-shadow(0 5px 4px #5a2c1240); transform-origin: 50% 100%; }
+.chef-head { animation: breathe 3.4s ease-in-out infinite; }
+.chef-body { transform-origin: 100px 236px; animation: breathe-body 3.4s ease-in-out infinite; }
+@keyframes breathe { 50% { translate: 0 2.5px; } }
+@keyframes breathe-body { 50% { scale: 1.015 .985; } }
+.chef-eyes { transform-origin: 100px 105px; animation: blink 4.6s infinite; }
+@keyframes blink { 0%, 93%, 100% { scale: 1 1; } 96% { scale: 1 .1; } }
+.chef-arm { transition: rotate .35s var(--spring); }
+.chef-arm-l { transform-origin: 70px 184px; }
+.chef-arm-r { transform-origin: 130px 184px; }
+.chef:is([data-mood="happy"], [data-mood="love"]) .chef-arm-l { rotate: 108deg; }
+.chef:is([data-mood="happy"], [data-mood="love"]) .chef-arm-r { rotate: -108deg; }
+.chef[data-mood="sad"] .chef-arm-l { rotate: -14deg; }
+.chef[data-mood="sad"] .chef-arm-r { rotate: 14deg; }
 .chef[data-mood="happy"] { animation: hop .5s var(--spring); }
 .chef[data-mood="sad"] { animation: shake .45s ease; }
 @keyframes hop { 40% { transform: translateY(-12px) scale(1.06); } }
+@keyframes bob { 50% { transform: translateY(-6px); } }
+
+/* ---------- Toalhinha de renda com a foto do prato (src/components/Doily.jsx) ---------- */
+.doily { position: relative; width: 140px; aspect-ratio: 1; flex: none; }
+.doily svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 4px 3px #7a431733); }
+.doily-lace { fill: #fff; }
+.doily-hole { fill: var(--lace, #f6e2ea); }
+.doily-ring { fill: none; stroke: var(--lace, #f6e2ea); stroke-width: 1.2; stroke-dasharray: 2.5 2; }
+.doily img {
+  position: absolute; inset: 18%; width: 64%; height: 64%; object-fit: cover; border-radius: 50%;
+  border: 3px solid #fff; box-shadow: 0 0 0 2px #f0d6df, 0 6px 10px #5a2c1244;
+  transition: rotate .5s var(--spring), scale .5s var(--spring);
+}
 
 /* ---------- Tela de título ---------- */
-.title-screen { display: grid; gap: 28px; }
-.hero { text-align: center; color: #e6f6fb; font-size: 1.15rem; }
-.hero .chef { width: 120px; margin: 0 auto -6px; display: block; animation: bob 3.2s ease-in-out infinite; }
-.logo-big, .section-title, .phase-banner {
-  font-family: var(--display); font-weight: 400; color: #fff;
-  -webkit-text-stroke: 6px var(--wood-deep); paint-order: stroke fill;
-  text-shadow: 0 6px 0 var(--wood-deep), 0 12px 18px #0006;
+/* logotipo, chef e balão à esquerda; pedidos à direita, tudo cabendo na janela */
+.title-screen { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px 40px; align-items: center; }
+.hero { display: grid; justify-items: center; gap: 4px; text-align: center; }
+.logo { margin: 0; }
+.logo svg { display: block; width: 100%; height: auto; overflow: visible; }
+.logo-big { width: min(100%, 56vh, 480px); rotate: -3deg; filter: drop-shadow(0 10px 0 #b0285a22) drop-shadow(0 16px 20px #7d1c4033); animation: logo-in .8s var(--spring) both; }
+@keyframes logo-in { from { scale: .5; rotate: -14deg; opacity: 0; } }
+.logo-sparkle { transform-box: fill-box; transform-origin: center; animation: twinkle 2.2s ease-in-out infinite; }
+.logo-sparkle:nth-of-type(2n) { animation-delay: .7s; }
+.logo-sparkle:nth-of-type(3n) { animation-delay: 1.4s; }
+@keyframes twinkle { 50% { scale: .45; opacity: .5; } }
+.hero-chef { display: flex; align-items: flex-end; gap: 6px; margin-top: -6px; }
+.hero-chef .chef { width: clamp(110px, 21vh, 190px); }
+/* o chef da tela de título acena com a mão direita */
+.hero-chef .chef-arm-r { animation: wave 1.4s ease-in-out infinite alternate; }
+@keyframes wave { from { rotate: -112deg; } to { rotate: -150deg; } }
+.hero-bubble {
+  position: relative; margin: 0 0 clamp(40px, 9vh, 90px); padding: 8px 16px; max-width: 230px; border-width: 8px; border-radius: 22px;
+  font-family: var(--display); font-size: 1.15rem; line-height: 1.2; color: var(--frame-dark); text-align: left;
+  animation: say .5s .5s var(--spring) both;
 }
-.logo-big { font-size: clamp(3rem, 12vw, 6rem); line-height: .95; margin: 0 0 12px; transform: rotate(-3deg); }
-.logo-big span { color: var(--sun); display: block; }
-.section-title { font-size: 1.7rem; -webkit-text-stroke-width: 4px; text-shadow: 0 4px 0 var(--wood-deep); margin-bottom: 12px; }
+.hero-bubble::before {
+  content: ""; position: absolute; left: -24px; bottom: 6px; width: 22px; height: 20px;
+  background: var(--frame); clip-path: polygon(100% 0, 0 70%, 100% 100%);
+}
+.hero-tagline { margin: 0; padding: 4px 16px; border-radius: 99px; background: #ffffffb3; font-weight: 600; color: var(--ink-soft); }
 
-.recipe-card { display: grid; grid-template-columns: minmax(0, 150px) 1fr; gap: 18px; align-items: center; padding: 14px; }
-.recipe-card img, .detail-photo, .dish-photo { border-radius: 16px; border: 4px solid #fff; box-shadow: 0 4px 0 var(--wood-dark), 0 10px 18px #0004; aspect-ratio: 1; object-fit: cover; width: 100%; }
-.recipe-card img { transform: rotate(-3deg); }
-.recipe-card h3 { font-family: var(--display); font-weight: 400; font-size: 1.6rem; margin: 0; }
-/* cardápio: seis pedidos em cards compactos, três por linha */
-.menu { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+/* ---------- Pedidos do dia: cartões de papel colorido com costura ---------- */
+.orders { display: grid; justify-items: center; gap: 14px; }
+.menu { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; width: 100%; }
 .menu > li { display: grid; }
-.menu .recipe-card { grid-template-columns: 1fr; gap: 6px; padding: 10px; text-align: center; justify-items: center; align-content: start; }
-.menu .recipe-card img { width: min(100%, 11vh); }
-.menu .recipe-card h3 { font-size: clamp(.95rem, 2.2vh, 1.2rem); line-height: 1.1; }
-.menu .recipe-card .muted { margin: 0; font-size: .75rem; }
-.menu .chips, .menu .actions { justify-content: center; margin: 0; gap: 6px; }
-.menu .actions { flex-wrap: nowrap; }
-.menu .chips li { font-size: .7rem; padding: 1px 8px; }
-.menu .btn { font-size: .8rem; padding: 4px 10px; min-height: 0; white-space: nowrap; }
-/* hero ao lado do conteúdo para a tela inicial caber sem rolagem */
-.title-screen { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px 40px; align-items: center; }
-.title-screen .hero { grid-row: span 2; }
-.hero .chef { width: clamp(80px, 14vh, 120px); }
-.logo-big { font-size: clamp(3rem, 11vh, 6rem); }
-.title-screen .section-title { margin-bottom: 8px; }
+.order {
+  /* a cor do papel gira pelo círculo de cores: rosa, amarelo, menta, azul, lilás… */
+  --h: calc(340 + var(--n) * 62);
+  --lace: hsl(var(--h) 70% 88%);
+  position: relative; display: grid; justify-items: center; align-content: start; gap: 4px;
+  padding: 12px 10px 14px; text-align: center; border-radius: 26px; border: 4px solid #fff;
+  background: radial-gradient(#ffffff8c 1.6px, #0000 2.2px) 0 0 / 14px 14px, hsl(var(--h) 85% 91%);
+  outline: 2.5px dashed hsl(var(--h) 55% 74%); outline-offset: -11px;
+  box-shadow: 0 6px 0 hsl(var(--h) 40% 74%), 0 14px 22px #5a3a2a26;
+  transition: transform .3s var(--spring), box-shadow .3s;
+  animation: card-in .55s calc(var(--n) * 70ms + .2s) var(--spring) both;
+}
+.order:hover { transform: translateY(-6px) rotate(-1deg); box-shadow: 0 10px 0 hsl(var(--h) 40% 74%), 0 22px 30px #5a3a2a33; }
+.order:hover .doily img { rotate: 12deg; scale: 1.06; }
+.order .doily { width: clamp(84px, 15vh, 140px); }
+.order-rating {
+  position: absolute; right: -8px; top: -10px; margin: 0; padding: 4px 10px; rotate: 10deg;
+  font-family: var(--display); font-size: .95rem; color: #a35a00; background: linear-gradient(#fff7b8, #ffd94a);
+  border: 3px solid #fff; border-radius: 14px; box-shadow: 0 3px 0 #d9a21f, 0 6px 10px #0002;
+}
+/* nome numa fita adesiva estampada, um pouco torta */
+.tape {
+  margin: 2px 0 0; padding: 4px 14px; max-width: 100%; rotate: -1.5deg;
+  font-family: var(--display); font-weight: 400; font-size: clamp(.95rem, 2.2vh, 1.2rem); line-height: 1.1; color: var(--ink);
+  background: repeating-linear-gradient(-45deg, #ffffffd9 0 6px, #ffffffa6 6px 12px);
+  box-shadow: 0 2px 0 #0000000f;
+  clip-path: polygon(0 8%, 3% 0, 97% 4%, 100% 0, 99% 92%, 100% 100%, 2% 96%, 0 100%);
+}
+.order-en { margin: 0; font-size: .75rem; color: var(--ink-soft); }
+.order .chips { justify-content: center; margin: 2px 0 6px; gap: 5px; }
+.order .chips li { font-size: .72rem; padding: 1px 9px; }
+.order .actions { justify-content: center; gap: 8px; flex-wrap: nowrap; }
+.order .btn { font-size: .92rem; padding: 4px 14px; -webkit-text-stroke-width: 3.5px; white-space: nowrap; }
+/* janela pequena: o cardápio ganha espaço e os cartões perdem o nome em inglês */
+@media (max-width: 1100px), (max-height: 700px) {
+  .title-screen { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 12px 20px; }
+  .order-en { display: none; }
+  .orders { gap: 8px; }
+  .menu { gap: 12px; }
+  .order .chips { gap: 3px; flex-wrap: nowrap; }
+  .order .chips li { font-size: .66rem; padding: 1px 6px; }
+  .order .doily { width: clamp(64px, 12vh, 120px); }
+  .order .btn { font-size: .82rem; padding: 3px 10px; -webkit-text-stroke-width: 3px; }
+}
 
-/* ---------- Detalhe: foto, ingredientes e preparo lado a lado, sem rolar ---------- */
-.detail { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr) minmax(0, 1.5fr); gap: 8px 28px; align-items: start; font-size: clamp(.8rem, 1.6vh, .95rem); line-height: 1.35; }
-.detail-photo { width: min(100%, 34vh); transform: rotate(-2deg); }
-.detail-head h1 { margin-top: 14px; }
-.detail-head .btn { margin-top: 4px; }
-.detail h2 { font-family: var(--display); font-weight: 400; font-size: 1.3rem; color: var(--red-dark); }
-.detail ul:not(.chips), .detail ol { padding-left: 20px; list-style: revert; }
-.detail li { margin-bottom: 3px; }
+/* ---------- Receita: caderno aberto com espiral no meio ---------- */
+.book {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1.45fr);
+  margin-top: 26px; max-height: calc(100vh - 150px); padding: 0; font-size: clamp(.8rem, 1.65vh, .95rem); line-height: 1.35;
+  animation: panel-in .55s var(--spring);
+}
+.book-title { position: absolute; left: 50%; top: -42px; translate: -50% 0; z-index: 2; display: grid; justify-items: center; }
+.book-title .ribbon { font-size: clamp(1.5rem, 3.6vh, 2.1rem); }
+.book-title p { margin: -4px 0 0; padding: 1px 14px; border-radius: 99px; background: #fff; font-size: .82rem; font-weight: 500; color: var(--ink-soft); box-shadow: 0 2px 0 #0000001a; }
+.leaf { min-height: 0; overflow: auto; padding: 52px 26px 20px; scrollbar-width: thin; }
+.leaf-left {
+  display: grid; justify-items: center; align-content: start; gap: 10px; border-radius: 18px 0 0 18px;
+  background: radial-gradient(#ffd3e299 1.6px, #0000 2.2px) 0 0 / 16px 16px, #fffaf4;
+}
+.leaf-right {
+  display: grid; align-content: start; gap: 14px; border-radius: 0 18px 18px 0;
+  background: repeating-linear-gradient(#0000 0 27px, #e3f3fa 27px 29px) 0 10px, #fff;
+}
+/* espiral: argolas rosa presas nas duas páginas */
+.rings {
+  background:
+    radial-gradient(ellipse 15px 7px at 50% 50%, #0000 52%, #ff8db5 58% 80%, #c2386f 84%, #0000 90%) 0 6px / 100% 34px repeat-y,
+    linear-gradient(90deg, #fffaf4, #e9dfd4 45%, #e2ebf0 55%, #fff);
+}
+.doily-big { width: clamp(150px, 31vh, 280px); }
+.score-line { display: flex; align-items: center; gap: 6px; margin: -4px 0 0; font-weight: 500; color: var(--ink-soft); }
+.score-line b { font-family: var(--display); font-weight: 400; font-size: 1.25rem; color: var(--ink); }
+/* estrelas da nota da API, preenchidas até a fração certa */
+.meter-stars { position: relative; display: inline-block; font-size: 1.45rem; line-height: 1; letter-spacing: 2px; color: #eadfca; white-space: nowrap; }
+.meter-stars::before { content: "★★★★★"; }
+.meter-stars::after { content: "★★★★★"; position: absolute; left: 0; top: 0; width: calc(var(--v) * 100%); overflow: hidden; color: var(--sun); text-shadow: 0 2px 0 #d9a21f; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; margin: 0; }
+.facts div {
+  --h: 200; padding: 6px 4px; border-radius: 14px; text-align: center;
+  background: hsl(var(--h) 85% 93%); border: 2.5px solid #fff; box-shadow: 0 3px 0 hsl(var(--h) 45% 80%);
+}
+.facts div:nth-child(2) { --h: 340; }
+.facts div:nth-child(3) { --h: 50; }
+.facts div:nth-child(4) { --h: 150; }
+.facts div:nth-child(5) { --h: 270; }
+.facts div:nth-child(6) { --h: 20; }
+.facts dt { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); }
+.facts dd { margin: 0; font-family: var(--display); font-size: 1.1rem; line-height: 1.15; }
+.tags { justify-content: center; margin: 0; }
+.tags li { font-size: .75rem; color: var(--ink-soft); }
+.tags .chip-meal { background: var(--pink); color: #fff; }
+.cook-cta { display: grid; justify-items: center; gap: 6px; margin: 4px 0 0; font-weight: 600; color: var(--ink-soft); }
+.cook-cta p { margin: 0; }
+.leaf-head {
+  display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; padding-bottom: 8px;
+  font-family: var(--display); font-weight: 400; font-size: 1.45rem; color: var(--sun);
+  -webkit-text-stroke: 5px var(--frame-dark); paint-order: stroke fill;
+  /* traço de colher laranja que termina em pontinhos, embaixo do título */
+  background:
+    linear-gradient(90deg, #ff9a1f, #ffb84a) left bottom / calc(100% - 50px) 5px no-repeat,
+    radial-gradient(circle, #ff9a1f 2.5px, #0000 3px) right bottom / 11px 6px repeat-x;
+}
+.leaf-head small { font-family: "Fredoka", sans-serif; font-size: .8rem; font-weight: 600; color: var(--ink-soft); -webkit-text-stroke: 0; }
+.ingredients { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px; }
+.ingredients li { position: relative; padding-left: 26px; }
+.ingredients li::before {
+  content: ""; position: absolute; left: 0; top: 2px; width: 16px; height: 16px; border-radius: 5px;
+  background: #fff; border: 2.5px solid var(--frame); box-shadow: 0 2px 0 #0000001a;
+}
+.ingredients b, .steps b { font-weight: 600; }
+.ingredients small, .steps small { display: block; color: var(--ink-soft); font-size: .82em; line-height: 1.25; }
+.cut, .station { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 99px; font-size: .75em; font-weight: 600; vertical-align: 1px; }
+.cut { background: #fff0b3; color: #8a5a00; }
+.station { background: #d9f3ea; color: #1f6e55; }
+.steps { display: grid; gap: 8px; counter-reset: step; }
+.steps li { position: relative; padding-left: 36px; counter-increment: step; }
+.steps li::before {
+  content: counter(step); position: absolute; left: 0; top: -1px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  font-family: var(--display); color: #fff; background: linear-gradient(#ff9cc0, var(--pink)); border: 2.5px solid #fff; box-shadow: 0 2px 0 var(--pink-dark);
+}
+.not-found { justify-self: center; display: grid; justify-items: center; gap: 8px; padding-top: 40px; }
 
 /* ---------- Partida: palco ---------- */
 .game {
@@ -243,6 +403,9 @@ main.main-game { max-width: none; padding: 0; display: block; }
 /* faixa que anuncia a fase; some sozinha (e nem aparece sem animação). Fica acima da íris:
    passa por cima do papel rosa enquanto a tela troca de lugar */
 .phase-banner {
+  font-family: var(--display); font-weight: 400; color: #fff;
+  -webkit-text-stroke: 6px var(--wood-deep); paint-order: stroke fill;
+  text-shadow: 0 6px 0 var(--wood-deep), 0 12px 18px #0006;
   position: fixed; left: 0; right: 0; top: 34%; z-index: 85; margin: 0; text-align: center; pointer-events: none;
   font-size: clamp(3rem, 12vw, 6.5rem); line-height: 1; opacity: 0; animation: banner 1.7s ease both;
 }
@@ -581,28 +744,39 @@ main.main-game { max-width: none; padding: 0; display: block; }
 /* ---------- Painéis: pedido e resultado ---------- */
 .overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 44px 16px 24px; overflow: hidden; background: #071c26cc; animation: fade .3s ease; }
 @keyframes fade { from { opacity: 0; } }
-.panel {
-  position: relative; width: 100%; max-width: 440px; padding: 34px 22px 22px; text-align: center;
-  background: linear-gradient(var(--cream), var(--cream-2)); border: 4px solid var(--wood-dark); border-radius: 28px;
-  box-shadow: inset 0 4px 0 #fff, 0 8px 0 var(--wood-deep), 0 30px 60px #000a; animation: panel-in .55s var(--spring);
-}
+.panel { position: relative; width: 100%; max-width: 460px; padding: 34px 20px 20px; text-align: center; animation: panel-in .55s var(--spring); }
 @keyframes panel-in { from { transform: scale(.6) translateY(60px); opacity: 0; } }
 /* "Começar!": o pedido encolhe com um pulinho e o fundo escuro clareia antes de a íris fechar */
 .overlay[data-leaving] { animation: overlay-out .4s ease-in both; }
 @keyframes overlay-out { to { opacity: 0; } }
 .overlay[data-leaving] .panel { animation: panel-out .4s cubic-bezier(.5, -.5, .8, .5) both; }
 @keyframes panel-out { to { transform: scale(.6) translateY(40px); opacity: 0; } }
-.panel-title {
-  position: absolute; left: 50%; top: -26px; translate: -50% 0; margin: 0; padding: 6px 30px; white-space: nowrap;
-  font-family: var(--display); font-weight: 400; font-size: 1.8rem; color: #fff; text-shadow: 0 3px 0 #6e1418;
-  background: linear-gradient(#ff6b6b, var(--red-dark)); border: 4px solid #fff; border-radius: 18px; box-shadow: 0 6px 0 #6e1418, 0 12px 16px #0005;
-}
-.panel .dish-photo { max-width: 190px; margin: 0 auto 10px; transform: rotate(-3deg); }
+.panel-title { position: absolute; left: 50%; top: -36px; translate: -50% 0; }
+.panel .doily { width: min(190px, 17vh); margin: -6px auto 2px; }
 .panel .chips, .panel .actions { justify-content: center; }
 .order-name { font-family: var(--display); font-size: 1.6rem; line-height: 1.1; margin: 0; }
-.phase-preview { display: flex; justify-content: center; gap: 8px; margin: 4px 0 16px; }
-.phase-preview li { flex: 1; max-width: 110px; font-weight: 600; counter-increment: fase; }
-.phase-preview li::after { content: none; }
+/* "como vai ser": três quadros com a foto de cada fase, tirada da cozinha 3D (world.snapshot) */
+.how-title {
+  margin: 4px auto 8px; padding-bottom: 7px; width: fit-content; min-width: 60%;
+  font-family: var(--display); font-weight: 400; font-size: 1.25rem; color: var(--sun);
+  -webkit-text-stroke: 5px var(--frame-dark); paint-order: stroke fill;
+  background:
+    linear-gradient(90deg, #ff9a1f, #ffb84a) left bottom / calc(100% - 40px) 5px no-repeat,
+    radial-gradient(circle, #ff9a1f 2.5px, #0000 3px) right bottom / 11px 6px repeat-x;
+}
+.phase-preview { display: flex; justify-content: center; gap: 10px; margin: 0 0 12px; }
+.phase-preview li { flex: 1; max-width: min(130px, 20vh); display: grid; justify-items: center; font-family: var(--display); font-size: 1.05rem; line-height: 1.1; }
+.phase-preview small { margin-top: 6px; font-family: "Fredoka", sans-serif; font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+.phase-thumb {
+  display: block; width: 100%; aspect-ratio: 32 / 22; overflow: hidden; border-radius: 14px; border: 4px solid #fff;
+  background: linear-gradient(110deg, #e8f6fb 30%, #fff 50%, #e8f6fb 70%) 0 0 / 300% 100%; animation: shimmer 1.2s linear infinite;
+  box-shadow: 0 0 0 3px var(--frame), 0 6px 10px #3a5a6a33;
+}
+.phase-thumb:has(img) { animation: none; }
+.phase-thumb img { width: 100%; height: 100%; object-fit: cover; animation: fade .4s ease; }
+.phase-preview li:nth-child(2) .phase-thumb { rotate: -2deg; }
+.phase-preview li:nth-child(3) .phase-thumb { rotate: 2deg; }
+@keyframes shimmer { to { background-position: -150% 0; } }
 
 /* resultado: foto e placar à esquerda, notas das etapas à direita, avaliação no rodapé */
 .panel.result { max-width: 820px; padding-top: 30px; }
@@ -620,7 +794,7 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .result-score { display: grid; grid-template-columns: 120px 1fr; gap: 6px 16px; align-items: center; }
 .score-table th { white-space: nowrap; }
 .recipe-link { display: block; margin-top: 6px; text-align: right; font-weight: 600; font-size: .9rem; }
-.result-score .dish-photo { transform: rotate(-3deg); }
+.result-score .dish-doily { width: 120px; margin: 0; rotate: -4deg; }
 .result-score .actions { grid-column: 1 / -1; justify-content: center; margin-top: 10px; }
 .score-table { border-collapse: collapse; width: 100%; font-size: 1rem; }
 .score-table th { text-align: left; font-weight: 500; padding: 3px 0; }

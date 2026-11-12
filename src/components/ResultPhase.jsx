@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import StarRating from "./StarRating";
 import StatusMessage from "./StatusMessage";
 import Icon from "./Icon";
+import Doily from "./Doily";
 import { starsFor, finalScore, average, stepGrade } from "../game/rules";
 import { rateRecipe } from "../services/recipes";
 import { sfx } from "../game/sound";
@@ -48,7 +49,7 @@ export default function ResultPhase({ recipe, coins, steps, onReplay }) {
 
         <div className="result-body">
           <div className="result-score">
-            <img className="dish-photo" src={recipe.image} alt={`Foto do prato ${recipe.name}`} />
+            <Doily className="dish-doily" src={recipe.image} alt={`Foto do prato ${recipe.name}`} />
             <table className="score-table">
               <caption className="visually-hidden">Pontuação</caption>
               <tbody>

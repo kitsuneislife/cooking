@@ -1,8 +1,8 @@
 import { lazy, Suspense, useSyncExternalStore } from "react";
-import { NavLink, Route, Routes, useMatch } from "react-router-dom";
-import { SharedArtDefs } from "./components/Illustration";
+import { Link, Route, Routes, useMatch } from "react-router-dom";
 import StatusMessage from "./components/StatusMessage";
 import Chef from "./components/Chef";
+import Logo from "./components/Logo";
 import Home from "./pages/Home";
 import RecipeDetail from "./pages/RecipeDetail";
 import NotFound from "./pages/NotFound";
@@ -17,26 +17,27 @@ const watchSmall = (f) => { SMALL.addEventListener("change", f); return () => SM
 export default function App() {
   // a partida ocupa a tela toda: sem cabeçalho nem rodapé do site
   const playing = useMatch("/jogar/:id");
+  // na tela de título o logotipo grande já está no meio: o cabeçalho some
+  const home = useMatch("/");
   const small = useSyncExternalStore(watchSmall, () => SMALL.matches);
   if (small) {
     return (
       <main className="desktop-only">
-        <Chef />
-        <h1 className="logo-big">Cozinhe <span>Comigo</span></h1>
+        <Chef mood="love" />
+        <Logo as="h1" className="logo-big" />
         <p>Este jogo é feito para computador. Abra num navegador de tela grande (ou aumente a janela) para cozinhar!</p>
       </main>
     );
   }
   return (
     <>
-      <SharedArtDefs />
       <a className="skip-link" href="#main">Pular para o conteúdo</a>
-      {!playing && (
+      {!playing && !home && (
         <header className="site-header">
-          <NavLink to="/" className="logo">Cozinhe Comigo</NavLink>
-          <nav aria-label="Principal">
-            <NavLink to="/" end>Início</NavLink>
-          </nav>
+          <Link to="/" className="corner-btn" aria-label="Voltar ao início">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 5 L4 11 L10 17 M4.5 11 H14 C18 11 20 13.5 20 17 V19" /></svg>
+          </Link>
+          <Link to="/" className="logo-link"><Logo /></Link>
         </header>
       )}
       <main id="main" className={playing ? "main-game" : undefined}>

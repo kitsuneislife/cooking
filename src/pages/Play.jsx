@@ -8,17 +8,18 @@ import { useMusic } from "../hooks/useMusic";
 import { MUSIC, trackFor } from "../data/music";
 import { pop } from "../game/fx";
 import { THREE } from "../three/kit";
+import { minigame } from "../three/games";
 import StatusMessage from "../components/StatusMessage";
-import Illustration from "../components/Illustration";
 import Icon from "../components/Icon";
 import Chef from "../components/Chef";
+import Doily from "../components/Doily";
 import Stage3D from "../components/Stage3D";
 import MinigamePhase from "../components/MinigamePhase";
 import ResultPhase from "../components/ResultPhase";
 
 // A feira é igual para todo pedido; as outras duas fases têm nome e dica da receita.
 const phasesOf = (game) => [
-  { key: "market", name: "Mercado", art: "basket", hint: "Primeiro, as compras! Pegue só o que está na lista." },
+  { key: "market", name: "Mercado", hint: "Primeiro, as compras! Pegue só o que está na lista." },
   { key: "prep", ...game.phases.prep },
   { key: "cook", ...game.phases.cook },
 ];
@@ -115,6 +116,16 @@ function Match({ recipe, game, onReplay }) {
     document.getElementById("phase-title")?.focus();
   }, [phase]);
 
+  // miniaturas do pedido: a própria cozinha 3D fotografa onde cada fase começa
+  const [thumbs, setThumbs] = useState(null);
+  useEffect(() => {
+    if (!world) return;
+    setThumbs(PHASES.map(({ key }) => {
+      const spec = game.play[key][0];
+      return world.snapshot(spec.shot ?? minigame(spec.game).shot);
+    }));
+  }, [world]); // uma foto por cozinha: o pedido não muda durante a partida
+
   // o chef volta à cara normal depois de comemorar ou lamentar
   useEffect(() => {
     const timer = setTimeout(() => setChef((c) => ({ ...c, mood: "idle" })), 1500);
@@ -171,7 +182,7 @@ function Match({ recipe, game, onReplay }) {
         <div className="overlay overlay-scene" data-leaving={leaving || undefined}>
           <section className="panel intro" aria-labelledby="phase-title">
             <h2 id="phase-title" tabIndex={-1} className="panel-title">Novo pedido!</h2>
-            <img className="dish-photo" src={recipe.image} alt={`Foto do prato ${recipe.name}`} />
+            <Doily src={recipe.image} alt={`Foto do prato ${recipe.name}`} />
             <p className="order-name">{game.title}</p>
             <p className="muted" lang="en">{recipe.name}</p>
             <ul className="chips" aria-label="Informações">
@@ -179,9 +190,13 @@ function Match({ recipe, game, onReplay }) {
               <li>{DIFFICULTY[recipe.difficulty]}</li>
               <li>{total} etapas</li>
             </ul>
+            <h3 className="how-title">Como vai ser</h3>
             <ol className="phase-preview">
-              {PHASES.map((p) => (
-                <li key={p.key}><Illustration name={p.art} className="art" />{p.name}</li>
+              {PHASES.map((p, n) => (
+                <li key={p.key}>
+                  <span className="phase-thumb">{thumbs && <img src={thumbs[n]} alt="" />}</span>
+                  <small>Fase {n + 1}</small>{p.name}
+                </li>
               ))}
             </ol>
             {failed ? (
