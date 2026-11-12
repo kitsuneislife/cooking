@@ -8,6 +8,7 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { buildKitchen, buildMarket, STATION_X } from "./sets.js";
+import { loadModels, loadedModels } from "./models.js";
 
 export const MARKET_X = -70; // a feira fica longe da cozinha: a câmera "viaja" entre as duas
 
@@ -214,7 +215,8 @@ const GRADE = {
 
 /* ---------- Mundo ---------- */
 export async function createWorld(host) {
-  try { await document.fonts.load('400 60px "Lilita One"'); } catch { /* rótulos caem na fonte do sistema */ }
+  const fonts = document.fonts.load('400 60px "Lilita One"').catch(() => { /* rótulos caem na fonte do sistema */ });
+  await Promise.all([fonts, loadModels()]); // a cena usa os dois na montagem
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
@@ -274,13 +276,13 @@ export async function createWorld(host) {
   // sem isso, o primeiro quadro de cada coisa nova trava compilando. Os shaders compilam em
   // paralelo (KHR_parallel_shader_compile) enquanto a animação segue.
   async function warm() {
-    const seen = new Set();
-    scene.traverse((o) => {
+    const seen = new Set(), models = loadedModels(); // os pratos prontos só entram na cena no fim
+    for (const root of [scene, ...models]) root.traverse((o) => {
       for (const m of o.material ? [].concat(o.material) : []) {
         for (const t of Object.values(m)) if (t?.isTexture && !seen.has(t)) { seen.add(t); renderer.initTexture(t); }
       }
     });
-    await renderer.compileAsync(scene, camera);
+    await Promise.all([scene, ...models].map((root) => renderer.compileAsync(root, camera, scene)));
   }
 
   // ---- câmera: planos com travelling suave, respiração e tremor ----

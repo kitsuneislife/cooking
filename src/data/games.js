@@ -64,7 +64,7 @@ export const games = {
         { game: "fry", step: 1, items: ["beef"] },
         { game: "toss", step: 2, items: ["broccoli", "garlic", "ginger"] },
         { game: "stir", step: 3 },
-        { game: "plate", step: 5, items: ["rice"] },
+        { game: "plate", step: 5, items: ["rice"], dish: "stirfry" },
       ],
     },
   },
@@ -171,7 +171,7 @@ export const games = {
         { game: "swirl", step: 2, into: "bowl", title: "Misturar a salsa" },
         { game: "slice", step: 3, model: "chicken", title: "Cortar o frango" },
         {
-          game: "plate", step: 4, items: ["rice"], portion: "salsa", what: "o frango com salsa",
+          game: "plate", step: 4, items: ["rice"], portion: "salsa", dish: "chicken", what: "o frango com salsa",
           how: "Toque para virar o arroz no meio do prato. Depois arraste o frango com salsa até cada alvo.",
         },
       ],
@@ -278,7 +278,7 @@ export const games = {
           title: "Polvilhar o cacau", items: ["cocoa"],
         },
         {
-          game: "wait", step: 6, in: "fridge", item: "tiramisu", label: "Gelando", serve: true, hero: "tiramisu", shot: "fridge", seconds: 20,
+          game: "wait", step: 6, in: "fridge", item: "tiramisu", label: "Gelando", serve: true, dish: "tiramisu", hero: "tiramisu", shot: "fridge", seconds: 20,
           title: "Gelar", how: "Espere gelar e toque para tirar quando o ponteiro estiver no verde.", keys: "Espaço tira da geladeira.",
         },
       ],

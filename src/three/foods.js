@@ -4,6 +4,7 @@ import {
   THREE, RoundedBoxGeometry, mergeGeometries, build, bottle, labelTexture, mesh, food, glossy, metal,
   paint, canvasTex, tex, rgb, mix, fbm, sstep, seeded, V2, castAll, hash, colorize, normals, limb,
 } from "./kit.js";
+import { model } from "./models.js";
 
 const TAU = Math.PI * 2;
 
@@ -12,14 +13,6 @@ const once = (key, make) => cache[key] ??= make();
 const C = (hex) => new THREE.Color(hex);
 
 /* ---------- Texturas ---------- */
-const mangoTex = () => once("mango", () => {
-  const green = rgb("#8fbf3a"), yellow = rgb("#ffc42e"), red = rgb("#ee4f2c");
-  return paint(128, (u, v) => {
-    const c = mix(green, yellow, sstep(0.05, 0.45, v + (fbm(u * 6, v * 6) - 0.5) * 0.3));
-    const blush = sstep(0.35, 0.85, 0.5 + 0.5 * Math.sin(u * Math.PI * 2)) * sstep(0.15, 0.7, v);
-    return mix(c, red, blush * 0.85);
-  });
-});
 const onionTex = () => once("onion", () => {
   const a = rgb("#7a1f52"), b = rgb("#b5477f"), paper = rgb("#d9b48a");
   return paint(128, (u, v) => mix(mix(a, b, fbm(u * 34, v * 2.5, 3)), paper, sstep(0.82, 0.95, v)));
@@ -194,31 +187,18 @@ function shaker(body, band) { // saleiro de cerâmica com tampa furadinha
 }
 
 /* ---------- Ingredientes ---------- */
-export function mango() {
-  const geo = new THREE.LatheGeometry([V2(0, 0), V2(0.3, 0.04), V2(0.56, 0.3), V2(0.68, 0.7), V2(0.62, 1.1), V2(0.4, 1.4), V2(0.15, 1.52), V2(0, 1.54)], 40);
-  const p = geo.attributes.position;
-  for (let i = 0; i < p.count; i++) p.setX(i, p.getX(i) + 0.13 * Math.sin(p.getY(i) / 1.54 * Math.PI)); // barriguinha para um lado
-  geo.computeVertexNormals();
-  const g = new THREE.Group();
-  g.add(mesh(geo, food({ map: mangoTex(), roughness: 0.4, clearcoat: 0.7, clearcoatRoughness: 0.25 })));
-  const stem = mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.12, 8), food({ color: "#6a4a2a" }));
-  stem.position.set(0.02, 1.58, 0);
-  g.add(stem);
-  g.rotation.z = -1.2; // deitada
-  return g;
-}
-function citrus(color, pointed) {
-  const g = new THREE.Group(), skin = food({ color, roughness: 0.45, clearcoat: 0.7, bumpMap: tex("speckle"), bumpScale: 0.5 });
-  const prof = pointed
-    ? [V2(0, -0.66), V2(0.08, -0.6), V2(0.32, -0.42), V2(0.46, -0.14), V2(0.48, 0.1), V2(0.4, 0.38), V2(0.2, 0.56), V2(0.07, 0.63), V2(0, 0.65)]
-    : [V2(0, -0.44), V2(0.2, -0.41), V2(0.4, -0.24), V2(0.47, 0), V2(0.4, 0.24), V2(0.2, 0.41), V2(0.05, 0.45), V2(0, 0.46)];
+// Manga (inteira e a banda em cubinhos) e limão (inteiro e a metade) vêm do Blender, por
+// ./models.js; os procedurais antigos estão em ./archive/procedural.js.
+export const mango = () => model("mango");
+export const lime = () => model("lime");
+export function lemon() {
+  const g = new THREE.Group(), skin = food({ color: "#ffd53a", roughness: 0.45, clearcoat: 0.7, bumpMap: tex("speckle"), bumpScale: 0.5 });
+  const prof = [V2(0, -0.66), V2(0.08, -0.6), V2(0.32, -0.42), V2(0.46, -0.14), V2(0.48, 0.1), V2(0.4, 0.38), V2(0.2, 0.56), V2(0.07, 0.63), V2(0, 0.65)];
   const fruit = mesh(new THREE.LatheGeometry(prof, 36), skin);
   fruit.rotation.z = Math.PI / 2; fruit.position.y = 0.47;
   g.add(fruit);
   return g;
 }
-export const lime = () => citrus("#6cba2c", false);
-export const lemon = () => citrus("#ffd53a", true);
 // gomo de limão: casca por fora, polpa clara nos dois cortes
 export function limeWedge() {
   const g = new THREE.Group(), r = 0.42, a = 1.05;
@@ -556,7 +536,7 @@ export const PANTRY = {
   cheddar: { model: cheddar }, ketchup: { model: BOTTLES.ketchup },
   // frango com salsa de manga
   chicken: { model: chickenTray, tint: "#f0a898" },
-  mango: { model: mango, tint: "#ffb52e", solid: true, piece: () => cubes(["#ffb52e", "#ffc94a", "#f79a1a"]), chop: { size: 1.5, colors: ["#ffb52e", "#ffc94a", "#f79a1a"] } },
+  mango: { model: mango, tint: "#ffb52e", solid: true, piece: () => cubes(["#ffb52e", "#ffc94a", "#f79a1a"]), chop: { size: 1.5, colors: ["#ffb52e", "#ffc94a", "#f79a1a"], model: () => model("mango", (n) => !n.includes("cheek")) } },
   onion: { model: redOnion, tint: "#b5477f", solid: true, piece: () => cubes(["#c8689a", "#f6e6f0", "#a03a72"], 6, 0.13), chop: { size: 1.15, colors: ["#c8689a", "#f6e6f0", "#a03a72"] } },
   cilantro: { model: cilantro, tint: "#55b53c", solid: true, piece: () => cubes(["#55b53c", "#3f9a34", "#7fd060"], 8, 0.09), chop: { size: 1.35, colors: ["#55b53c", "#3f9a34", "#7fd060"] } },
   lime: { model: lime, tint: "#cfe88a", solid: true, piece: limeWedge },

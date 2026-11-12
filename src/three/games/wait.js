@@ -1,6 +1,7 @@
 // Forno e geladeira: (forno) segurar até a temperatura certa, depois esperar e tirar
 // quando o ponteiro estiver no verde. Na geladeira é só a espera.
 import { STATION_X } from "../sets.js";
+import { dish } from "../models.js";
 import { bandScore, average } from "../../game/rules.js";
 import { sfx } from "../../game/sound.js";
 import { scope, hop, v3 } from "./common.js";
@@ -127,8 +128,14 @@ export default {
         world.fx.sparkle(item.position.clone().add(v3(0, 0.5, 0)), 14);
         await world.tween(0.25, (k) => item.scale.setScalar(Math.max(0.01, 1 - k)));
         world.kitchen.stations.plate.visible = false;
-        item.position.set(STATION_X.plate, 0.02, 0.3);
-        item.scale.setScalar(1);
+        if (!spec.dish) { item.position.set(STATION_X.plate, 0.02, 0.3); item.scale.setScalar(1); return; }
+        // servida, a sobremesa vira o prato pronto do Blender (e é ele que a foto final enquadra)
+        item.visible = false;
+        const d = s.add(dish(spec.dish)), size = d.scale.x;
+        d.position.set(STATION_X.plate, 0.02, 0.3);
+        s.keep(d);
+        world.dish[spec.item] = d;
+        await world.tween(0.3, (k) => d.scale.setScalar(Math.max(0.01, size * k)));
       },
       finish() { ctx.gauge(null); su.open(0); s.dispose(); },
     };

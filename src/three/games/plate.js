@@ -2,6 +2,7 @@
 // arrastar três colheradas do refogado até os alvos. No fim, a cúpula revela o prato.
 import { THREE, RoundedBoxGeometry, build, beefStrip, searedMat, riceMound, castAll } from "../kit.js";
 import { STATION_X } from "../sets.js";
+import { dish } from "../models.js";
 import { piece, chickenMat } from "../foods.js";
 import { aimScore, average } from "../../game/rules.js";
 import { sfx } from "../../game/sound.js";
@@ -228,6 +229,11 @@ export default {
         await world.tween(0.5, (k) => { wrap.position.y = C.y + 5 * (1 - k); }, (k) => k * k);
         sfx.plop("lid"); world.shake(0.08);
         squash(world, wrap, 0.08, 0.3);
+        if (spec.dish) { // com a cúpula fechada, o prato pronto do Blender toma o lugar do montado
+          for (const c of plated.children) c.visible = false;
+          plateSt.visible = false;
+          plated.add(dish(spec.dish));
+        }
         await world.go("hero", 1.4, 0.4);
         await world.wait(0.3);
         sfx.reveal();
