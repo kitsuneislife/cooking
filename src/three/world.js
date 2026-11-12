@@ -415,9 +415,29 @@ export async function createWorld(host) {
     return { x: r.left + (q.x + 1) / 2 * r.width, y: r.top + (1 - q.y) / 2 * r.height };
   };
 
+  // Foto de um plano de câmera (miniaturas do pedido), recortada no meio em `w`×`h`.
+  // Desenha e lê no mesmo instante e já volta à câmera do jogo: a foto nunca aparece na tela.
+  const shot2d = document.createElement("canvas");
+  function snapshot(name, w = 320, h = 220) {
+    const s = SHOTS[name];
+    camera.position.copy(s.pos);
+    camera.lookAt(s.look);
+    camera.fov = fovFor(s.fov);
+    camera.updateProjectionMatrix();
+    sun.target.position.copy(s.look);
+    sun.position.copy(s.look).add(v(-5, 12, 7));
+    composer.render();
+    shot2d.width = w; shot2d.height = h;
+    const cw = canvas.width, ch = canvas.height, k = Math.min(cw / w, ch / h) * 0.82; // um pouco de zoom no centro
+    shot2d.getContext("2d").drawImage(canvas, (cw - w * k) / 2, (ch - h * k) / 2, w * k, h * k, 0, 0, w, h);
+    updateCamera(0);
+    composer.render();
+    return shot2d.toDataURL("image/webp", 0.85);
+  }
+
   const world = {
     THREE, scene, camera, canvas, kitchen, market, fx,
-    input: null, go, orbit, shake, every, tween, wait, warm, planeHit, pick, toScreen,
+    input: null, go, orbit, shake, every, tween, wait, warm, planeHit, pick, toScreen, snapshot,
     dish: {}, // o que um minijogo deixa pronto para o próximo
     dispose() {
       cancelAnimationFrame(raf);
