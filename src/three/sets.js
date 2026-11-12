@@ -9,42 +9,117 @@ import { oven, grill, blender, fridge, pastrySlab, glass } from "./gear.js";
 const repeatTex = (t, x, y) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(x, y); return t; };
 
 /* ---------- Texturas do cenário ---------- */
-function subwayTiles() { // azulejo creme 2:1 com rejunte claro e leve variação
+// azulejo quadrado em cores pastel misturadas, rejunte branco e brilho de esmalte em cada peça
+const PASTEL = ["#fbc9d6", "#c6efe2", "#fff1b8", "#ddd2f8", "#fffaf4", "#c9e6fb"];
+function pastelTiles() {
   return canvasTex(512, 512, (x) => {
-    x.fillStyle = "#e9dcc6"; x.fillRect(0, 0, 512, 512);
+    x.fillStyle = "#fffdfb"; x.fillRect(0, 0, 512, 512);
     const rand = seeded(3);
-    for (let row = 0; row < 8; row++) for (let col = -1; col < 4; col++) {
-      const px = col * 128 + (row % 2) * 64 + 4, py = row * 64 + 4;
-      const l = 92 + rand() * 6;
-      const g = x.createLinearGradient(0, py, 0, py + 56);
-      g.addColorStop(0, `hsl(38 60% ${l}%)`); g.addColorStop(1, `hsl(36 45% ${l - 5}%)`);
-      x.fillStyle = g; x.beginPath(); x.roundRect(px, py, 120, 56, 8); x.fill();
-      x.fillStyle = "#ffffff99"; x.beginPath(); x.roundRect(px + 8, py + 6, 50, 7, 4); x.fill(); // brilho do esmalte
+    for (let row = 0; row < 8; row++) for (let col = 0; col < 8; col++) {
+      const px = col * 64 + 3, py = row * 64 + 3, c = PASTEL[Math.floor(rand() * PASTEL.length)];
+      const g = x.createLinearGradient(px, py, px + 58, py + 58);
+      g.addColorStop(0, "#ffffff"); g.addColorStop(0.25, c); g.addColorStop(1, c);
+      x.fillStyle = g; x.beginPath(); x.roundRect(px, py, 58, 58, 7); x.fill();
+      x.fillStyle = "#00000010"; x.beginPath(); x.roundRect(px + 2, py + 52, 54, 6, 3); x.fill(); // borda de baixo um pouco mais escura
+      x.fillStyle = "#ffffffb0"; x.beginPath(); x.roundRect(px + 7, py + 6, 22, 5, 3); x.fill(); // brilho do esmalte
     }
   });
 }
-function accentTiles() { // faixa de azulejo decorado: flor de quatro pétalas em azul-petróleo
+function accentTiles() { // faixa decorada: florzinha rosa de quatro pétalas, miolo amarelo, cantos menta
   return canvasTex(256, 256, (x) => {
-    x.fillStyle = "#fbf3e2"; x.fillRect(0, 0, 256, 256);
-    x.strokeStyle = "#d8c8ac"; x.lineWidth = 6; x.strokeRect(0, 0, 256, 256);
-    x.fillStyle = "#2a8199";
+    x.fillStyle = "#fffaf4"; x.fillRect(0, 0, 256, 256);
+    x.strokeStyle = "#f4d8df"; x.lineWidth = 6; x.strokeRect(0, 0, 256, 256);
+    x.fillStyle = "#f483a6";
     for (let i = 0; i < 4; i++) {
-      x.save(); x.translate(128, 128); x.rotate(i * Math.PI / 2);
-      x.beginPath(); x.ellipse(0, -46, 26, 44, 0, 0, Math.PI * 2); x.fill(); x.restore();
+      x.save(); x.translate(128, 128); x.rotate(i * Math.PI / 2 + Math.PI / 4);
+      x.beginPath(); x.ellipse(0, -44, 28, 40, 0, 0, Math.PI * 2); x.fill(); x.restore();
     }
-    x.fillStyle = "#ffd23f"; x.beginPath(); x.arc(128, 128, 20, 0, Math.PI * 2); x.fill();
-    x.fillStyle = "#e5484d";
+    x.fillStyle = "#ffd45a"; x.beginPath(); x.arc(128, 128, 22, 0, Math.PI * 2); x.fill();
+    x.fillStyle = "#ffffffaa"; x.beginPath(); x.arc(121, 121, 7, 0, Math.PI * 2); x.fill();
+    x.fillStyle = "#8fdcc6";
     for (const [cx, cy] of [[0, 0], [256, 0], [0, 256], [256, 256]]) { x.beginPath(); x.arc(cx, cy, 34, 0, Math.PI * 2); x.fill(); }
   });
 }
-function butcherBlock() { // tampo de réguas coladas, cada uma de um tom
-  const tones = ["#c98a4e", "#dba06a", "#b97a40", "#e2ad78", "#c48550", "#d39a60"].map(rgb);
+function wallpaper() { // papel de parede menta com listras claras e bolinhas brancas
+  return canvasTex(256, 256, (x) => {
+    x.fillStyle = "#b8ecd9"; x.fillRect(0, 0, 256, 256);
+    x.fillStyle = "#d3f6e9";
+    for (let i = 0; i < 4; i++) x.fillRect(i * 64 + 8, 0, 30, 256);
+    x.fillStyle = "#ffffffcc";
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { x.beginPath(); x.arc(i * 64 + 52, j * 64 + (i % 2) * 32 + 16, 4, 0, Math.PI * 2); x.fill(); }
+  });
+}
+function butcherBlock() { // tampo de réguas amarelo-mel, cada régua de um tom, com veio macio
+  // amarelo-limão no albedo: sob a luz ele escurece para o amarelo-mel da referência, sem virar laranja
+  const tones = ["#ffe866", "#fff08c", "#ffe35a", "#fff29a", "#ffea72", "#ffee84"].map(rgb);
   return paint(512, (u, v) => {
-    const strip = Math.floor(v * 10), base = tones[strip % tones.length];
-    const grain = 0.5 + 0.5 * Math.sin(u * 90 + fbm(u * 4, v * 40 + strip * 3) * 8);
-    let c = mix(base, mix(base, [90, 50, 20], 0.35), grain * 0.5);
-    return mix(c, [70, 40, 18], 1 - sstep(0.0, 0.012, Math.abs((v * 10) % 1 - 0.5) - 0.488)); // junta escura
+    const strip = Math.floor(v * 8), base = tones[strip % tones.length];
+    const fiber = fbm(u * 3 + strip * 7, v * 60, 3);
+    const grain = 0.5 + 0.5 * Math.sin(u * 40 + fiber * 9 + strip);
+    let c = mix(base, mix(base, [236, 184, 60], 0.5), grain * 0.3);
+    c = mix(c, [255, 246, 214], sstep(0.62, 0.8, fbm(u * 6, v * 30 + strip, 2)) * 0.25); // reflexo claro no veio
+    const seam = Math.abs((v * 8) % 1 - 0.5);
+    return mix(c, [232, 184, 74], 1 - sstep(0.0, 0.012, seam - 0.485)); // junta entre réguas
   }, { repeat: 1 });
+}
+// Jogo americano de pano: estampa, costura tracejada a 6% da borda e cantos arredondados.
+const MAT_PRINT = {
+  gingham: (x, s) => { // xadrez rosa
+    x.fillStyle = "#fff4f6"; x.fillRect(0, 0, s, s);
+    const n = 14, w = s / n;
+    x.fillStyle = "#f8b6c8aa"; for (let i = 0; i < n; i += 2) { x.fillRect(i * w, 0, w, s); x.fillRect(0, i * w, s, w); }
+  },
+  dots: (x, s) => { // menta com bolinhas brancas
+    x.fillStyle = "#a9e6d4"; x.fillRect(0, 0, s, s);
+    x.fillStyle = "#ffffff";
+    for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++) { x.beginPath(); x.arc((i + (j % 2) * 0.5) * s / 12, (j + 0.5) * s / 12, s / 70, 0, Math.PI * 2); x.fill(); }
+  },
+  hearts: (x, s) => { // lilás com coraçõezinhos claros
+    x.fillStyle = "#cdb8f2"; x.fillRect(0, 0, s, s);
+    x.fillStyle = "#efe6ff";
+    for (let i = 0; i < 7; i++) for (let j = 0; j < 7; j++) {
+      const cx = (i + (j % 2) * 0.5) * s / 7, cy = (j + 0.5) * s / 7, r = s / 40;
+      x.beginPath(); x.moveTo(cx, cy + r * 1.3);
+      x.bezierCurveTo(cx - r * 2, cy, cx - r, cy - r * 1.4, cx, cy - r * 0.5);
+      x.bezierCurveTo(cx + r, cy - r * 1.4, cx + r * 2, cy, cx, cy + r * 1.3); x.fill();
+    }
+  },
+};
+function placemat(w, d, print) {
+  const t = canvasTex(512, 512, (x, s) => {
+    MAT_PRINT[print](x, s);
+    x.strokeStyle = "#ffffffdd"; x.lineWidth = 5; x.setLineDash([14, 10]);
+    x.strokeRect(s * 0.05, s * 0.05, s * 0.9, s * 0.9);
+  });
+  const m = mesh(new RoundedBoxGeometry(w, 0.024, d, 2, 0.012), food({
+    map: t, roughness: 0.9, clearcoat: 0, sheen: 0.5, sheenColor: new THREE.Color("#ffffff"),
+    polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1, // o que apoia em cima ganha da toalha
+  }));
+  m.receiveShadow = true;
+  return m;
+}
+// Toalhinha de renda: círculo com borda em ondas e furinhos, recortado pelo alfa.
+function doily(r) {
+  const t = canvasTex(512, 512, (x, s) => {
+    const c = s / 2, scallop = (a) => c * (0.92 + 0.06 * Math.cos(a * 24));
+    x.fillStyle = "#fffdf8"; x.beginPath();
+    for (let i = 0; i <= 240; i++) { const a = i / 240 * Math.PI * 2; x.lineTo(c + Math.cos(a) * scallop(a), c + Math.sin(a) * scallop(a)); }
+    x.fill();
+    x.globalCompositeOperation = "destination-out"; // furos da renda
+    for (const [ring, n, hole] of [[0.86, 48, 7], [0.76, 40, 9], [0.66, 32, 6]]) {
+      for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2 + ring; x.beginPath(); x.arc(c + Math.cos(a) * c * ring, c + Math.sin(a) * c * ring, hole, 0, Math.PI * 2); x.fill(); }
+    }
+    x.globalCompositeOperation = "source-over";
+    x.strokeStyle = "#f2e6d6"; x.lineWidth = 3;
+    for (const k of [0.6, 0.71, 0.81]) { x.beginPath(); x.arc(c, c, c * k, 0, Math.PI * 2); x.stroke(); }
+  });
+  const m = mesh(new THREE.CircleGeometry(r, 96), food({
+    map: t, alphaTest: 0.5, roughness: 0.85, clearcoat: 0, sheen: 0.6, sheenColor: new THREE.Color("#ffffff"),
+    polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
+  }));
+  m.rotation.x = -Math.PI / 2;
+  m.receiveShadow = true;
+  return m;
 }
 function cobble() {
   return paint(512, (u, v) => {
@@ -107,10 +182,10 @@ function pottedHerb(seed, leafColor = "#4cae3a", potColor = "#d9693a") {
   return g;
 }
 
-function floorTiles() { // piso xadrez creme e terracota
+function floorTiles() { // piso xadrez creme e rosa
   return canvasTex(128, 128, (x) => {
-    for (let i = 0; i < 4; i++) { x.fillStyle = (i + (i >> 1)) % 2 ? "#e9a07a" : "#fbe9cf"; x.fillRect((i % 2) * 64, (i >> 1) * 64, 64, 64); }
-    x.strokeStyle = "#c98a6a"; x.lineWidth = 2; x.strokeRect(0, 0, 64, 64); x.strokeRect(64, 64, 64, 64);
+    for (let i = 0; i < 4; i++) { x.fillStyle = (i + (i >> 1)) % 2 ? "#f6b8c6" : "#fff4e6"; x.fillRect((i % 2) * 64, (i >> 1) * 64, 64, 64); }
+    x.strokeStyle = "#eaa2b2"; x.lineWidth = 2; x.strokeRect(0, 0, 64, 64); x.strokeRect(64, 64, 64, 64);
   });
 }
 
@@ -118,7 +193,7 @@ function floorTiles() { // piso xadrez creme e terracota
 function windowUnit(seed) {
   const win = new THREE.Group();
   const sky = mesh(new THREE.PlaneGeometry(4.2, 3.6), new THREE.MeshBasicMaterial({ map: skyTex(false), color: new THREE.Color(1.25, 1.25, 1.25) }));
-  sky.position.z = -0.25; sky.userData.noShadow = true;
+  sky.position.z = -0.06; sky.userData.noShadow = true; // na frente da parede (z -3.2), atrás do caixilho
   const frameMat = glossy({ color: "#fffaf0", roughness: 0.3 });
   for (const [w, h, x, y] of [[4.6, 0.25, 0, 1.9], [4.6, 0.25, 0, -1.9], [0.25, 4, -2.2, 0], [0.25, 4, 2.2, 0], [0.12, 3.6, 0, 0], [4.2, 0.12, 0, 0.3]]) {
     const b = mesh(new RoundedBoxGeometry(w, h, 0.3, 2, 0.05), frameMat); b.position.set(x, y, 0); win.add(b);
@@ -142,7 +217,7 @@ function pendant(color, lit = true) { // luminária pendente: cúpula esmaltada 
   bulb.position.y = 0.06; bulb.userData.noShadow = true;
   g.add(cord, shade, bulb);
   if (lit) { // só as primeiras iluminam de verdade: cada luz a mais pesa em todos os materiais
-    const light = new THREE.PointLight("#ffd9a0", 9, 9, 1.6);
+    const light = new THREE.PointLight("#ffe2b8", 5, 9, 1.6);
     light.position.y = -0.3;
     g.add(light);
   }
@@ -218,34 +293,44 @@ export function buildKitchen() {
   const k = new THREE.Group();
 
   // tampo de réguas e armários de baixo
-  const top = mesh(new RoundedBoxGeometry(LENGTH, 0.5, 6.2, 3, 0.12), food({ map: repeatTex(butcherBlock(), 6, 1), roughness: 0.55, clearcoat: 0.35, clearcoatRoughness: 0.4 }));
+  // o tampo e o chão recuam um pouco na profundidade: o fundo chato de cada peça apoiada
+  // fica no mesmo plano do tampo e, sem isso, os dois brigam (z-fighting) na borda
+  const under = { polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 };
+  const top = mesh(new RoundedBoxGeometry(LENGTH, 0.5, 6.2, 3, 0.12), food({ map: repeatTex(butcherBlock(), 6, 1), roughness: 0.5, clearcoat: 0.45, clearcoatRoughness: 0.35, ...under }));
   top.position.set(MID, -0.25, -0.1); top.receiveShadow = true;
   k.add(top);
-  const cab = mesh(new THREE.BoxGeometry(LENGTH - 0.4, 5, 5.8), glossy({ color: "#fbefd9", roughness: 0.4 }));
+  const cab = mesh(new THREE.BoxGeometry(LENGTH - 0.4, 5, 5.8), glossy({ color: "#fff4ec", roughness: 0.4 }));
   cab.position.set(MID, -2.75, -0.3);
   k.add(cab);
-  const floor = mesh(new THREE.PlaneGeometry(90, 30), food({ map: repeatTex(floorTiles(), 30, 10), roughness: 0.5, clearcoat: 0.4 }));
+  const floor = mesh(new THREE.PlaneGeometry(90, 30), food({ map: repeatTex(floorTiles(), 30, 10), roughness: 0.5, clearcoat: 0.4, ...under }));
   floor.rotation.x = -Math.PI / 2; floor.position.set(MID, -5.25, 8); floor.receiveShadow = true;
   k.add(floor);
-  for (let i = 0; i < 12; i++) { // portas com puxador redondo
-    const door = mesh(new RoundedBoxGeometry(3.9, 4.2, 0.12, 3, 0.06), glossy({ color: "#7fc6c0", roughness: 0.35 }));
+  const doorMat = glossy({ color: "#f7a9bf", roughness: 0.3 }), panelMat = glossy({ color: "#fbc6d4", roughness: 0.3 }), knobMat = glossy({ color: "#fffaf5", roughness: 0.2 });
+  for (let i = 0; i < 12; i++) { // portas rosa com almofada e puxador branco
+    const door = mesh(new RoundedBoxGeometry(3.9, 4.2, 0.12, 3, 0.06), doorMat);
     door.position.set(-9.8 + i * 4.15 + 2, -2.85, 2.6);
-    const knob = mesh(new THREE.SphereGeometry(0.16, 16, 12), metal({ color: "#d9b46a" }));
-    knob.position.set(door.position.x + (i % 2 ? -1.5 : 1.5), -1.4, 2.72);
-    k.add(door, knob);
+    const inset = mesh(new RoundedBoxGeometry(3.2, 3.4, 0.06, 3, 0.03), panelMat);
+    inset.position.set(door.position.x, -2.95, 2.68);
+    const knob = mesh(new THREE.SphereGeometry(0.17, 20, 14), knobMat);
+    knob.scale.z = 0.7;
+    knob.position.set(door.position.x + (i % 2 ? -1.45 : 1.45), -1.35, 2.78);
+    k.add(door, inset, knob);
   }
 
-  // parede: azulejo até a faixa decorada, pintura azul-petróleo acima
+  // parede: azulejo pastel até a faixa decorada, papel de parede menta acima
   const WALL = 68, WALL_X = MID - 1; // sobra para os lados: a câmera nunca vê a ponta
-  const tiles = mesh(new THREE.PlaneGeometry(WALL, 3.4), food({ map: repeatTex(subwayTiles(), WALL / 2, 1.7), roughness: 0.3, clearcoat: 0.8, clearcoatRoughness: 0.2 }));
+  const tiles = mesh(new THREE.PlaneGeometry(WALL, 3.4), food({ map: repeatTex(pastelTiles(), WALL / 6, 3.4 / 6), roughness: 0.25, clearcoat: 0.9, clearcoatRoughness: 0.15 }));
   tiles.position.set(WALL_X, 1.7, -3.2); tiles.receiveShadow = true;
   const band = mesh(new THREE.PlaneGeometry(WALL, 0.75), food({ map: repeatTex(accentTiles(), Math.round(WALL / 0.75), 1), roughness: 0.3, clearcoat: 0.8 }));
-  band.position.set(WALL_X, 3.77, -3.19); band.receiveShadow = true;
-  const paintWall = mesh(new THREE.PlaneGeometry(WALL, 12), food({ color: "#2f8fa6", roughness: 0.9, clearcoat: 0 }));
-  paintWall.position.set(WALL_X, 10.1, -3.21); paintWall.receiveShadow = true;
-  const lowWall = mesh(new THREE.PlaneGeometry(WALL, 5.3), food({ color: "#f3dcbc", roughness: 0.9, clearcoat: 0 }));
-  lowWall.position.set(WALL_X, -2.6, -3.2);
-  k.add(tiles, band, paintWall, lowWall);
+  band.position.set(WALL_X, 3.77, -3.17); band.receiveShadow = true;
+  const paintWall = mesh(new THREE.PlaneGeometry(WALL, 12), food({ map: repeatTex(wallpaper(), WALL / 2.4, 5), roughness: 0.85, clearcoat: 0 }));
+  paintWall.position.set(WALL_X, 10.1, -3.23); paintWall.receiveShadow = true;
+  const lowWall = mesh(new THREE.PlaneGeometry(WALL, 5.3), food({ color: "#fde3e8", roughness: 0.9, clearcoat: 0 }));
+  lowWall.position.set(WALL_X, -2.6, -3.24);
+  // filete branco entre a faixa e o papel de parede
+  const trim = mesh(new RoundedBoxGeometry(WALL, 0.14, 0.12, 2, 0.04), glossy({ color: "#fffaf5", roughness: 0.3 }));
+  trim.position.set(WALL_X, 4.17, -3.15);
+  k.add(tiles, band, paintWall, lowWall, trim);
 
   // janelas: uma na tigela, outra na bancada de massas
   const windows = [STATION_X.bowl, STATION_X.bench].map((x, i) => {
@@ -255,7 +340,7 @@ export function buildKitchen() {
     return win;
   });
   // luz do sol entrando pela janela
-  const sunPatch = new THREE.SpotLight("#fff2d0", 30, 22, 0.55, 0.8, 1.2);
+  const sunPatch = new THREE.SpotLight("#fff2d0", 12, 22, 0.55, 0.8, 1.2);
   sunPatch.position.set(STATION_X.bowl - 1, 9, -2.6); sunPatch.target.position.set(STATION_X.bowl + 0.5, 0, 1);
   k.add(sunPatch, sunPatch.target);
 
@@ -290,8 +375,8 @@ export function buildKitchen() {
   book2.position.set(-9.3, 8.05, -2.6);
   const ivy = pottedHerb(21, "#3f9a3a", "#fff6e3"); ivy.scale.setScalar(0.7); ivy.position.set(-10.2, 7.4, -2.55);
   k.add(book, book2, ivy);
-  for (let i = 0; i < 4; i++) { // pratos de pé na prateleira da direita
-    const p = servingPlate(); p.scale.setScalar(0.42); p.rotation.x = -1.35; p.position.set(9.3 + i * 0.5, 6.55, -2.65);
+  for (let i = 0; i < 5; i++) { // pratos de pé na prateleira da direita, em fila como num escorredor
+    const p = servingPlate(); p.scale.setScalar(0.3); p.rotation.set(0, 0.25, Math.PI / 2 - 0.22); p.position.set(9.0 + i * 0.3, 6.33, -2.55);
     k.add(p);
   }
   const fruit = new THREE.Group(); // fruteira com limões
@@ -360,11 +445,14 @@ export function buildKitchen() {
   const stove = build.stove(); stove.position.set(STATION_X.stove, 0, 0.1);
   const wok = build.wok(); wok.position.set(STATION_X.stove, stove.userData.top, -0.02); wok.rotation.y = Math.PI * 0.08;
   stations.stove = stove; stations.wok = wok;
-  const mat = mesh(new THREE.CircleGeometry(2.6, 48), food({ map: repeatTex(tex("weave").clone(), 2, 2), roughness: 0.85, clearcoat: 0 }));
-  mat.rotation.x = -Math.PI / 2; mat.position.set(STATION_X.plate, 0.01, 0.3); mat.receiveShadow = true;
+  const lace = doily(2.7); lace.position.set(STATION_X.plate, 0.008, 0.3);
   const plate = servingPlate(); plate.position.set(STATION_X.plate, 0.02, 0.3);
   stations.plate = plate;
-  k.add(board, bowl, stove, wok, mat, plate);
+  // jogos americanos estampados sob as estações de preparo, como na referência
+  const mats = [[STATION_X.board, 0.35, 6.6, 3.9, "gingham"], [STATION_X.bowl, 0.5, 4.4, 3.1, "dots"], [STATION_X.blender, 0.3, 3.4, 2.6, "hearts"]].map(([x, z, w, d, print]) => {
+    const m = placemat(w, d, print); m.position.set(x, 0, z); return m;
+  });
+  k.add(board, bowl, stove, wok, lace, plate, ...mats);
   stations.grill = grill(); stations.grill.position.set(STATION_X.grill, 0, 0.1);
   stations.oven = oven(); stations.oven.position.set(STATION_X.oven, 0, -1.6);
   stations.bench = pastrySlab(); stations.bench.position.set(STATION_X.bench, 0, 0.5);
@@ -393,7 +481,7 @@ export function buildKitchen() {
 
   castAll(k);
   // paredes, tampo e janela só recebem sombra
-  for (const o of [top, cab, floor, tiles, band, paintWall, lowWall, ...windows.map((w) => w.userData.sky)]) o.castShadow = false;
+  for (const o of [top, cab, floor, tiles, band, paintWall, lowWall, lace, ...mats, ...windows.map((w) => w.userData.sky)]) o.castShadow = false;
   return { group: k, stations, props };
 }
 
