@@ -30,10 +30,16 @@ for p in spec:
         lows += p["high"]
         continue
     # "low" pronto (placa com UV que repete no jogo) ou o casco simplificado do high
-    low = p.get("low") or lib.make_low(p["name"], p["high"], p["tris"], p.get("voxel"))
+    # "shell": só essas peças formam o casco; o resto (filete, pintinha) vai só para a textura
+    low = p.get("low") or lib.make_low(p["name"], p.get("shell", p["high"]), p["tris"], p.get("voxel"))
+    for o in p.get("shell", []):  # casco feito só para o low (o domo do arroz) não entra no bake
+        if o not in p["high"]:
+            o.hide_render = True
+            o.hide_set(True)
     low.hide_render = False
     lib.bake(p["high"], low, p.get("size", 1024), roughness=p.get("roughness", True),
-             extrusion=p.get("extrusion", 0.04), unwrap="low" not in p, samples=p.get("samples", 16))
+             extrusion=p.get("extrusion", 0.04), unwrap="low" not in p, samples=p.get("samples", 16),
+             rough=p.get("rough", 0.5), metal=p.get("metal", 0.0), coat=p.get("coat", 0.0), ao=p.get("ao", 10.0))
     lows.append(low)
     # o nó do .glb leva o nome da peça: se uma peça do high já tem esse nome, o Blender daria
     # "spice.001" ao low (e o jogo veria "spice001")
@@ -44,6 +50,15 @@ for p in spec:
     if "origin" in p:
         moves.append((low, p["origin"]))
 lib.render(os.path.join(outdir, f"{name}.png"))
+if len(spec) > 1:  # muitas peças: a prévia geral fica pequena, então tira uma foto de perto de cada
+    view = getattr(mod, "VIEW", {})
+    for low in lows:
+        for o in lows:
+            o.hide_render = o is not low
+        lib.frame([low], view.get("elev", 50), view.get("azim", -30), 0.75)
+        lib.render(os.path.join(outdir, f"{name}_{low.name}.png"))
+    for o in lows:
+        o.hide_render = False
 
 for low, origin in moves:  # peça do cenário: o nó nasce na origem, e o jogo posiciona
     low.data.transform(Matrix.Translation(-lib.T(*origin)))

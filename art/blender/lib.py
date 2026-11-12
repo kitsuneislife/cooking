@@ -279,6 +279,20 @@ def join(objs, name):
     return objs[0]
 
 
+def solid(objs, name):
+    """Junta as faixas de um perfil (fora, borda, dentro) num sólido fechado e só então acerta
+    as normais: em superfície aberta o recalc chuta o lado, e o miolo da panela assou preto."""
+    o = join(objs, name)
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-4)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(o.data)
+    bm.free()
+    o.data.shade_smooth()
+    return o
+
+
 def empty(name):
     return link(bpy.data.objects.new(name, None))
 
@@ -307,18 +321,22 @@ def studio(elev=50, azim=-30, fill=0.8):
         o = link(bpy.data.objects.new(name, lt))
         o.location = loc
         o.rotation_euler = (Vector((0, 0, 0)) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
-    meshes = [o for o in s.objects if o.type == "MESH"]
-    lo, hi = bounds(meshes)
-    c = (lo + hi) / 2
-    r = (hi - lo).length / 2
     cam = bpy.data.cameras.new("cam")
     cam.lens = 60
-    co = link(bpy.data.objects.new("cam", cam))
+    s.camera = link(bpy.data.objects.new("cam", cam))
+    return frame([o for o in s.objects if o.type == "MESH"], elev, azim, fill)
+
+
+def frame(objs, elev=50, azim=-30, fill=0.8):
+    """Aponta a câmera do estúdio para `objs` (a foto de perto de cada peça usa de novo)."""
+    co = bpy.context.scene.camera
+    lo, hi = bounds(objs)
+    c = (lo + hi) / 2
+    r = (hi - lo).length / 2
     e, a = math.radians(elev), math.radians(azim)
-    d = r * fill / math.sin(math.atan(18 / cam.lens))
+    d = r * fill / math.sin(math.atan(18 / co.data.lens))
     co.location = c + Vector((math.cos(e) * math.sin(a), -math.cos(e) * math.cos(a), math.sin(e))) * d
     co.rotation_euler = (c - co.location).to_track_quat("-Z", "Y").to_euler()
-    s.camera = co
     bpy.context.view_layer.update()
     return co
 
@@ -380,13 +398,20 @@ def _image(name, size, data):
     return img
 
 
-def bake(high, low, size=1024, texdir=None, extrusion=0.04, roughness=True, unwrap=True, samples=16):
+def bake(high, low, size=1024, texdir=None, extrusion=0.04, roughness=True, unwrap=True, samples=16,
+         rough=0.5, metal=0.0, coat=0.0, ao=10.0):
     """Assa o modelo detalhado (high) nas texturas do low: cor com oclusão pintada,
     relevo (normal map) e brilho (roughness). É o caminho da referência: forma simples,
-    textura rica. unwrap=False mantém a UV que o low já tem (placa que repete no jogo)."""
+    textura rica. unwrap=False mantém a UV que o low já tem (placa que repete no jogo).
+    roughness=False usa o valor fixo `rough`. metal e coat valem para a peça toda: o high
+    de metal é pintado como não-metal (cor de metal assa preta) e o low vira metal aqui;
+    peça de metal não assa o brilho, para o glTF não ler o metal do canal da rugosidade.
+    ao é o alcance da oclusão: o padrão (10) escurece o fundo inteiro de uma tigela, então
+    louça funda pede um alcance do tamanho do vão (uns 0,4)."""
     import numpy as np
 
     s = bpy.context.scene
+    s.world.light_settings.distance = ao
     s.render.engine = "CYCLES"
     s.cycles.device = "CPU"
     s.cycles.samples = samples  # superfície lisa e grande (cenário) pede mais: a oclusão sai granulada
@@ -443,7 +468,12 @@ def bake(high, low, size=1024, texdir=None, extrusion=0.04, roughness=True, unwr
         sep = n.new("ShaderNodeSeparateColor")
         l.new(imgs["rough"][1].outputs["Color"], sep.inputs["Color"])
         l.new(sep.outputs["Green"], p.inputs["Roughness"])
+    else:
+        p.inputs["Roughness"].default_value = rough
     p.inputs["Specular IOR Level"].default_value = 0.5
+    p.inputs["Metallic"].default_value = metal
+    p.inputs["Coat Weight"].default_value = coat
+    p.inputs["Coat Roughness"].default_value = 0.08
 
     for key, (img, _) in imgs.items():
         img.pack()

@@ -344,3 +344,124 @@ def lime_half(r=0.42, name="lime_half", wedges=10):
             by="radial", scale=40, bump=0.5, cells=55, sss=0.2)))
         parts.append(w)
     return parts
+
+
+# ---------- louça e utensílios das estações (leva 4 e 5) ----------
+# Escritos no referencial local do objeto do jogo (Y para cima), para o .glb trocar o procedural
+# de src/three sem mudar quem posiciona. Metal assa como não-metal (ver lib.bake).
+
+def xform(objs, pos=(0, 0, 0), rot=(0, 0, 0), scale=1.0):
+    """Move peças como o three.js faria: posição e rotação (ordem XYZ) no eixo do jogo."""
+    rx, ry, rz = rot
+    m = (Matrix.Translation(lib.T(*pos)) @ Matrix.Rotation(rx, 4, "X") @ Matrix.Rotation(ry, 4, "Z")
+         @ Matrix.Rotation(-rz, 4, "Y") @ Matrix.Scale(scale, 4))
+    for o in objs:
+        o.matrix_basis = m @ o.matrix_basis
+    return objs
+
+
+def tube(name, pts, r, ring=8, closed=False, caps=True):
+    """Arame ou alça: tubo de raio r (número ou função de 0 a 1) por pontos do jogo."""
+    P = [lib.T(*p) for p in pts]
+    n = len(P)
+    bm = bmesh.new()
+    rings, prev = [], None
+    for i, p in enumerate(P):
+        a, b = P[(i - 1) % n] if (closed or i) else p, P[(i + 1) % n] if (closed or i < n - 1) else p
+        t = (b - a).normalized()
+        if prev is None:  # primeiro quadro: qualquer perpendicular; depois, transporta sem torcer
+            prev = t.orthogonal().normalized()
+        nrm = (prev - t * prev.dot(t)).normalized()
+        prev = nrm
+        bi = t.cross(nrm)
+        rr = r(i / (n - 1)) if callable(r) else r
+        rings.append([bm.verts.new(p + (nrm * math.cos(k / ring * math.tau) + bi * math.sin(k / ring * math.tau)) * rr)
+                      for k in range(ring)])
+    for i in range(n if closed else n - 1):
+        a, b = rings[i], rings[(i + 1) % n]
+        for k in range(ring):
+            bm.faces.new((a[k], a[(k + 1) % ring], b[(k + 1) % ring], b[k]))
+    if caps and not closed:
+        bm.faces.new(rings[0][::-1])
+        bm.faces.new(rings[-1])
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return lib.from_bmesh(name, bm)
+
+
+def steel():
+    """Aço inox: claro, com degradê de reflexo pintado; o low vira metal no bake."""
+    return M("steel", lambda: lib.ramp_mat(
+        "aco", [(0, "#b9c3ce"), (0.45, "#e1e7ed"), (1, "#f7f9fb")], rough=0.2, spec=0.6, by="height",
+        scale=6, bump=0.01))
+
+
+def enamel(color, top="#ffffff", bottom=None):
+    """Esmalte de brinquedo: cor cheia com o pé um pouco mais escuro e a borda clareando."""
+    return M("enamel" + color + top, lambda: lib.ramp_mat(
+        "esmalte" + color, [(0, bottom or color), (0.35, color), (0.85, color), (1, top)], rough=0.15,
+        spec=0.6, coat=0.6, by="height", scale=2, bump=0.005))
+
+
+def dotted(base, dot, scale=9.0, size=0.22):
+    """Louça de bolinhas: pintas redondas (Voronoi) espalhadas pela superfície."""
+    def make():
+        m = lib.mat("bolinhas" + base + dot, base, rough=0.15, spec=0.6, coat=0.6)
+        n, l = m.node_tree.nodes, m.node_tree.links
+        tc = n.new("ShaderNodeTexCoord")
+        vo = n.new("ShaderNodeTexVoronoi")
+        vo.inputs["Scale"].default_value = scale
+        vo.inputs["Randomness"].default_value = 0.55
+        l.new(tc.outputs["Object"], vo.inputs["Vector"])
+        cut = n.new("ShaderNodeMath")
+        cut.operation = "LESS_THAN"
+        cut.inputs[1].default_value = size
+        l.new(vo.outputs["Distance"], cut.inputs[0])
+        mx = n.new("ShaderNodeMix")
+        mx.data_type = "RGBA"
+        mx.inputs["A"].default_value = (*lib.hex_rgb(base), 1)
+        mx.inputs["B"].default_value = (*lib.hex_rgb(dot), 1)
+        l.new(cut.outputs[0], mx.inputs["Factor"])
+        l.new(mx.outputs["Result"], n["Principled BSDF"].inputs["Base Color"])
+        return m
+    return M("dotted" + base + dot, make)
+
+
+def speckled(base, fleck, scale=90.0):
+    """Antiaderente granito: fundo cinza-azulado com pintinhas claras (nunca preto)."""
+    return M("speckle" + base, lambda: lib.ramp_mat(
+        "granito" + base, [(0, base), (0.66, base), (0.68, fleck), (1, fleck)], rough=0.35, spec=0.5,
+        scale=scale, bump=0.04, bump_scale=200))
+
+
+def spoon_bowl(name, w, length, depth):
+    """Concha de colher no plano xy do jogo, abrindo para +z: uma esfera achatada em que a
+    frente afunda e a borda engrossa. Centro na origem."""
+    head = lib.sphere(name, 1.0, 32, 16)
+    for v in head.data.vertices:  # esfera unitária: x largura, y espessura (z do jogo), z comprimento
+        r2 = min(1.0, v.co.x ** 2 + v.co.z ** 2)
+        if v.co.y < 0:  # frente (z do jogo)
+            v.co.y = -(0.45 * r2 ** 1.5 - 0.4 * (1 - r2))
+        else:
+            v.co.y = math.sqrt(max(0.0, 1 - r2))
+    head.data.update()
+    head.scale = (w, depth, length)
+    lib.subsurf(head, 1)
+    return head
+
+
+def wooden_spoon(name="spoon"):
+    """Colher de pau: concha rasa de verdade e cabo que afina no pescoço. A concha fica na
+    origem, o cabo sobe em y e a concha abre para +z, como build.spoon do jogo."""
+    head = spoon_bowl(name + "_head", 0.2, 0.27, 0.075)
+    handle = lib.lathe(name + "_handle", [(0.0, 0.16), (0.06, 0.2), (0.046, 0.4), (0.04, 0.7), (0.05, 1.2),
+                                          (0.06, 1.45), (0.056, 1.56), (0.03, 1.61), (0.0, 1.62)], 20)
+    handle.scale = (1, 0.75, 1)
+    m = wood("spoon", (("#c98a4b", 0), ("#dca468", 0.5), ("#ebbd80", 1)))
+    return [lib.assign(head, m), lib.assign(handle, m)]
+
+
+def shift(objs, x):
+    """Afasta um item dos outros só no Blender (prévia e oclusão); "origin" traz de volta."""
+    for o in objs:
+        o.matrix_basis = Matrix.Translation(lib.T(x, 0, 0)) @ o.matrix_basis
+    return objs
