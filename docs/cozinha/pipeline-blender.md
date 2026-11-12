@@ -119,3 +119,12 @@ Lições das levas 4 e 5 (louça e utensílios):
 28. **Cada peça no referencial do procedural que troca.** Escrever o modelo na posição local do objeto antigo (ponta da colher na origem, fio da faca em y = 0) deixa os minijogos sem mudança nenhuma. `parts.xform` posiciona como o three.js (posição e rotação XYZ do jogo).
 29. **Veio de madeira largo vira listra de longe.** Na tábua, o ruído de veio com `scale` 1,2 parecia madeira na foto de perto e listras onduladas no plano do jogo. Com `scale` 4 e as três cores da rampa bem próximas, o veio fica calmo nas duas distâncias.
 30. **Pinta clara em fundo claro some.** A tigela de misturar com fundo creme e pintas azuis lia como branca no jogo. Inverter (fundo azul, pintas creme) devolveu a cor que o jogador já conhecia.
+
+Lições da leva 7 (embalagens):
+
+31. **O rótulo é uma folha à parte.** Texto e cor mudam por ingrediente, então o rótulo vai como peça `"keep"` com UV inteira (`parts.label_band` para cilindro, `parts.label_panel` para face plana, com shrinkwrap para colar no corpo) e o jogo troca a imagem. Assim um formato serve a dezenas de ingredientes.
+32. **Peça `"keep"` fica fora do bake.** O rótulo encostado no pote fazia sombra e assou uma faixa escura no corpo. O `build.py` agora esconde as peças `"keep"` durante o bake e mostra de novo na prévia.
+33. **Peça `"keep"` com `"origin"` leva a posição para a malha.** O rótulo afastado por `parts.shift` voltava pela `location` mas o `"origin"` só move a malha, e ele ficava longe do pote. O `build.py` agora grava a matriz na malha antes de mover.
+34. **Peça que o jogo tinge sai quase branca.** Tampa, telhado e lata são assados num degradê claro (`tintable`); o jogo multiplica pela cor do ingrediente. Assar já colorido deixaria todo leite azul.
+35. **`fill` abaixo de 1 corta peça comprida.** O `lib.frame` aproxima a câmera pela metade da diagonal vezes `fill`, então a fila de embalagens e o tablete de manteiga saíram cortados na prévia. Para a foto da comparação, abrir o `.blend` e enquadrar de novo com `fill` de 1,2 a 1,5.
+36. **Aba de embrulho recua pelo chanfro.** A ponta dobrada da manteiga, do tamanho da face, saía pela quina arredondada do bloco. Recolher a aba pela largura do chanfro.

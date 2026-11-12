@@ -8,8 +8,8 @@ Levantado em 12/11/2026, depois das levas 1 a 5. As receitas jogáveis hoje são
 
 | Grupo | Quantos | Onde está |
 |---|---:|---|
-| Já no Blender (`.glb` no jogo) | 18 arquivos | `public/models/`, carregados por `src/three/models.js` |
-| Procedural que vai para o Blender | 22 ingredientes, 7 formatos de embalagem, 10 estações | `src/three/foods.js`, `kit.js`, `gear.js`, `sets.js` |
+| Já no Blender (`.glb` no jogo) | 19 arquivos (mais a manteiga, pronta e fora do jogo) | `public/models/`, carregados por `src/three/models.js` |
+| Procedural que vai para o Blender | 22 ingredientes, 2 formatos de embalagem, 10 estações | `src/three/foods.js`, `kit.js`, `gear.js`, `sets.js` |
 | Procedural que fica em código | as peças que mudam durante o minijogo | mesmos arquivos |
 | Ainda não existe | 112 ingredientes, 1 utensílio, 44 pratos prontos | só nas receitas da API |
 
@@ -29,6 +29,8 @@ Dos 154 ingredientes base das receitas, 42 já têm modelo no jogo (no Blender o
 | `stand`, `crate`, `stalls` | feira: banca, caixote, barracas do fundo | 3 |
 | `tableware` | prato, tábua, tigela azul, wok, panelinhas, tigela de arroz, tigela de molho, pote de amido, cúpula | 4 |
 | `utensils` | faca, fouet, espátula, colher, rolo, aro da peneira, socador, colher bailarina, cortador de pizza, concha | 5 |
+| `packs` | pote com tampa de alumínio, caixinha com telhadinho, saco de papel kraft, lata (o rótulo e a cor continuam em código) | 7 |
+| `butter` | tablete de manteiga embrulhado; pronto, mas **fora do jogo** até a receita com manteiga entrar | 7 |
 
 O frango com salsa de manga ainda é o mais fraco dos pratos prontos e pede outra volta (anotado em `modelos-3d.md`).
 
@@ -72,14 +74,9 @@ Metade da despensa é embalagem com rótulo. Hoje cada uma é gerada por uma fun
 | Formato | Usado hoje por | Construtor |
 |---|---|---|
 | Garrafa (vários perfis) | shoyu, molho de ostra, óleo de gergelim, teriyaki, azeite, cachaça, mel, ketchup, molho de tomate, cardamomo | `bottle` (`kit.js`), `BOTTLES` (`foods.js`) |
-| Pote com tampa | iogurte, mascarpone | `tub` |
-| Caixinha de leite | leite, creme de leite | `carton` |
-| Saco de papel | açúcar | `sack` |
-| Lata | cacau | `tin` |
-| Caixa | amido de milho | `cornstarchBox` |
 | Saleiro e pimenteiro | sal e pimenta | `saltPepper`, `shaker` |
 
-Atenção ao amido: na feira ele ainda é a caixa procedural (`cornstarchBox`), mas na bancada já é o pote do `tableware.glb` (`build.cornstarch`). Na próxima leva de embalagens, a feira deve passar a usar o mesmo pote.
+Pote, caixinha, saco e lata saíram desta tabela na leva 7 e estão em `packs.glb` (seção 1). O amido, que era uma caixa só da feira, passou a usar na feira o mesmo pote da bancada (`build.cornstarch`, do `tableware.glb`); a caixa foi para o arquivo.
 
 ### Estações e aparelhos
 
@@ -143,7 +140,7 @@ Reaproveitam um modelo que já existe, só com outra cor ou material:
 
 ### Embalagens (formato genérico + rótulo em código)
 
-Saem dos formatos da seção 2, sem modelo novo:
+Saem dos formatos da seção 2 e do `packs.glb` (pote, caixinha, saco, lata), sem modelo novo:
 
 - **Temperos em pote:** cominho (6), coentro em pó (5), pimenta vermelha em pó (4), pimenta calabresa (3), cúrcuma (2), garam masala (2), canela (2), pimenta caxemira (1), páprica (1), páprica defumada (1), biryani masala (1), noz-moscada (1), pimenta-da-jamaica (1), semente de mostarda (1), feno-grego seco (1), orégano (1), gergelim torrado (1). Pede um formato novo: o potinho de tempero.
 - **Garrafas:** óleo de cozinha (3), redução de balsâmico (3), molho de peixe (2), mirin (1), molho picante (1), vinho tinto (1), vinho branco (1), rum branco (1), água com gás (1), extrato de baunilha (1).
@@ -151,7 +148,7 @@ Saem dos formatos da seção 2, sem modelo novo:
 - **Caixinhas:** leite de coco (3), caldo (3), leite de amêndoas (1).
 - **Latas:** grão-de-bico (3), feijão-preto (1), leite condensado (1), matcha (1).
 - **Sacos:** farinha de trigo (2), quinoa (2), açúcar mascavo (2), cuscuz marroquino (1), fubá (1), gotas de chocolate (1), granulado (1), chia (1), bicarbonato de sódio (1), massa de dosa (1).
-- **Manteiga** (4): tablete embrulhado, formato novo.
+- **Manteiga** (4): tablete embrulhado, já modelado (`butter.glb`, leva 7). Entra no jogo com a primeira receita jogável que usar manteiga: falta pôr `butter` em `MODELS` e o item em `PANTRY`, com o rótulo pintado por `packTex`.
 
 ### Utensílio
 

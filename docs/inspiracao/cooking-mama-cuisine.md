@@ -94,6 +94,17 @@ Quadros do mesmo vídeo e os modelos extraídos da referência, olhando só para
 
 O que levamos: esmalte de cor cheia com a borda clareando, inox claro, cabos vermelhos com rebites dourados, bolinhas e filetes pintados (só na textura, sem custar triângulo). Os modelos estão em `art/blender/models/tableware.py` e `utensils.py`.
 
+### Embalagens de perto (revisto em 12/11/2026, para a leva 7)
+
+Os modelos extraídos são só pratos prontos, sem embalagem. A referência aqui é a mesa de ingredientes do vídeo (por volta de 10:37), onde aparecem saco de farinha, caixinha de suco, garrafinhas de leite e saleiros. Tudo o que segue é inferência de um quadro.
+
+- **Saco de papel kraft.** Marrom-claro, mais claro em cima, com vincos verticais moles e a boca dobrada para a frente duas vezes. O nome vai num painel claro impresso na frente, não no saco inteiro.
+- **Caixinha de papel.** Quinas levemente arredondadas, a costura da aba em cima e a estampa cobrindo os lados. Brilho de papel encerado, nem fosco nem plástico.
+- **Rótulo grande e legível.** O nome do ingrediente ocupa a frente e lê de longe, em letra gorda. É o que a nossa `labelTexture` já faz.
+- **Proporção gordinha.** Nada é fino: tampas grossas, bordas enroladas, sacos estufados.
+
+O que levamos: kraft em degradê com vincos e dobra na boca, papel encerado na caixinha, plástico brilhante no pote, metal claro nas bordas enroladas da lata. O formato vem do Blender e o rótulo continua em código, porque o texto e a cor mudam por ingrediente. O modelo está em `art/blender/models/packs.py`.
+
 ## O que levamos
 
 | Ideia | Onde entrou |

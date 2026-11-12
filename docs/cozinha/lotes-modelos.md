@@ -47,6 +47,8 @@ Referência: as garrafas das prateleiras de `shelves.glb` (leva 3), para os dois
 
 ### Leva 7: embalagens de papel e plástico
 
+**Feita em 12/11/2026.** Pote, caixinha, saco e lata estão no jogo (`packs.glb`), e a feira mostra o amido no pote da bancada. A manteiga (`butter.glb`) está pronta e fora do jogo, esperando a primeira receita jogável com manteiga. Números e lições em [modelos-3d.md](modelos-3d.md).
+
 Superfícies foscas, dobras e tampas. Mesmo esquema da leva 6: formato no Blender, rótulo em código.
 
 | Modelo | Tipo | Serve a |

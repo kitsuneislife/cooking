@@ -260,6 +260,22 @@ Leva 5, `utensils.glb` (14.960 triângulos no jogo, 599 KB):
 | Cortador de pizza (disco, garfo e cabo) | 936 |
 | Concha pendurada | 832 |
 
+**Leva 7 (12/11/2026): embalagens de papel e plástico.** O usuário pediu direto no jogo. A referência está em [../inspiracao/cooking-mama-cuisine.md](../inspiracao/cooking-mama-cuisine.md) ("Embalagens de perto"): proporção gordinha, rótulo grande e o saco kraft com a boca dobrada. O Blender faz o formato; o rótulo (texto e cor do ingrediente) continua pintado em código.
+
+`packs.glb` (3.532 triângulos no jogo, 202 KB):
+
+| Peça | No jogo (triângulos) | Textura |
+|---|---|---|
+| Pote de iogurte, corpo e rótulo | 480 + 48 | 512 |
+| Tampa de alumínio franzida, com lingueta | 260 | 256 |
+| Caixinha, corpo e rótulo dos 4 lados | 296 + 128 | 512 |
+| Telhadinho com tampinha de rosca | 172 | 256 |
+| Saco kraft com a boca dobrada, e o rótulo | 1.200 + 200 | 512 |
+| Lata, corpo pintado e rótulo | 320 + 48 | 512 |
+| Borda, pé e tampa de alavanca da lata | 380 | 256 |
+
+`butter.glb` (432 triângulos, 42 KB): tablete em papel dourado com as pontas dobradas e um rótulo no topo. Pronto e **fora do jogo**, porque nenhuma receita jogável usa manteiga ainda.
+
 ### Troca no jogo
 
 A regra: depois que o usuário aprova uma leva, o modelo procedural sai do caminho do jogo e vai para `src/three/archive/procedural.js` (arquivado, não apagado; a página `art/compare-current.html` usa o arquivo para as próximas comparações), e o jogo passa a carregar o `.glb`. Cada troca também é uma chance de deixar o jogo mais leve, medida antes e depois.
@@ -337,6 +353,34 @@ Lições da troca:
 10. **Textura que só o procedural usa vai junto para o arquivo.** O `paintAll` pinta todas as texturas do kit na abertura; deixar as três da louça antiga lá era trabalho perdido em todo carregamento.
 11. **Pane escondido: medir com `world.snapshot`.** Sem `requestAnimationFrame`, embrulhar `drawElements` e `drawArrays` em volta de um `snapshot(plano)` conta o quadro inteiro, sombra e pós-processamento incluídos.
 12. **Conferir no jogo, não só no estúdio.** No estúdio a tigela nova parecia azul e a tábua parecia lisa; no jogo a tigela saiu branca e o veio da tábua virou listras. Os dois só apareceram na foto do plano de câmera.
+
+Como ficou a leva 7:
+
+- `tub`, `carton`, `sack`, `tin` e `cornstarchBox` foram para `src/three/archive/procedural.js`. Em `foods.js`, uma função `pack(tipo, texto, rótulo, cores)` pega as peças do `packs.glb`, troca a imagem do rótulo pela de `labelTexture` ou `packTex` e tinge tampa, telhado ou lata com a cor do ingrediente. Os materiais são feitos uma vez por ingrediente e divididos entre as cópias.
+- O amido na feira deixou de ser caixa e usa o pote da bancada (`build.cornstarch`, do `tableware.glb`), sem download novo. Como ele não empilha bem, a feira põe dois lado a lado (`ONLY` em `shop.js`).
+- As embalagens só aparecem na feira: despejar, polvilhar e o liquidificador usam a jarra, as garrafas e os pedaços, que não mudaram.
+- `art/scene.html` ganhou `?shop=id,id,...`, que monta a feira com esses itens e o sorteio fixado, para medir e fotografar sem jogar a partida.
+
+| Feira com iogurte, leite, mascarpone, creme, açúcar, cacau e amido | Antes | Depois |
+|---|---|---|
+| Chamadas de desenho por quadro | 518 | 490 (−5%) |
+| Triângulos por quadro | 243.404 | 260.812 (+7%) |
+
+| Embalagem, triângulos por cópia | Antes | Depois |
+|---|---|---|
+| Pote de iogurte | 720 | 788 |
+| Caixinha de leite | 784 | 596 |
+| Saco de açúcar | 1.560 | 1.400 |
+| Lata de cacau | 400 | 748 |
+
+O aumento de triângulos vem quase todo do amido: o pote da bancada tem 3.000 triângulos e aparece duas vezes, no lugar de uma caixa de 588. Foi pedido na leva, e o pote já estava carregado.
+
+Lições da troca:
+
+13. **Textura de canvas na UV do glTF precisa de `flipY = false`.** No glTF o v da UV cresce para baixo; com o padrão do three.js o rótulo saiu de ponta-cabeça.
+14. **Material tingido se faz uma vez por ingrediente.** Cada caixote da feira tem três cópias, e clonar o material em cada uma triplicaria materiais e texturas de rótulo. Os materiais ficam guardados por ingrediente (`once`) e as cópias só apontam para eles.
+15. **Item pequeno e repetido fica perto do procedural.** Na feira cada embalagem aparece em trio e pequena; o primeiro orçamento deixou o quadro 16% mais pesado sem diferença visível. Cortar pote, lata e saco até perto do antigo resolveu.
+16. **Janela minimizada para o jogo.** Com o app minimizado, nem a captura de tela nem a partida andam. Para fotografar fora do jogo, o Edge sem janela (`msedge --headless=new --screenshot`) renderiza as páginas de `art/`.
 
 ## Para a próxima etapa
 
