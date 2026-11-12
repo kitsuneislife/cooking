@@ -2,8 +2,10 @@
 // copo, vai para a tábua ou é despejado. Mesmo estilo do kit: formas cheinhas, sem contorno.
 import {
   THREE, RoundedBoxGeometry, mergeGeometries, build, bottle, labelTexture, mesh, food, glossy, metal,
-  paint, canvasTex, tex, rgb, mix, fbm, sstep, seeded, V2, castAll,
+  paint, canvasTex, tex, rgb, mix, fbm, sstep, seeded, V2, castAll, hash, colorize, normals, limb,
 } from "./kit.js";
+
+const TAU = Math.PI * 2;
 
 const cache = {};
 const once = (key, make) => cache[key] ??= make();
@@ -96,12 +98,47 @@ function bunch(leafGeo, color, n, seed) {
   }
   return g;
 }
-const BASIL_LEAF = () => once("basilLeaf", () => {
-  const geo = new THREE.SphereGeometry(1, 14, 8).scale(0.2, 0.045, 0.32), p = geo.attributes.position;
-  for (let i = 0; i < p.count; i++) p.setY(i, p.getY(i) + (p.getX(i) ** 2) * 1.6 - (p.getZ(i) ** 2) * 0.5); // folha em concha
-  geo.computeVertexNormals();
-  return geo;
-});
+// Folha de verdade (manjericão, hortelã): fina no pé, barriga a 40%, ponta fina; concha e arco.
+// Nasce no pecíolo, em z = 0, e cresce para +z.
+function leafGeo(L, W, cup, arch) {
+  const geo = new THREE.PlaneGeometry(1, 1, 8, 18), p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const u = p.getX(i) * 2, v = p.getY(i) + 0.5;
+    const w = W * Math.pow(Math.sin(Math.PI * Math.pow(v, 0.75)), 0.8);
+    p.setXYZ(i, u * w, cup * u * u * w + arch * L * (Math.sin(Math.PI * v) * 0.5 - v * v * 0.6), v * L);
+  }
+  return normals(geo);
+}
+// Nervura central e laterais: claras na cor, fundas no relevo (o "acolchoado" entre elas).
+function veins(x, color, k) {
+  x.strokeStyle = color; x.lineCap = "round";
+  x.lineWidth = 5 * k; x.beginPath(); x.moveTo(64, 256); x.lineTo(64, 6); x.stroke();
+  x.lineWidth = 2.2 * k; x.globalAlpha = k > 1 ? 0.85 : 0.45;
+  for (let i = 0; i < 6; i++) {
+    const y0 = 232 - i * 36;
+    for (const s of [-1, 1]) { x.beginPath(); x.moveTo(64, y0); x.quadraticCurveTo(64 + s * 30, y0 - 20, 64 + s * 62, y0 - 50); x.stroke(); }
+  }
+  x.globalAlpha = 1;
+}
+const veinBump = () => once("veinBump", () => canvasTex(128, 256, (x) => {
+  x.fillStyle = "#c8c8c8"; x.fillRect(0, 0, 128, 256);
+  x.shadowColor = "#000"; x.shadowBlur = 6;
+  veins(x, "#383838", 1.6);
+}));
+const leafMat = (base, tip, vein) => once(`leaf-${base}`, () => food({
+  map: canvasTex(128, 256, (x) => {
+    const gr = x.createLinearGradient(0, 256, 0, 0); gr.addColorStop(0, base); gr.addColorStop(1, tip);
+    x.fillStyle = gr; x.fillRect(0, 0, 128, 256);
+    const e = x.createLinearGradient(0, 0, 128, 0); // borda um pouco mais escura
+    e.addColorStop(0, "rgba(10,50,10,.35)"); e.addColorStop(0.25, "rgba(10,50,10,0)"); e.addColorStop(0.75, "rgba(10,50,10,0)"); e.addColorStop(1, "rgba(10,50,10,.35)");
+    x.fillStyle = e; x.fillRect(0, 0, 128, 256);
+    veins(x, vein, 1);
+  }),
+  bumpMap: veinBump(), bumpScale: 1.4, roughness: 0.32, clearcoat: 0.8, clearcoatRoughness: 0.2,
+}));
+const BASIL = () => leafMat("#23802c", "#38a040", "#6cbf58");
+const MINT = () => leafMat("#3caa48", "#62c456", "#8fd878");
+const leaf = (L, mat) => mesh(once(`leafGeo${L}`, () => leafGeo(L, L * 0.36, 0.55, 0.12)), mat);
 const CILANTRO_LEAF = () => once("cilantroLeaf", () => new THREE.SphereGeometry(1, 8, 6).scale(0.12, 0.03, 0.14));
 
 function tub(text, band, lid) { // pote de plástico com tampa de alumínio
@@ -201,13 +238,136 @@ export function redOnion() {
     food({ map: onionTex(), roughness: 0.3, clearcoat: 0.8, sheen: 0.5, sheenColor: C("#ffd0e8") })));
   return g;
 }
-export const basil = () => bunch(BASIL_LEAF(), "#2f9a3a", 16, 5);
+// Maço de manjericão: cada talo com um par de folhas grandes e um par menor cruzado em cima.
+export function basil() {
+  const g = new THREE.Group(), rand = seeded(5), stalk = food({ color: "#76ad4c", roughness: 0.5 });
+  const add = (L, at, yaw, pitch) => {
+    const l = leaf(L, BASIL()); l.position.copy(at); l.rotation.order = "YXZ"; l.rotation.set(-pitch, yaw, 0);
+    g.add(l);
+  };
+  for (let i = 0; i < 7; i++) {
+    const a = i / 7 * TAU, base = new THREE.Vector3(Math.cos(a) * 0.06, 0, Math.sin(a) * 0.06);
+    const top = new THREE.Vector3(Math.cos(a) * (0.22 + rand() * 0.12), 0.95 + rand() * 0.3, Math.sin(a) * (0.22 + rand() * 0.12));
+    g.add(mesh(limb(base, top, 0.03, 0.022, 8), stalk));
+    const twist = rand() * TAU, mid = base.clone().lerp(top, 0.72);
+    for (const s of [0, Math.PI]) add(0.62, mid, twist + s, 0.35);
+    for (const s of [0, Math.PI]) add(0.44, top, twist + Math.PI / 2 + s, 0.85);
+    add(0.2, top.clone().add(new THREE.Vector3(0, 0.03, 0)), twist, 1.3); // brotinho
+  }
+  const tie = mesh(new THREE.TorusGeometry(0.13, 0.03, 8, 20), glossy({ color: "#e5484d" }));
+  tie.rotation.x = Math.PI / 2; tie.position.y = 0.35;
+  g.add(tie);
+  return g;
+}
 export const cilantro = () => bunch(CILANTRO_LEAF(), "#55b53c", 46, 9);
+// Folha solta (vai para a pizza), centrada no próprio meio.
 export function basilLeaf() {
-  const l = mesh(BASIL_LEAF(), food({ color: "#2f9a3a", roughness: 0.4, clearcoat: 0.6, sheen: 0.4, sheenColor: C("#d8ffb0") }));
-  l.scale.setScalar(1.25); l.position.y = 0.03;
+  const l = leaf(0.62, BASIL()); l.position.set(0, 0.03, -0.31);
   const w = new THREE.Group(); w.add(l);
   return w;
+}
+
+// Cobertura do lassi, em raio 1 (o copo escala pela boca): espuma em espiral com pintas de
+// açafrão e pistache, cubinhos de manga e um raminho de hortelã. `tint` puxa a espuma para a cor da bebida.
+const foamTex = () => once("lassiFoam", () => paint(256, (u, v) => {
+  const s = 0.5 + 0.5 * Math.sin(TAU * (u + v * 2.2)), a = [255, 236, 200], b = [255, 250, 236];
+  const h = hash(Math.floor(u * 300), Math.floor(v * 90));
+  if (h > 0.992) return [232, 104, 26]; // açafrão
+  if (h > 0.982) return [122, 154, 58]; // pistache e cardamomo
+  return a.map((x, i) => x + (b[i] - x) * sstep(0.3, 0.8, s));
+}));
+export function lassiTop() {
+  const g = new THREE.Group(), foamMat = food({ map: foamTex(), roughness: 0.55, clearcoat: 0.3 });
+  g.add(mesh(new THREE.LatheGeometry([V2(1, 0), V2(0.88, 0.12), V2(0.6, 0.26), V2(0.25, 0.34), V2(0, 0.35)], 48), foamMat));
+  const mango = glossy({ color: "#ffb52e", roughness: 0.25 });
+  [[0.32, 0.05, 0.14], [-0.05, 0.14, 0.32], [0.14, 0.3, 0.18]].forEach(([x, y, z], i) => {
+    const m = mesh(new RoundedBoxGeometry(0.38, 0.38, 0.38, 3, 0.09), mango);
+    m.position.set(x, 0.33 + y, z); m.rotation.set(i, i * 0.7, 0.3);
+    g.add(m);
+  });
+  const mint = once("mintLeaf", () => leafGeo(0.75, 0.33, 0.6, 0.15));
+  [0, 2.1, 4.2].forEach((yaw, i) => {
+    const l = mesh(mint, MINT()); l.rotation.order = "YXZ"; l.rotation.set(-0.45, yaw + 0.5, 0);
+    l.position.set(-0.28, 0.45 + i * 0.05, -0.1);
+    g.add(l);
+  });
+  const white = C("#ffffff");
+  g.userData.tint = (color) => foamMat.color.copy(white).lerp(color, 0.25);
+  return g;
+}
+
+/* ---------- Tomate ----------
+   Casca bem brilhante com gomos, cálice em estrela e a metade cortada com gel e sementes:
+   é o corte que faz ler "tomate" de longe. */
+function lobed(geo, R, ys) {
+  const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i), n = y / R, k = 1 + 0.035 * Math.cos(5 * Math.atan2(z, x)) * (1 - n * n);
+    const d2 = (x * k) ** 2 + (z * k) ** 2;
+    p.setXYZ(i, x * k, y * ys + (y > 0 ? -0.1 * Math.exp(-d2 / 0.04) : 0.05 * Math.exp(-d2 / 0.05)), z * k); // covinhas em cima e embaixo
+  }
+  const red = C("#e0301c"), orange = C("#f2662a"), dark = C("#b81f12");
+  colorize(geo, (c, x, y, z) => {
+    const n = y / (R * ys);
+    c.copy(red).lerp(orange, sstep(0.55, 0.95, n) * 0.55).lerp(dark, sstep(-0.2, -0.95, n) * 0.35);
+    c.multiplyScalar(0.92 + 0.16 * fbm(x * 4 + 3, z * 4 + y * 3));
+  });
+  return normals(geo);
+}
+function calyx() {
+  const parts = [];
+  for (let i = 0; i < 5; i++) {
+    const geo = new THREE.PlaneGeometry(1, 1, 2, 6), p = geo.attributes.position;
+    for (let j = 0; j < p.count; j++) {
+      const u = p.getX(j) * 2, v = p.getY(j) + 0.5, w = 0.07 * Math.pow(1 - v, 0.7) + 0.01;
+      p.setXYZ(j, u * w, 0.02 - 0.14 * v * v + 0.02 * u * u, v * 0.32);
+    }
+    parts.push(geo.rotateY(i / 5 * TAU + 0.3));
+  }
+  const mat = food({ color: "#3d8a2e", roughness: 0.45, clearcoat: 0.5 }), g = new THREE.Group();
+  g.add(mesh(normals(mergeGeometries(parts)), mat), mesh(limb(new THREE.Vector3(), new THREE.Vector3(0.03, 0.16, 0.01), 0.035, 0.025, 8), mat));
+  return g;
+}
+const cutTex = () => once("tomatoCut", () => canvasTex(512, 512, (x) => {
+  const c = 256, R = 250, rand = seeded(3);
+  x.fillStyle = "#c92415"; x.beginPath(); x.arc(c, c, R, 0, TAU); x.fill(); // casca
+  x.fillStyle = "#e8442a"; x.beginPath(); x.arc(c, c, R * 0.94, 0, TAU); x.fill(); // polpa
+  for (let k = 0; k < 5; k++) { // lóculos com gel e sementes
+    const a = (k + 0.5) / 5 * TAU, lx = c + Math.cos(a) * R * 0.5, ly = c + Math.sin(a) * R * 0.5;
+    const gel = x.createRadialGradient(lx, ly, 4, lx, ly, R * 0.3);
+    gel.addColorStop(0, "#ffc070"); gel.addColorStop(0.7, "#f79a48"); gel.addColorStop(1, "#ef6a36");
+    x.fillStyle = gel; x.beginPath(); x.ellipse(lx, ly, R * 0.3, R * 0.2, a, 0, TAU); x.fill();
+    x.fillStyle = "#f8e08e"; x.strokeStyle = "#d89a3e"; x.lineWidth = 2;
+    for (let s = 0; s < 8; s++) {
+      const t = rand() * TAU, d = Math.sqrt(rand()) * 0.75;
+      x.beginPath(); x.ellipse(lx + Math.cos(t) * R * 0.22 * d, ly + Math.sin(t) * R * 0.13 * d, 9, 6, a + rand(), 0, TAU); x.fill(); x.stroke();
+    }
+  }
+  const core = x.createRadialGradient(c, c, 0, c, c, R * 0.24); // miolo
+  core.addColorStop(0, "#f8c8ac"); core.addColorStop(1, "rgba(236,90,60,0)");
+  x.fillStyle = core; x.beginPath(); x.arc(c, c, R * 0.24, 0, TAU); x.fill();
+}));
+export function tomato() {
+  const g = new THREE.Group(), R = 0.62, ys = 0.8, skin = food({ vertexColors: true, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.06 });
+  const whole = mesh(lobed(new THREE.SphereGeometry(R, 72, 48), R, ys), skin);
+  whole.position.set(-0.45, R * ys, 0);
+  const cx = calyx(); cx.position.set(-0.45, R * ys * 2 - 0.08, 0);
+  const r = 0.55, half = new THREE.Group(); // metade cortada, com o corte para cima
+  const dome = mesh(lobed(new THREE.SphereGeometry(r, 64, 24, 0, TAU, 0, Math.PI / 2), r, ys), skin);
+  dome.rotation.x = Math.PI;
+  const face = mesh(new THREE.CircleGeometry(r, 64).rotateX(-Math.PI / 2), food({ map: cutTex(), roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.08 }));
+  face.position.y = 0.002;
+  half.add(dome, face);
+  half.rotation.set(0.35, 0.4, 0.25); half.position.set(0.75, r * ys * 0.95, 0.15);
+  g.add(whole, cx, half);
+  return g;
+}
+// Molho de tomate na feira: o vidro com um tomate e meio do lado, para ler o que tem dentro.
+function tomatoSauce() {
+  const g = new THREE.Group(), jar = BOTTLES.tomato(), t = tomato();
+  t.scale.setScalar(0.55); t.position.set(0.95, 0, 0.35);
+  g.add(jar, t);
+  return g;
 }
 export function jalapeno() {
   const g = new THREE.Group();
@@ -317,9 +477,24 @@ function mozzarella() {
   }
   return g;
 }
-export function mozzaSlice() { // rodela de muçarela, com material próprio (ela derrete no forno)
-  const m = mesh(new THREE.LatheGeometry([V2(0, 0.075), V2(0.25, 0.075), V2(0.33, 0.045), V2(0.33, 0), V2(0, 0)], 28),
-    food({ color: "#fffdf5", roughness: 0.25, clearcoat: 1, sheen: 0.6, sheenColor: C("#fff") }));
+// Poça de muçarela: contorno irregular, borda amarelada e pintas tostadas pintadas na malha.
+function mozzaPool(seed) {
+  const geo = new THREE.SphereGeometry(0.3, 32, 16), p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const k = 1 + 0.5 * (fbm(x * 5 + seed, z * 5 - seed, 3) - 0.5);
+    p.setXYZ(i, x * k, y < 0 ? y * 0.15 : y * 0.28, z * k);
+  }
+  const cream = C("#fff7e4"), brown = C("#e6ae52"), edge = C("#f6e2a6");
+  colorize(geo, (c, x, y, z) => {
+    c.copy(cream).lerp(edge, sstep(0.17, 0.34, Math.hypot(x, z)) * 0.6);
+    c.lerp(brown, sstep(0.6, 0.72, fbm(x * 7 + seed, z * 7)) * sstep(0.02, 0.08, y) * 0.85);
+  });
+  return normals(geo);
+}
+let mozzaSeed = 0;
+export function mozzaSlice() { // com material próprio: ela derrete no forno
+  const m = mesh(mozzaPool((mozzaSeed++ % 7) * 3.1), food({ color: "#fffdf5", vertexColors: true, roughness: 0.3, clearcoat: 0.9, clearcoatRoughness: 0.2, sheen: 0.5, sheenColor: C("#fff") }));
   const g = new THREE.Group(); g.add(m);
   g.userData.mat = m.material;
   return g;
@@ -373,7 +548,7 @@ export const PANTRY = {
   mushroom: { model: build.mushroom }, teriyaki: { model: build.teriyaki },
   // pizza
   dough: { model: doughBall, tint: "#f5e3b9" },
-  tomato: { model: BOTTLES.tomato, tint: "#d02a1c" },
+  tomato: { model: tomatoSauce, tint: "#d02a1c" },
   mozzarella: { model: mozzarella, tint: "#fffdf5", piece: mozzaSlice },
   basil: { model: basil, tint: "#2f9a3a", piece: basilLeaf },
   oliveOil: { model: BOTTLES.oliveOil, tint: "#c2b52a" },
@@ -421,11 +596,40 @@ export function piece(id) {
 
 /* ---------- Pizza ----------
    Um modelo só, da bola de massa à pizza assada: `flatten`, `cook` e as camadas por cima. */
+// Borda assada: dourada, com manchas de leopardo tostadas e pintinhas. Periódica em u, sem emenda.
+const crustTex = () => once("crust", () => paint(512, (u, v) => {
+  const cream = [244, 226, 180], gold = [224, 160, 76], toast = [176, 106, 44], char = [58, 28, 12];
+  const zone = sstep(0.25, 0.35, v) * (1 - sstep(0.62, 0.72, v)); // só a borda; o fundo fica pálido
+  const m = (a, b, t) => a.map((x, i) => x + (b[i] - x) * t);
+  let c = m(cream, gold, sstep(0.15, 0.45, v) * (1 - sstep(0.62, 0.78, v)));
+  const n = fbm(Math.cos(TAU * u) * 10 + v * 13, Math.sin(TAU * u) * 10 - v * 7, 3);
+  c = m(c, toast, sstep(0.58, 0.66, n) * zone);
+  c = m(c, char, sstep(0.68, 0.73, n) * zone);
+  if (hash(Math.floor(u * 260), Math.floor(v * 70)) > 0.982) c = m(c, char, 0.7 * zone);
+  return c;
+}));
+// Disco com a borda estufada de forma irregular, como massa de verdade. Miolo em y = 0.08.
+function crustGeo(R) {
+  const geo = new THREE.LatheGeometry([V2(0, 0.08), V2(R * 0.76, 0.08), V2(R * 0.8, 0.095), V2(R * 0.84, 0.15), V2(R * 0.9, 0.21), V2(R * 0.96, 0.21),
+    V2(R, 0.15), V2(R * 1.01, 0.07), V2(R * 0.98, 0.01), V2(R * 0.9, 0), V2(0, 0)], 160), p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i), th = Math.atan2(z, x), rim = sstep(R * 0.74, R * 0.86, Math.hypot(x, z));
+    const b = fbm(Math.cos(th) * 4 + 9, Math.sin(th) * 4 + 9, 3) - 0.5, b2 = fbm(Math.cos(th) * 11 + 3, Math.sin(th) * 11 + 3, 2) - 0.5;
+    const kr = 1 + rim * b * 0.05;
+    p.setXYZ(i, x * kr, y * (1 + rim * (b * 1.1 + b2 * 0.6)), z * kr);
+  }
+  return normals(geo);
+}
 export function pizza() {
-  const g = new THREE.Group(), R = 1.3;
+  const g = new THREE.Group(), R = 1.3, geo = crustGeo(R);
   const doughMat = food({ color: "#f5e3b9", roughness: 0.85, clearcoat: 0.05, bumpMap: tex("powder"), bumpScale: 1 });
-  const base = mesh(new THREE.LatheGeometry([V2(0, 0), V2(R * 0.96, 0), V2(R, 0.05), V2(R, 0.11), V2(R * 0.95, 0.17), V2(R * 0.86, 0.16), V2(R * 0.8, 0.09), V2(0, 0.08)], 64), doughMat);
+  const base = mesh(geo, doughMat);
   base.receiveShadow = true;
+  // O assado por cima da massa crua: aparece aos poucos no forno.
+  const bakedMat = food({ map: crustTex(), bumpMap: crustTex(), bumpScale: 1.2, roughness: 0.75, clearcoat: 0.1, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 });
+  const baked = mesh(geo, bakedMat);
+  baked.visible = false; baked.castShadow = false;
+  base.add(baked);
   const top = new THREE.Group(); // molho, queijo, folhas e cortes
   g.add(base, top);
   const raw = C("#f5e3b9"), gold = C("#e3a64e"), burnt = C("#5a3418"), cheese = [];
@@ -438,14 +642,17 @@ export function pizza() {
       const w = 0.42 + 0.58 * k, h = 1 + 4.6 * (1 - k) ** 1.5;
       base.scale.set(w, h, w);
       top.visible = k > 0.99;
-      return 0.17 * h;
+      return 0.21 * h;
     },
     // 0 = crua, 1 = no ponto, acima disso vai queimando
     ready(k) {
       const over = Math.max(0, k - 1) * 2.5;
       doughMat.color.copy(raw).lerp(gold, Math.min(1, k)).lerp(burnt, Math.min(1, over));
       doughMat.clearcoat = 0.05 + Math.min(1, k) * 0.35;
+      bakedMat.opacity = Math.min(1, k); baked.visible = k > 0.01;
+      bakedMat.color.set("#ffffff").lerp(burnt, Math.min(1, over) * 0.8);
       base.scale.y = 1 + Math.min(1, k) * 0.3; // a borda cresce
+      top.position.y = 0.08 * (base.scale.y - 1); // e a cobertura sobe junto com o miolo
       for (const c of cheese) { // a muçarela derrete e doura
         const m = Math.min(1, k);
         c.scale.set(1 + m * 0.22, 1 - m * 0.55, 1 + m * 0.22); // espalha pouco: o molho continua aparecendo

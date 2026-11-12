@@ -1,8 +1,8 @@
 // Equipamentos e utensílios das estações novas: forno, grelha, liquidificador, geladeira,
 // copos e ferramentas. Tudo apoiado em y = 0 (o tampo), como o resto do kit.
-import { THREE, RoundedBoxGeometry, mesh, food, glossy, metal, woodMat, canvasTex, V2, seeded } from "./kit.js";
+import { THREE, RoundedBoxGeometry, mesh, food, glossy, metal, woodMat, canvasTex, paint, fbm, sstep, V2, seeded } from "./kit.js";
 
-const C = (hex) => new THREE.Color(hex);
+const C = (hex) => new THREE.Color(hex), TAU = Math.PI * 2;
 const box = (w, h, d, mat, x = 0, y = 0, z = 0, r = 0.05) => {
   const m = mesh(new RoundedBoxGeometry(w, h, d, 2, Math.min(r, w / 2.01, h / 2.01, d / 2.01)), mat);
   m.position.set(x, y, z);
@@ -29,17 +29,48 @@ function vessel(g, { r, h, floor, rBase = r }) {
   return g;
 }
 
+const strawTex = () => canvasTex(64, 256, (x) => { // listras em diagonal
+  x.fillStyle = "#fffaf0"; x.fillRect(0, 0, 64, 256);
+  x.fillStyle = "#e5484d";
+  for (let y = -64; y < 320; y += 40) { x.beginPath(); x.moveTo(0, y); x.lineTo(64, y - 32); x.lineTo(64, y - 14); x.lineTo(0, y + 18); x.fill(); }
+});
+// Escorrido de purê no vidro, em cinza: a cor vem do que foi despejado (`liquid.material.color`).
+let streakTex;
+const streaks = () => streakTex ??= paint(256, (u, v) => {
+  const s = Math.sin(TAU * (u * 3 + v * 1.2) + 2.5 * (fbm(Math.cos(TAU * u) * 3 + 5, v * 4 + Math.sin(TAU * u) * 3) - 0.5));
+  const k = 236 + 19 * sstep(0, 1, v) - 34 * sstep(0.75, 0.95, 0.5 + 0.5 * s) * (1 - v * 0.6);
+  return [k, k, k];
+});
+
 // Copo de vidro: baixo e largo (caipirinha) ou alto (lassi).
-export function glass({ r = 0.55, h = 1.3 } = {}) {
-  const g = new THREE.Group();
+// `top`: o que fica por cima da bebida quando serve (no lassi: espuma, fruta e hortelã); traz junto o escorrido no vidro.
+export function glass({ r = 0.55, h = 1.3, top } = {}) {
+  const g = new THREE.Group(), rand = seeded(8);
   g.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(r * 0.84, 0), V2(r * 0.88, 0.05), V2(r, h), V2(r - 0.045, h), V2(r * 0.84 - 0.03, 0.14), V2(0, 0.14)], 48), glassMat()));
   vessel(g, { r: r * 0.9, rBase: r * 0.8, h, floor: 0.145 });
-  // enfeite que só aparece na hora de servir
-  const straw = mesh(new THREE.CylinderGeometry(0.035, 0.035, h * 1.5, 10), glossy({ color: "#e5484d" }));
+  const { liquid } = g.userData;
+  if (top) { liquid.material.map = streaks(); liquid.material.needsUpdate = true; }
+  // enfeite que só aparece na hora de servir: canudo listrado, gotinhas de gelado no vidro e a cobertura
+  const extra = new THREE.Group(); extra.visible = false; g.add(extra);
+  const straw = mesh(new THREE.CylinderGeometry(0.035, 0.035, h * 1.5, 16, 1, true), glossy({ map: strawTex(), roughness: 0.25 }));
   straw.position.set(r * 0.3, h * 0.78, -r * 0.2); straw.rotation.z = -0.22;
-  straw.visible = false;
-  g.add(straw);
-  g.userData.garnish = () => { straw.visible = true; };
+  extra.add(straw);
+  const drop = glossy({ color: "#ffffff", roughness: 0.02, transparent: true, opacity: 0.22 });
+  for (let i = 0; i < 22; i++) {
+    const y = 0.25 + rand() * (h - 0.4), a = rand() * TAU, rr = r * 0.88 + r * 0.12 * y / h + 0.015;
+    const d = mesh(new THREE.SphereGeometry((0.02 + rand() * 0.02) * r / 0.5, 10, 8), drop);
+    d.scale.set(1, 1.3, 0.5); d.position.set(Math.cos(a) * rr, y, Math.sin(a) * rr); d.lookAt(0, y, 0);
+    d.castShadow = false;
+    extra.add(d);
+  }
+  if (top) extra.add(top);
+  g.userData.garnish = () => {
+    extra.visible = true;
+    if (!top) return;
+    top.position.y = g.userData.surface();
+    top.scale.setScalar(g.userData.rim);
+    top.userData.tint?.(liquid.material.color);
+  };
   return g;
 }
 

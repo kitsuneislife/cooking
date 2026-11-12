@@ -3,6 +3,7 @@ import { THREE } from "../kit.js";
 import { ease } from "../world.js";
 import { STATION_X } from "../sets.js";
 import { glass } from "../gear.js";
+import { lassiTop } from "../foods.js";
 import { sfx } from "../../game/sound.js";
 
 export const v3 = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -99,7 +100,7 @@ export function vessels(world, name) {
       g.add(t);
       g.position.set(STATION_X.bar, stations.bar.userData.top, stations.bar.position.z);
     } else if (name === "glasses") {
-      for (const x of [-0.85, 0.85]) { const t = glass({ r: 0.42, h: 1.6 }); t.scale.setScalar(1.25); t.position.x = x; g.add(t); }
+      for (const x of [-0.85, 0.85]) { const t = glass({ r: 0.42, h: 1.6, top: lassiTop() }); t.scale.setScalar(1.25); t.position.x = x; g.add(t); }
       g.position.set(STATION_X.plate, 0.02, 0.3);
       stations.plate.visible = false; // os copos ocupam o lugar do prato
     } else throw new Error(`Recipiente desconhecido: ${name}`);
