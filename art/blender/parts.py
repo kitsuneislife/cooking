@@ -169,6 +169,133 @@ def rosette(r=0.25, h=0.35, ridges=8, twist=2.2, color="#fff6e4", name="rosette"
         bump=0.05, sss=0.3)))
 
 
+# ---------- cenário (medidas e posições do jogo, por lib.T) ----------
+
+def ceramic(color, name=None):
+    """Louça esmaltada de brinquedo: cor lisa com um degradê leve e brilho de esmalte."""
+    return M("ceramic" + color, lambda: lib.ramp_mat(
+        name or "ceramica" + color, [(0, color), (0.7, color), (1, "#ffffff")], rough=0.18,
+        spec=0.6, coat=0.5, scale=2, bump=0.01))
+
+
+def wood(key="honey", stops=(("#d99a52", 0), ("#e8b46c", 0.5), ("#f2c886", 1))):
+    return M("wood" + key, lambda: lib.ramp_mat(
+        "madeira_" + key, [(p, c) for c, p in stops], rough=0.5, spec=0.4, coat=0.15, by="wave",
+        axis="Y", scale=2.2, bump=0.05, bump_scale=40))
+
+
+def fabric(name, w, h, nx, ny, shape, m, thick=0.03):
+    """Pano em grade (cortina, bandô, pano de prato, toldo): shape(x, y) devolve o ponto no
+    jogo; a UV fica em unidades do pano, então a estampa não estica."""
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new()
+    grid = [[bm.verts.new(lib.T(*shape(-w / 2 + w * i / nx, -h / 2 + h * j / ny))) for j in range(ny + 1)]
+            for i in range(nx + 1)]
+    for i in range(nx):
+        for j in range(ny):
+            f = bm.faces.new((grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]))
+            for loop, (a, b) in zip(f.loops, ((i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1))):
+                loop[uv].uv = (w * a / nx, h * b / ny)
+    o = lib.from_bmesh(name, bm)
+    sol = o.modifiers.new("sol", "SOLIDIFY")
+    sol.thickness = thick
+    return lib.assign(o, m)
+
+
+def placed(o, at):
+    o.location = lib.T(*at)
+    return o
+
+
+def canister(at, r, h, body, lid, name):
+    """Pote de mantimento: corpo de louça de ombro redondo, faixa de rótulo e tampa com pegador."""
+    prof = [(0, 0), (r * 0.9, 0), (r, r * 0.12), (r, h * 0.86), (r * 0.9, h), (r * 0.6, h), (0, h)]
+    b = placed(lib.lathe(name, prof, 32), at)
+    label = placed(lib.lathe(name + "_label", [(r * 1.012, h * 0.3), (r * 1.012, h * 0.62)], 32), at)
+    lp = [(0, h), (r * 0.98, h), (r * 1.02, h + 0.06), (r * 0.9, h + 0.12), (r * 0.25, h + 0.14),
+          (r * 0.22, h + 0.2), (r * 0.3, h + 0.27), (0, h + 0.3)]
+    lt = placed(lib.lathe(name + "_lid", lp, 32), at)
+    return [lib.assign(b, ceramic(body)), lib.assign(label, ceramic("#fffaf0")), lib.assign(lt, ceramic(lid))]
+
+
+def bowl_stack(at, colors, name="bowls"):
+    out = []
+    for i, c in enumerate(colors):
+        prof = [(0.3, 0), (0.6, 0.35), (0.62, 0.37), (0.58, 0.37), (0.29, 0.04), (0, 0.04), (0, 0)]
+        b = placed(lib.lathe(f"{name}{i}", prof, 40), (at[0], at[1] + i * 0.12, at[2]))
+        out.append(lib.assign(b, ceramic(c)))
+    return out
+
+
+def book(at, w, h, d, color, tilt=0.0, name="book"):
+    cover = lib.box(name, w, h, d, at=at, bevel=0.03)
+    pages = lib.box(name + "_p", w * 0.8, h * 0.95, d * 0.97, at=(at[0], at[1], at[2] + d * 0.03), bevel=0.01)
+    for o in (cover, pages):
+        o.rotation_euler.y = -tilt  # tombado para o lado, em torno da profundidade
+    return [lib.assign(cover, ceramic(color)),
+            lib.assign(pages, M("pages", lambda: lib.mat("paginas", "#fbf3e2", rough=0.8)))]
+
+
+def pot_plant(at, scale=1.0, pot="#d9693a", leafc=("#2f8a34", "#5dbb4a"), n=16, seed=1, name="plant", fruit=None):
+    """Vaso com folhas em roseta (manjericão, hera); `fruit` põe bolinhas (limõezinhos)."""
+    rnd = random.Random(seed)
+    s = scale
+    prof = [(0, 0), (0.36 * s, 0), (0.46 * s, 0.6 * s), (0.53 * s, 0.62 * s), (0.53 * s, 0.76 * s),
+            (0.44 * s, 0.76 * s), (0.42 * s, 0.7 * s), (0, 0.7 * s)]
+    out = [lib.assign(placed(lib.lathe(name + "_pot", prof, 32), at), ceramic(pot))]
+    soil = lib.cylinder(name + "_soil", 0.42 * s, 0.42 * s, 0.02, 24, loc=lib.T(at[0], at[1] + 0.71 * s, at[2]))
+    out.append(lib.assign(soil, M("soil", lambda: lib.ramp_mat(
+        "terra", [(0, "#4a2e1c"), (1, "#6b4428")], rough=0.95, spec=0.1, scale=30, bump=0.4))))
+    base = lib.T(at[0], at[1] + 0.7 * s, at[2])
+    for i in range(n):
+        lf = leaf(rnd.uniform(0.45, 0.65) * s, leafc, f"{name}_leaf{i}", cup=0.3)
+        a = i / n * math.tau + rnd.uniform(-0.2, 0.2)
+        lf.rotation_euler = (rnd.uniform(0.25, 1.0), 0, a)  # sai do miolo e abre para fora
+        lf.location = base + Vector((0, 0, rnd.uniform(0, 0.35) * s))
+        out.append(lf)
+    for i in range(fruit or 0):
+        a = rnd.uniform(0, math.tau)
+        f = lib.sphere(f"{name}_fruit{i}", 0.09 * s, 16, 10, scale=(1.25, 1, 1))
+        f.location = base + Vector((math.cos(a) * 0.3 * s, math.sin(a) * 0.3 * s, rnd.uniform(0.25, 0.5) * s))
+        out.append(lib.assign(f, ceramic("#ffd23f")))
+    return out
+
+
+def standing_plate(at, r, tilt, name):
+    out = plate(r, name)
+    for o in out:
+        o.rotation_euler = (0, math.pi / 2 - tilt, 0.25)  # de pé, como no escorredor
+        o.location = lib.T(*at)
+    return out
+
+
+def mug(at, color, name, turn=0.6):
+    prof = [(0, 0), (0.24, 0), (0.27, 0.04), (0.28, 0.5), (0.25, 0.52), (0.23, 0.08), (0, 0.08)]
+    body = placed(lib.lathe(name, prof, 32), at)
+    handle = torus(name + "_handle", 0.15, 0.045)
+    handle.rotation_euler = (math.pi / 2, 0, turn)
+    handle.location = lib.T(at[0] + 0.28 * math.cos(turn), at[1] + 0.27, at[2] - 0.28 * math.sin(turn))
+    return [lib.assign(body, ceramic(color)), lib.assign(handle, ceramic(color))]
+
+
+def torus(name, R, r, seg=32, ring=12):
+    """Rosca (alça, aro): um círculo girado em torno do eixo."""
+    prof = [(R + r * math.cos(t / ring * math.tau), r * math.sin(t / ring * math.tau)) for t in range(ring + 1)]
+    return lib.lathe(name, prof, seg)
+
+
+def bottle(at, color, name):
+    prof = [(0, 0), (0.3, 0), (0.32, 0.06), (0.32, 0.85), (0.12, 1.2), (0.1, 1.6), (0.13, 1.62), (0, 1.62)]
+    b = placed(lib.lathe(name, prof, 28), at)
+    glass = M("bottle" + color, lambda: lib.ramp_mat(
+        "garrafa" + color, [(0, color), (0.75, color), (1, "#ffffff")], rough=0.08, spec=0.8,
+        coat=0.8, by="height", axis="X", scale=2, bump=0))
+    cap = lib.cylinder(name + "_cap", 0.12, 0.12, 0.14, 16, loc=lib.T(at[0], at[1] + 1.66, at[2]))
+    label = placed(lib.lathe(name + "_label", [(0.325, 0.3), (0.325, 0.68)], 28), at)
+    return [lib.assign(b, glass), lib.assign(cap, M("cork", lambda: lib.mat("rolha", "#c9955c", rough=0.8))),
+            lib.assign(label, ceramic("#fff6e3"))]
+
+
 # ---------- cítricos ----------
 
 def lime_mat():

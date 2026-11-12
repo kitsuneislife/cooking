@@ -64,6 +64,14 @@ def ramp_mat(name, stops, rough=0.5, spec=0.5, sss=0.0, coat=0.0, scale=4.0, by=
     l.new(tc.outputs["Object"], nz.inputs["Vector"])
     if by == "noise":
         l.new(nz.outputs["Fac"], ramp.inputs["Fac"])
+    elif by == "wave":  # veio de madeira: faixas torcidas por ruído, ao longo de `axis`
+        wv = n.new("ShaderNodeTexWave")
+        wv.wave_type, wv.bands_direction = "BANDS", axis
+        wv.inputs["Scale"].default_value = scale
+        wv.inputs["Distortion"].default_value = 6
+        wv.inputs["Detail"].default_value = 3
+        l.new(tc.outputs["Object"], wv.inputs["Vector"])
+        l.new(wv.outputs["Fac"], ramp.inputs["Fac"])
     else:
         sep = n.new("ShaderNodeSeparateXYZ")
         l.new(tc.outputs["Generated"], sep.inputs["Vector"])
@@ -109,6 +117,52 @@ def ramp_mat(name, stops, rough=0.5, spec=0.5, sss=0.0, coat=0.0, scale=4.0, by=
         l.new(tc.outputs["Object"], nz2.inputs["Vector"])
         l.new(nz2.outputs["Fac"], bn.inputs["Height"])
         l.new(bn.outputs["Normal"], p.inputs["Normal"])
+    return m
+
+
+def pattern_mat(name, kind, c1, c2, scale=8.0, rough=0.85, spec=0.3, coat=0.0, axis="X"):
+    """Tecido e louça estampados, pela UV (a dobra não entorta o desenho): "stripes" são
+    listras ao longo de `axis` da UV; "gingham" é o xadrez de toalha, com o cruzamento
+    das faixas mais escuro."""
+    m = mat(name, c1, rough, spec, coat=coat)
+    n, l = m.node_tree.nodes, m.node_tree.links
+    tc = n.new("ShaderNodeTexCoord")
+    sep = n.new("ShaderNodeSeparateXYZ")
+    l.new(tc.outputs["UV"], sep.inputs["Vector"])
+
+    def band(src):  # 0 ou 1, alternando `scale` vezes na UV
+        mul = n.new("ShaderNodeMath")
+        mul.operation = "MULTIPLY"
+        mul.inputs[1].default_value = scale
+        l.new(src, mul.inputs[0])
+        md = n.new("ShaderNodeMath")
+        md.operation = "PINGPONG"
+        md.inputs[1].default_value = 1.0
+        l.new(mul.outputs[0], md.inputs[0])
+        st = n.new("ShaderNodeMath")
+        st.operation = "GREATER_THAN"
+        st.inputs[1].default_value = 0.5
+        l.new(md.outputs[0], st.inputs[0])
+        return st.outputs[0]
+
+    fac = band(sep.outputs[axis])
+    if kind == "gingham":
+        other = band(sep.outputs["Y" if axis == "X" else "X"])
+        avg = n.new("ShaderNodeMath")
+        avg.operation = "ADD"
+        l.new(fac, avg.inputs[0])
+        l.new(other, avg.inputs[1])
+        half = n.new("ShaderNodeMath")
+        half.operation = "MULTIPLY"
+        half.inputs[1].default_value = 0.5
+        l.new(avg.outputs[0], half.inputs[0])
+        fac = half.outputs[0]
+    mx = n.new("ShaderNodeMix")
+    mx.data_type = "RGBA"
+    mx.inputs["A"].default_value = (*hex_rgb(c1), 1)
+    mx.inputs["B"].default_value = (*hex_rgb(c2), 1)
+    l.new(fac, mx.inputs["Factor"])
+    l.new(mx.outputs["Result"], n["Principled BSDF"].inputs["Base Color"])
     return m
 
 
@@ -166,6 +220,26 @@ def lathe(name, profile, seg=48):
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return from_bmesh(name, bm)
+
+
+def T(x, y, z):
+    """Coordenada do jogo (three.js, Y para cima, câmera em +Z) para o Blender (Z para cima).
+    O cenário é escrito nas unidades e eixos do jogo, para casar com src/three/sets.js."""
+    return Vector((x, -z, y))
+
+
+def box(name, w, h, d, at=(0, 0, 0), bevel=0.04, seg=2):
+    """Caixa de quinas arredondadas, medida no jogo: w em x, h em altura, d em profundidade."""
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1)
+    for v in bm.verts:
+        v.co = Vector((v.co.x * w, v.co.y * d, v.co.z * h))
+    o = from_bmesh(name, bm, smooth=False)
+    if bevel:
+        b = o.modifiers.new("bev", "BEVEL")
+        b.width, b.segments, b.limit_method = min(bevel, w / 2.1, h / 2.1, d / 2.1), seg, "NONE"
+    o.location = T(*at)
+    return o
 
 
 def displace(obj, amount, scale=1.0, seed=0, axis=None):
@@ -306,23 +380,24 @@ def _image(name, size, data):
     return img
 
 
-def bake(high, low, size=1024, texdir=None, extrusion=0.04, roughness=True):
+def bake(high, low, size=1024, texdir=None, extrusion=0.04, roughness=True, unwrap=True, samples=16):
     """Assa o modelo detalhado (high) nas texturas do low: cor com oclusão pintada,
     relevo (normal map) e brilho (roughness). É o caminho da referência: forma simples,
-    textura rica."""
+    textura rica. unwrap=False mantém a UV que o low já tem (placa que repete no jogo)."""
     import numpy as np
 
     s = bpy.context.scene
     s.render.engine = "CYCLES"
     s.cycles.device = "CPU"
-    s.cycles.samples = 16
+    s.cycles.samples = samples  # superfície lisa e grande (cenário) pede mais: a oclusão sai granulada
     bpy.ops.object.select_all(action="DESELECT")
     bpy.context.view_layer.objects.active = low
     low.select_set(True)
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.01)
-    bpy.ops.object.mode_set(mode="OBJECT")
+    if unwrap:
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.01)
+        bpy.ops.object.mode_set(mode="OBJECT")
 
     m = bpy.data.materials.new(low.name + "_baked")
     m.use_nodes = True
