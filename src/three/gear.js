@@ -184,18 +184,32 @@ export function grill() {
     h.position.set(x * (W / 2 + 0.2), 0.5, 0);
     g.add(h, box(0.24, 0.06, 0.08, iron, x * (W / 2 + 0.08), 0.5, 0.42, 0.02), box(0.24, 0.06, 0.08, iron, x * (W / 2 + 0.08), 0.5, -0.42, 0.02));
   }
-  const bed = mesh(new THREE.PlaneGeometry(W - 0.3, D - 0.3).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: "#1a1412", roughness: 1 }));
-  bed.position.y = 0.685;
+  // leito de cinza com brilho laranja que pulsa por baixo das brasas
+  const glowTex = canvasTex(256, 256, (x, s) => {
+    x.fillStyle = "#000"; x.fillRect(0, 0, s, s);
+    const rand = seeded(5);
+    for (let i = 0; i < 60; i++) {
+      const cx = rand() * s, cy = rand() * s, r = 14 + rand() * 30, gr = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+      gr.addColorStop(0, rand() < 0.3 ? "#ffd27a" : "#ff7a2a"); gr.addColorStop(1, "#ff3a0a00");
+      x.fillStyle = gr; x.fillRect(cx - r, cy - r, r * 2, r * 2);
+    }
+  });
+  const bedMat = new THREE.MeshStandardMaterial({ color: "#4a4040", roughness: 1, emissive: "#ffffff", emissiveMap: glowTex, emissiveIntensity: 1.2 });
+  const bed = mesh(new THREE.PlaneGeometry(W - 0.3, D - 0.3).rotateX(-Math.PI / 2), bedMat);
+  bed.position.y = 0.66;
   g.add(bed);
-  // brasas: pedras escuras com miolo aceso
-  const rand = seeded(11), hot = [], coalGeo = new THREE.DodecahedronGeometry(0.11, 1);
-  for (let i = 0; i < 70; i++) {
-    const mat = new THREE.MeshStandardMaterial({ color: "#2a1c18", roughness: 0.9, emissive: i % 5 ? "#d8400c" : "#ff9a20", emissiveIntensity: 1 });
+  // brasas: carvões redondinhos e cinzentos, bem juntos; só alguns têm o miolo aceso
+  const rand = seeded(11), hot = [], coalGeo = new THREE.IcosahedronGeometry(0.13, 1);
+  const coalMat = [new THREE.MeshStandardMaterial({ color: "#2e2a2e", roughness: 0.95 }), new THREE.MeshStandardMaterial({ color: "#3a3236", roughness: 0.95 })];
+  for (let i = 0; i < 260; i++) { // em grade com sacudida: cobre o leito por igual, sem buracos nem montinhos
+    const lit = i % 5 === 0;
+    const mat = lit ? new THREE.MeshStandardMaterial({ color: "#4a2a20", roughness: 0.9, emissive: i % 10 ? "#ff5a14" : "#ffa030", emissiveIntensity: 1 }) : coalMat[i % 2];
     const c = mesh(coalGeo, mat);
-    c.position.set((rand() - 0.5) * (W - 0.7), 0.69 + rand() * 0.04, (rand() - 0.5) * (D - 0.7));
-    c.rotation.set(rand() * 3, rand() * 3, rand() * 3); c.scale.setScalar(0.7 + rand() * 0.7); c.scale.y *= 0.5;
+    const col = i % 20, row = Math.floor(i / 20);
+    c.position.set(-W / 2 + 0.35 + (col + rand() * 0.6) * (W - 0.7) / 20, 0.66 + rand() * 0.03, -D / 2 + 0.3 + (row + rand() * 0.6) * (D - 0.6) / 13);
+    c.rotation.set(rand() * 3, rand() * 3, rand() * 3); c.scale.setScalar(0.55 + rand() * 0.35); c.scale.y *= 0.6;
     c.userData.noShadow = true;
-    hot.push({ mat, phase: rand() * 6 });
+    if (lit) hot.push({ mat, phase: rand() * 6 });
     g.add(c);
   }
   for (let i = 0; i < 15; i++) { // grade
@@ -207,7 +221,11 @@ export function grill() {
   g.userData.top = top; // onde a comida encosta
   g.userData.floor = () => top;
   g.userData.heat = 1;
-  g.userData.tick = (t) => hot.forEach(({ mat, phase }) => { mat.emissiveIntensity = g.userData.heat * (0.45 + 0.4 * Math.sin(t * 2.3 + phase)); }); // some apagam e reacendem
+  g.userData.tick = (t) => { // some apagam e reacendem; o leito respira junto
+    const h = g.userData.heat;
+    hot.forEach(({ mat, phase }) => { mat.emissiveIntensity = h * (0.5 + 0.45 * Math.sin(t * 2.3 + phase)); });
+    bedMat.emissiveIntensity = h * (1.0 + 0.2 * Math.sin(t * 1.7));
+  };
   return g;
 }
 
@@ -215,7 +233,7 @@ export function grill() {
    Fica no chão, ao lado da bancada; y = 0 é a altura do tampo. `open(0..1)` gira a porta de cima. */
 export function fridge() {
   const g = new THREE.Group(), W = 4.2, D = 4.6, lo = -5.25, mid = -0.9, hi = 4.7, t = 0.2, front = D / 2;
-  const enamel = glossy({ color: "#ffd9a0", roughness: 0.28 }), chrome = metal({ color: "#e6ebf0", roughness: 0.2 });
+  const enamel = glossy({ color: "#a7e4d6", roughness: 0.22 }), chrome = metal({ color: "#e6ebf0", roughness: 0.2 });
   const tall = hi - lo;
   g.add(box(W, tall, t, enamel, 0, lo + tall / 2, -front + t / 2), box(t, tall, D, enamel, -W / 2 + t / 2, lo + tall / 2, 0), box(t, tall, D, enamel, W / 2 - t / 2, lo + tall / 2, 0),
     box(W, t, D, enamel, 0, hi - t / 2, 0, 0.1), box(W, t, D, enamel, 0, mid, 0), box(W, mid - lo - 0.1, 0.3, enamel, 0, lo + (mid - lo) / 2, front + 0.1, 0.14));
