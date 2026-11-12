@@ -1,13 +1,12 @@
 // Selar a carne: cada tira tem um medidor de cozimento em cima. O ponteiro anda do cru ao
 // queimado; quando entra no verde aparece a placa "Vire!" (1º lado) ou "Tire!" (2º lado).
 import { THREE, RoundedBoxGeometry, rawBeefMat, servingPlate, castAll, tex } from "../kit.js";
-import { STATION_X } from "../sets.js";
+import { chickenGeo, chickenMat, chickenTex } from "../foods.js";
 import { ease } from "../world.js";
 import { aimScore, cookZone, COOK_READY, COOK_BURNT } from "../../game/rules.js";
 import { sfx } from "../../game/sound.js";
 import { scope, hop, squash, v3 } from "./common.js";
 
-const XS = [-0.48, 0, 0.48]; // três tiras lado a lado, cada uma com o seu medidor
 const BURN_OUT = 1.1; // esquecida até aqui, a tira sai queimada sozinha
 const SWEET = 0.72; // o ponto perfeito, marcado com uma estrelinha no verde
 const WHITE = new THREE.Color("#ffffff"), GREY = new THREE.Color("#e8c4c0"), PINK = new THREE.Color("#ffa0a0"), CHAR = new THREE.Color("#3a2a24");
@@ -16,8 +15,8 @@ const GW = 0.46, GH = 0.125, INSET = 10 / 512; // medidor em unidades da cena; b
 
 // a cara de um lado da carne conforme o cozimento: crua, depois a textura selada
 // (rosada se virar cedo, dourada no ponto) e por fim carvão. Só se vê o lado de baixo ao virar.
-function shade(mat, p) {
-  const half = COOK_READY / 2, map = tex(p < half ? "rawBeef" : "searedBeef");
+function shade(mat, p, maps) {
+  const half = COOK_READY / 2, map = maps[p < half ? 0 : 1];
   if (mat.map !== map) mat.map = mat.bumpMap = map;
   if (p < half) mat.color.copy(WHITE).lerp(GREY, p / half);
   else if (p < SWEET) mat.color.copy(PINK).lerp(WHITE, (p - half) / (SWEET - half));
@@ -25,12 +24,25 @@ function shade(mat, p) {
   mat.clearcoat = 0.8 - Math.min(0.5, p * 0.4);
 }
 
-function strip() {
-  const g = new THREE.Group(), halves = [];
-  for (const y of [-0.043, 0.043]) { // [0] começa por baixo, [1] por cima
-    const m = rawBeefMat();
+// O que vai ao fogo (`spec.on`): no wok, tiras de carne; na grelha, sobrecoxas de frango.
+// Cada peça são duas metades empilhadas, para dourar um lado de cada vez.
+const KINDS = {
+  wok: {
+    geo: () => new RoundedBoxGeometry(0.75, 0.086, 0.3, 2, 0.035), mat: rawBeefMat, maps: () => [tex("rawBeef"), tex("searedBeef")],
+    xs: [-0.48, 0, 0.48], half: 0.043, plate: [1.85, 0.5, 0.34], great: "Dourada!", raw: "Ainda crua!",
+  },
+  grill: {
+    geo: () => chickenGeo().clone().scale(0.68, 0.8, 0.68), mat: () => chickenMat("raw"), maps: () => [chickenTex("raw"), chickenTex("grilled")],
+    xs: [-0.98, 0, 0.98], half: 0.045, plate: [2.9, 0.72, 0.3], great: "Dourado!", raw: "Ainda cru!",
+  },
+};
+
+function strip(kind) {
+  const g = new THREE.Group(), halves = [], geo = kind.geo();
+  for (const y of [-kind.half, kind.half]) { // [0] começa por baixo, [1] por cima
+    const m = kind.mat();
     m.emissive = GLOW.clone(); m.emissiveIntensity = 0;
-    const h = new THREE.Mesh(new RoundedBoxGeometry(0.75, 0.086, 0.3, 2, 0.035), m);
+    const h = new THREE.Mesh(geo, m);
     h.position.y = y;
     g.add(h); halves.push(m);
   }
@@ -100,10 +112,15 @@ export default {
   shot: "sear",
   seconds: 40,
 
-  create(world, ctx) {
+  create(world, ctx, spec) {
     const s = scope(world);
-    const { wok, stove } = world.kitchen.stations;
+    const grilling = spec.on === "grill", kind = KINDS[grilling ? "grill" : "wok"], maps = kind.maps(), XS = kind.xs;
+    const { stations } = world.kitchen;
+    // `wok` é onde a comida apoia; `stove` é quem dá o calor (na grelha, as duas coisas são ela)
+    const wok = grilling ? stations.grill : stations.wok, stove = grilling ? stations.grill : stations.stove;
     const floor = wok.userData.floor;
+    world.dish.rawChicken?.forEach((c) => c.removeFromParent()); // o frango temperado sai da tábua para a grelha
+    world.dish.rawChicken = null;
     const art = {
       track: trackTex(), needle: needleTex(),
       flip: signTex("Vire!", "#4cbb5f", "#1d5e2a"), out: signTex("Tire!", "#4cbb5f", "#1d5e2a"), burn: signTex("Queimando!", "#e5484d", "#6e1418"),
@@ -111,17 +128,18 @@ export default {
 
     // prato de apoio para a carne selada, ao lado do fogão
     const plate = s.add(servingPlate());
-    plate.scale.setScalar(0.5);
-    plate.position.set(STATION_X.stove + 1.85, 0.02, 0.8);
+    plate.scale.setScalar(kind.plate[1]);
+    plate.position.set(wok.position.x + kind.plate[0], 0.02, 0.8);
     castAll(plate);
 
     const strips = XS.map((x, i) => {
-      const { g, halves } = strip();
+      const { g, halves } = strip(kind);
       // fila reta na tela: desfaz o giro do wok ao passar para as coordenadas dele
       const z = 0.12, a = -wok.rotation.y;
       g.rotation.order = "YXZ"; // gira no comprimento: inclina na curva do wok e vira no mesmo eixo
-      g.position.set(x * Math.cos(a) + z * Math.sin(a), floor(Math.hypot(x, z)) + 0.07, -x * Math.sin(a) + z * Math.cos(a));
-      g.rotation.set(-Math.atan(0.54 * x), Math.PI / 2 + a + (i - 1) * 0.05, 0);
+      g.position.set(x * Math.cos(a) + z * Math.sin(a), floor(Math.hypot(x, z)) + (grilling ? 0.1 : 0.07), -x * Math.sin(a) + z * Math.cos(a));
+      if (grilling) g.rotation.set(0, (i - 1) * 0.25, 0); // deitado na grade
+      else g.rotation.set(-Math.atan(0.54 * x), Math.PI / 2 + a + (i - 1) * 0.05, 0);
       g.visible = false;
 
       const gauge = s.add(new THREE.Group());
@@ -156,7 +174,7 @@ export default {
         const bottom = u.side, top = 1 - u.side;
         if (u.state === "cook") { // o lado de baixo doura
           u.p[bottom] += u.rate * dt * stove.userData.heat;
-          shade(u.halves[bottom], u.p[bottom]);
+          shade(u.halves[bottom], u.p[bottom], maps);
         }
         const p = u.state === "cook" ? u.p[bottom] : 0, zone = cookZone(p);
         const pos = g.getWorldPosition(v3(0, 0, 0));
@@ -203,8 +221,8 @@ export default {
       const score = zone === "ready" ? 0.7 + 0.3 * aimScore(p, SWEET, 0.13) : zone === "raw" ? 0.35 * p / COOK_READY : 0.2;
       u.scores.push(score);
       if (live) {
-        if (zone === "ready") { ctx.good(where, score > 0.9 ? "Dourada!" : "Boa!"); world.fx.sparkle(where, 6); }
-        else if (zone === "raw") ctx.bad(where, "Ainda crua!");
+        if (zone === "ready") { ctx.good(where, score > 0.9 ? kind.great : "Boa!"); world.fx.sparkle(where, 6); }
+        else if (zone === "raw") ctx.bad(where, kind.raw);
         else ctx.bad(where, auto ? "Esqueceu e queimou!" : "Queimou!");
       }
       u.state = "busy";
@@ -222,8 +240,8 @@ export default {
       // sai do wok para o prato
       const n = outCount++;
       world.scene.attach(g);
-      const spot = plate.position.clone().add(v3((n - 1) * 0.34, 0.145, 0));
-      g.rotation.set(Math.PI, Math.PI / 2 + (Math.random() - 0.5) * 0.3, 0);
+      const spot = plate.position.clone().add(v3((n - 1) * kind.plate[2], 0.145 + (grilling ? n * 0.07 : 0), 0));
+      g.rotation.set(Math.PI, (grilling ? 0 : Math.PI / 2) + (Math.random() - 0.5) * 0.3, 0);
       await hop(world, g, spot, { height: 1.4, dur: 0.55 });
       sfx.plop();
       u.state = "out";
@@ -274,7 +292,7 @@ export default {
           if (!g) { await world.wait(0.05); continue; }
           const u = g.userData;
           u.p[u.side] = Math.max(u.p[u.side], SWEET); // o chef espera dourar antes de virar
-          shade(u.halves[u.side], u.p[u.side]);
+          shade(u.halves[u.side], u.p[u.side], maps);
           await act(g);
         }
       },

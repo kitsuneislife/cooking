@@ -1,9 +1,9 @@
 // Bater o molho: arrastar de um lado para o outro (zigue-zague) até o amido sumir
 // e o molho ficar lisinho e brilhante.
-import { build } from "../kit.js";
+import { THREE, build } from "../kit.js";
 import { STATION_X } from "../sets.js";
 import { sfx } from "../../game/sound.js";
-import { scope, hop, speedScore, v3 } from "./common.js";
+import { scope, hop, speedScore, surfaceOf, v3 } from "./common.js";
 
 const STROKES = 16;
 const MIN_PX = 25; // quanto o dedo precisa andar antes de virar para contar uma batida
@@ -16,13 +16,16 @@ export default {
   shot: "bowl",
   seconds: 18,
 
-  create(world, ctx) {
+  create(world, ctx, spec) {
     const s = scope(world);
     const bowl = world.kitchen.stations.bowl;
     const liquid = bowl.userData.liquid;
     const island = world.dish.island;
     const center = v3(STATION_X.bowl, 0, bowl.position.z);
-    const surface = () => bowl.localToWorld(v3(0, liquid.position.y, 0)).y;
+    const surface = () => surfaceOf(bowl).y;
+    // `spec.liquid`: em vez do molho, bate um líquido novo (creme) que cresce e fica fosco
+    const cream = spec.liquid;
+    if (cream) { liquid.material.color.set(cream.color); bowl.userData.level = cream.fill; bowl.userData.fill(cream.fill); }
 
     const whisk = s.add(build.whisk());
     whisk.scale.setScalar(1.15);
@@ -33,6 +36,7 @@ export default {
     let live = false, strokes = 0, used = 0, side = 1, swing = 0, last = null, dir = 0, idle = 0;
     const startColor = liquid.material.color.clone();
     const startRough = liquid.material.roughness;
+    const endColor = cream ? new THREE.Color(cream.to) : world.dish.sauceColor?.clone().offsetHSL(0, 0.05, 0.08) ?? startColor;
 
     s.every((dt, t) => {
       if (live) { used += dt; idle += dt; }
@@ -54,14 +58,15 @@ export default {
       const k = strokes / STROKES;
       // amido dissolve; o molho clareia um pouco e ganha brilho
       if (island) island.scale.setScalar(Math.max(0.01, 1 - k));
-      liquid.material.color.copy(startColor).lerp(world.dish.sauceColor?.clone().offsetHSL(0, 0.05, 0.08) ?? startColor, k);
-      liquid.material.roughness = startRough * (1 - k) + 0.04 * k;
-      if (strokes % 2 === 0) world.fx.bits(v3(center.x + swing, surface() + 0.05, center.z), ["#6a3410", "#8a4a1e"], 2, { size: 0.05, speed: 1.4, up: 2, floor: surface() });
+      liquid.material.color.copy(startColor).lerp(endColor, k);
+      liquid.material.roughness = startRough * (1 - k) + (cream ? 0.6 : 0.04) * k;
+      if (cream) { bowl.userData.level = cream.fill * (1 + 0.45 * k); bowl.userData.fill(bowl.userData.level); } // o creme cresce
+      if (strokes % 2 === 0) world.fx.bits(v3(center.x + swing, surface() + 0.05, center.z), cream ? [cream.to] : ["#6a3410", "#8a4a1e"], 2, { size: 0.05, speed: 1.4, up: 2, floor: surface() });
       ctx.progress(k);
       if (strokes === STROKES) {
         if (island) island.visible = false;
         world.fx.sparkle(v3(center.x, surface() + 0.5, center.z), 12);
-        if (live) { live = false; ctx.good(v3(center.x, surface() + 1, center.z), "Lisinho!"); ctx.done(speedScore(used, 12)); }
+        if (live) { live = false; ctx.good(v3(center.x, surface() + 1, center.z), cream ? "Em ponto de chantili!" : "Lisinho!"); ctx.done(speedScore(used, 12)); }
       }
     }
 

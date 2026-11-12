@@ -1,28 +1,10 @@
 // Feira: tocar só no que está na lista de compras. Cada acerto pula para a cesta.
-import { THREE, RoundedBoxGeometry, build, fit, mesh, glossy, food, canvasTex, castAll } from "../kit.js";
+import { THREE, fit, mesh, glossy } from "../kit.js";
+import { stock } from "../foods.js";
 import { shuffle } from "../../game/rules.js";
 import { sfx } from "../../game/sound.js";
 import { scope, hop, squash, v3 } from "./common.js";
 
-function cornstarchBox() { // caixa de amido com rótulo
-  const label = canvasTex(256, 256, (x) => {
-    x.fillStyle = "#ffd23f"; x.fillRect(0, 0, 256, 256);
-    x.fillStyle = "#2a8199"; x.fillRect(0, 70, 256, 90);
-    x.fillStyle = "#fff"; x.font = '400 54px "Lilita One", sans-serif'; x.textAlign = "center"; x.textBaseline = "middle";
-    x.fillText("AMIDO", 128, 118);
-  });
-  const g = new THREE.Group();
-  const box = mesh(new RoundedBoxGeometry(1, 1.4, 0.6, 3, 0.06), new THREE.MeshStandardMaterial({ map: label, roughness: 0.5 }));
-  box.position.y = 0.7;
-  g.add(box);
-  return g;
-}
-
-const MODELS = {
-  beef: () => build.steak(), broccoli: build.broccoli, soy: build.soy, oyster: build.oyster, sesame: build.sesame,
-  garlic: build.garlic, ginger: build.ginger, cornstarch: cornstarchBox, rice: () => build.rice({ sticks: false }),
-  shrimp: build.shrimp, tofu: build.tofu, carrot: build.carrot, mushroom: build.mushroom, teriyaki: build.teriyaki,
-};
 const ONLY = { rice: 2 }; // itens que não empilham bem: quantos lado a lado
 
 // Item já comprado: o monte fica cinza e meio transparente (materiais clonados, não afeta o resto).
@@ -39,7 +21,7 @@ function dim(obj) {
 
 // Monte de feira dentro do caixote: frascos e caixas em fila, o resto amontoado com um por cima.
 function pile(id, crate) {
-  const g = new THREE.Group(), copy = (size) => { const m = fit(MODELS[id](), size); castAll(m); return m; };
+  const g = new THREE.Group(), copy = (size) => fit(stock(id), size);
   const probe = copy(1), dim = new THREE.Box3().setFromObject(probe).getSize(v3(0, 0, 0));
   const tall = dim.y > Math.max(dim.x, dim.z) * 1.1;
   const place = (m, x, y, z, ry) => { m.position.set(x, y, z); m.rotation.y = ry; g.add(m); };

@@ -1,7 +1,8 @@
 // Empratar: virar a tigela de arroz bem no meio do prato (no tempo certo) e depois
 // arrastar três colheradas do refogado até os alvos. No fim, a cúpula revela o prato.
-import { THREE, build, beefStrip, searedMat, riceMound, castAll } from "../kit.js";
+import { THREE, RoundedBoxGeometry, build, beefStrip, searedMat, riceMound, castAll } from "../kit.js";
 import { STATION_X } from "../sets.js";
+import { piece, chickenMat } from "../foods.js";
 import { aimScore, average } from "../../game/rules.js";
 import { sfx } from "../../game/sound.js";
 import { scope, hop, ring, squash, v3 } from "./common.js";
@@ -32,6 +33,26 @@ function portion(seed) {
   return g;
 }
 
+// colherada de salsa: cubinhos de manga, cebola e ervas com lascas do frango grelhado
+function salsa(seed) {
+  const g = new THREE.Group();
+  let s = seed;
+  const rand = () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
+  for (const id of ["mango", "onion", "cilantro", "jalapeno", "mango", "cilantro"]) {
+    const p = piece(id); p.scale.setScalar(1.5);
+    p.position.set((rand() - 0.5) * 0.55, 0.04, (rand() - 0.5) * 0.55); p.rotation.y = rand() * 6;
+    g.add(p);
+  }
+  for (let i = 0; i < 3; i++) {
+    const c = new THREE.Mesh(new RoundedBoxGeometry(0.46, 0.15, 0.22, 2, 0.05), chickenMat("grilled"));
+    c.position.set((rand() - 0.5) * 0.45, 0.2 + rand() * 0.06, (rand() - 0.5) * 0.45);
+    c.rotation.set(rand() * 0.5, rand() * 6, rand() * 0.5);
+    g.add(c);
+  }
+  castAll(g);
+  return g;
+}
+
 export default {
   title: "Empratar",
   how: "Toque para virar o arroz no meio do prato. Depois arraste o refogado até cada alvo.",
@@ -40,8 +61,8 @@ export default {
   shot: "plate",
   seconds: 30,
 
-  create(world, ctx) {
-    const s = scope(world);
+  create(world, ctx, spec) {
+    const s = scope(world), make = spec.portion === "salsa" ? salsa : portion;
     const plateSt = world.kitchen.stations.plate;
     const rice = world.kitchen.props.rice;
     const C = v3(STATION_X.plate, plateSt.position.y, plateSt.position.z);
@@ -101,7 +122,7 @@ export default {
       await hop(world, rice, home.pos.clone(), { height: 1.2, dur: 0.5, turn: 0 });
       rice.rotation.set(home.rot.x, home.rot.y, 0);
       phase = "scoop";
-      if (live) ctx.say("Agora arraste o refogado até o alvo!");
+      if (live) ctx.say(`Agora arraste ${spec.what ?? "o refogado"} até o alvo!`);
     }
 
     async function place(at) { // solta a colherada carregada no ponto `at` (local do prato)
@@ -132,7 +153,7 @@ export default {
 
     function pickUp(p) {
       if (phase !== "scoop" || carried || target >= TARGETS.length) return;
-      carried = portion(17 + target * 11);
+      carried = make(17 + target * 11);
       carried.scale.setScalar(0.9);
       spatula.add(carried);
       carried.position.set(0, 0.06, 0.3);

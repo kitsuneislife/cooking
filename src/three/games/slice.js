@@ -2,16 +2,20 @@
 // A peça se divide de verdade: cada fatia é a mesma carne recortada por dois planos.
 import { THREE, build } from "../kit.js";
 import { STATION_X } from "../sets.js";
+import { chicken } from "../foods.js";
 import { nextCut, aimScore } from "../../game/rules.js";
 import { sfx } from "../../game/sound.js";
 import { scope, dashes, v3 } from "./common.js";
 
 const CUTS = 5;
 const SCALE = 1.15;
-// largura da carne no desenho do kit (x de -1.34 a 1.39), com folga nas pontas arredondadas
-const LO = -1.34, HI = 1.39;
 const BOX = { lo: 0.1, hi: 0.9 };
-const BITS = ["#bf2f3c", "#e8606a", "#f9eedb"];
+// O que vai para a faca (`spec.model`): largura da peça no desenho (x de `lo` a `hi`, com folga
+// nas pontas arredondadas), quanto ela sobe do tampo (`lift`) e a altura do topo (`h`).
+const KINDS = {
+  beef: { model: () => build.steak(), lo: -1.34, hi: 1.39, lift: 0.14, h: 0.47, bits: ["#bf2f3c", "#e8606a", "#f9eedb"] },
+  chicken: { model: () => chicken("grilled"), lo: -0.95, hi: 1.12, lift: 0, h: 0.42, bits: ["#e8b070", "#fff1dc", "#8a5a2c"] },
+};
 
 export default {
   title: "Fatiar a carne",
@@ -21,16 +25,22 @@ export default {
   shot: "board",
   seconds: 22,
 
-  create(world, ctx) {
+  create(world, ctx, spec) {
     const s = scope(world);
     const board = world.kitchen.stations.board;
     const top = board.userData.top * board.scale.y;
-    const center = v3(STATION_X.board, top + 0.14 * SCALE, 0.35);
+    const kind = KINDS[spec.model ?? "beef"], { lo: LO, hi: HI, bits: BITS } = kind;
+    const center = v3(STATION_X.board, top + kind.lift * SCALE, 0.35);
+    if (spec.model === "chicken" && world.dish.seared) { // o frango grelhado vem do prato para a tábua
+      world.dish.seared.plate.removeFromParent();
+      world.dish.seared.strips.forEach((g) => g.removeFromParent());
+      world.dish.seared = null;
+    }
 
     const slab = s.add(new THREE.Group());
     slab.position.copy(center);
     slab.scale.setScalar(SCALE);
-    const steak = build.steak();
+    const steak = kind.model();
 
     // uma fatia = cópia da carne com materiais próprios presos a dois planos de corte
     const pieces = [];
@@ -79,7 +89,7 @@ export default {
       });
       sync();
       guide.visible = live && cuts.length < CUTS;
-      guide.position.set(toX(plan.guide), center.y + 0.47, center.z);
+      guide.position.set(toX(plan.guide), center.y + kind.h, center.z);
       guide.userData.mat.opacity = 0.55 + 0.4 * Math.sin(t * 6);
       if (!busy && live) { // a faca acompanha a mira, pairando
         const tx = aimX ?? toX(plan.guide);
@@ -165,7 +175,7 @@ export default {
         world.tween(0.6, (k) => {
           slab.position.lerpVectors(from, v3(STATION_X.board - 0.6, from.y, -0.45), k);
           slab.scale.setScalar(SCALE + (0.72 - SCALE) * k);
-          slab.position.y = from.y + Math.sin(k * Math.PI) * 0.6 - (0.14 * (SCALE - 0.72)) * k;
+          slab.position.y = from.y + Math.sin(k * Math.PI) * 0.6 - (kind.lift * (SCALE - 0.72)) * k;
         });
         s.dispose();
         // os planos de corte seguem a carne enquanto ela estiver na cena

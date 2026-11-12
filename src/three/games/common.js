@@ -1,6 +1,9 @@
 // Peças comuns aos minijogos 3D.
 import { THREE } from "../kit.js";
 import { ease } from "../world.js";
+import { STATION_X } from "../sets.js";
+import { glass } from "../gear.js";
+import { sfx } from "../../game/sound.js";
 
 export const v3 = (x, y, z) => new THREE.Vector3(x, y, z);
 
@@ -81,6 +84,128 @@ export function stream(color) {
     m.quaternion.setFromUnitVectors(v3(0, 1, 0), d.normalize());
   };
   return m;
+}
+
+/* ---------- Recipientes ----------
+   Os minijogos pedem o recipiente pelo nome; copos nascem na primeira vez que alguém pede. */
+export function vessels(world, name) {
+  const { stations } = world.kitchen;
+  if (name === "bowl") return [stations.bowl];
+  if (name === "blender") return [stations.blender.userData.jar];
+  if (!world.dish[name]) {
+    const g = new THREE.Group();
+    if (name === "tumbler") {
+      const t = glass(); t.scale.setScalar(1.35);
+      g.add(t);
+      g.position.set(STATION_X.bar, stations.bar.userData.top, stations.bar.position.z);
+    } else if (name === "glasses") {
+      for (const x of [-0.85, 0.85]) { const t = glass({ r: 0.42, h: 1.6 }); t.scale.setScalar(1.25); t.position.x = x; g.add(t); }
+      g.position.set(STATION_X.plate, 0.02, 0.3);
+      stations.plate.visible = false; // os copos ocupam o lugar do prato
+    } else throw new Error(`Recipiente desconhecido: ${name}`);
+    world.scene.add(g);
+    world.dish[name] = g;
+  }
+  return world.dish[name].children.filter((c) => c.userData.fill);
+}
+// Onde ficam os pedaços sólidos dentro de um recipiente (gomos, gelo, cubos).
+export function inside(v) {
+  if (!v.userData.inside) { v.userData.inside = new THREE.Group(); v.add(v.userData.inside); }
+  return v.userData.inside;
+}
+// Medidas do recipiente no mundo: centro da boca, raio da boca e altura do líquido.
+export const mouthOf = (v) => v.localToWorld(v3(0, v.userData.top, 0));
+export const rimOf = (v) => v.userData.rim * v.getWorldScale(v3(0, 0, 0)).x;
+export const surfaceOf = (v) => v.localToWorld(v3(0, v.userData.surface(), 0));
+
+// Vai e vem do ponteiro (ou das setas): chama `stroke(direção)` a cada troca de sentido no eixo.
+export function zigzag(axis, stroke, live) {
+  const at = axis === "x" ? "clientX" : "clientY", keys = axis === "x" ? ["ArrowLeft", "ArrowRight"] : ["ArrowUp", "ArrowDown"];
+  let last = null, dir = 0;
+  const turn = (d) => { if (d !== dir) { dir = d; stroke(d); } };
+  return {
+    input: {
+      down: (e) => { last = e[at]; dir = 0; },
+      move: (e) => {
+        if (last == null || !live()) return;
+        const d = e[at] - last;
+        if (Math.abs(d) < 25) return;
+        turn(Math.sign(d));
+        last = e[at];
+      },
+      up: () => { last = null; },
+    },
+    key(e, down) {
+      const i = keys.indexOf(e.key);
+      if (i < 0) return;
+      e.preventDefault();
+      if (down && live() && !e.repeat) turn(i ? 1 : -1);
+    },
+  };
+}
+
+// Camada pintada por cima de uma superfície redonda `{ y, r }` ou retangular `{ y, w, d }`:
+// um canvas que vai sendo desenhado (molho, creme, cacau, temperos). Coordenadas locais da superfície.
+export function layer(face, lift = 0.004) {
+  const S = 256, w = face.r ? face.r * 2 : face.w, d = face.r ? face.r * 2 : face.d;
+  const canvas = document.createElement("canvas"); canvas.width = canvas.height = S;
+  const x = canvas.getContext("2d");
+  x.beginPath();
+  if (face.r) x.arc(S / 2, S / 2, S / 2, 0, Math.PI * 2); else x.rect(0, 0, S, S);
+  x.clip(); // nada vaza para fora da superfície
+  const map = new THREE.CanvasTexture(canvas); map.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2),
+    new THREE.MeshPhysicalMaterial({ map, transparent: true, depthWrite: false, roughness: 0.35, clearcoat: 0.6, polygonOffset: true, polygonOffsetFactor: -2 }));
+  m.position.y = face.y + lift;
+  m.receiveShadow = true;
+  const px = (lx) => (lx / w + 0.5) * S, pz = (lz) => (lz / d + 0.5) * S;
+  Object.assign(m.userData, {
+    w, d, ctx: x, px, pz,
+    within: (lx, lz) => (face.r ? Math.hypot(lx, lz) <= face.r : Math.abs(lx) <= w / 2 && Math.abs(lz) <= d / 2),
+    dot(lx, lz, r, color, alpha = 1) {
+      x.globalAlpha = alpha; x.fillStyle = color;
+      x.beginPath(); x.ellipse(px(lx), pz(lz), r / w * S, r / d * S, 0, 0, Math.PI * 2); x.fill();
+      map.needsUpdate = true;
+    },
+    // `n` pontinhos ao acaso, de tamanho `size` (unidades da cena)
+    sprinkle(n, colors, size) {
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2, k = Math.sqrt(Math.random());
+        const lx = face.r ? Math.cos(a) * k * face.r : (Math.random() - 0.5) * w, lz = face.r ? Math.sin(a) * k * face.r : (Math.random() - 0.5) * d;
+        m.userData.dot(lx, lz, size * (0.6 + Math.random() * 0.8), colors[i % colors.length], 0.9);
+      }
+    },
+    flood(color) { x.globalAlpha = 1; x.fillStyle = color; x.fillRect(0, 0, S, S); map.needsUpdate = true; },
+  });
+  return m;
+}
+
+// Nova camada em cima de `obj` (que tem `userData.face`): cada uma fica um fio acima da anterior.
+export function addLayer(obj) {
+  const u = obj.userData, n = u.layers = (u.layers ?? 0) + 1;
+  const m = layer({ ...u.face, y: u.face.y + n * 0.012 });
+  m.renderOrder = n;
+  (u.top?.isObject3D ? u.top : obj).add(m); // nos copos, `top` é a altura da boca
+
+  return m;
+}
+
+// O prato pronto: de onde a câmera olha e a comemoração. `key` é o que ficou em `world.dish`.
+export function hero(world, key) {
+  const obj = world.dish[key];
+  if (!obj) throw new Error(`Nada pronto para servir em dish.${key}`);
+  const box = new THREE.Box3().setFromObject(obj), c = box.getCenter(v3(0, 0, 0)), size = box.getSize(v3(0, 0, 0));
+  const r = Math.max(size.x, size.y, size.z);
+  world.dish.hero = { center: c, radius: Math.max(4.4, r * 1.8) };
+  return {
+    shot: { pos: c.clone().add(v3(0.4, 1.4 + r * 0.6, 2.6 + r * 1.5)), look: c, fov: 30 },
+    async show() {
+      obj.traverse((o) => o.userData.garnish?.());
+      sfx.reveal();
+      world.fx.sparkle(c.clone().add(v3(0, size.y / 2 + 0.3, 0)), 22);
+      await world.wait(1.5);
+    },
+  };
 }
 
 // Nota pela velocidade: terminar com folga vale 1; perto do fim do tempo, cai até `floor`.

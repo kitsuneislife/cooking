@@ -1,16 +1,12 @@
-// Picar alho e gengibre: tocar rápido, várias vezes. A cada batida o pedaço encolhe
-// e o montinho picado cresce ao lado da faca.
+// Picar (alho, gengibre, manga, cebola…): tocar rápido, várias vezes. A cada batida o pedaço
+// encolhe e o montinho picado cresce ao lado da faca. Os itens vêm de `spec.items`.
 import { THREE, RoundedBoxGeometry, build, fit, castAll, food } from "../kit.js";
 import { STATION_X } from "../sets.js";
+import { PANTRY } from "../foods.js";
 import { sfx } from "../../game/sound.js";
 import { scope, squash, speedScore, v3 } from "./common.js";
 
-const CHOPS = 14;
 const GRAINS = 90;
-const ITEMS = [
-  { id: "garlic", name: "Alho", model: () => build.cloves(), size: 1.25, colors: ["#fbf3dc", "#f1e2b8", "#fffaf0"], side: -1.55 },
-  { id: "ginger", name: "Gengibre", model: () => build.ginger(), size: 1.35, colors: ["#f6dc86", "#e9c45c", "#fff1b8"], side: 1.35 },
-];
 
 // Montinho de picadinho: grãos instanciados que vão aparecendo, mais altos no meio.
 function pile(colors, seed) {
@@ -38,8 +34,16 @@ export default {
   shot: "board",
   seconds: 20,
 
-  create(world, ctx) {
-    const s = scope(world);
+  create(world, ctx, spec, game) {
+    const s = scope(world), CHOPS = spec.chops ?? 14, N = spec.items.length;
+    // dois montinhos ficam nos cantos da frente; mais que isso, enfileirados no fundo da tábua
+    const ITEMS = spec.items.map((id, i) => {
+      const c = PANTRY[id].chop;
+      return {
+        id, name: game.ingredients.find((x) => x.id === id).name, model: c.model ?? PANTRY[id].model, size: c.size, colors: c.colors,
+        rest: N <= 2 ? [i ? 1.35 : -1.55, 1.05] : [(i - (N - 1) / 2) * 0.95, -0.55],
+      };
+    });
     const board = world.kitchen.stations.board;
     const top = board.userData.top * board.scale.y;
     const spot = v3(STATION_X.board + 0.2, top, 0.95);
@@ -59,6 +63,7 @@ export default {
       s.add(model).position.copy(spot).add(v3(0, 2.5, 0));
       const p = s.add(pile(it.colors, 7 + n * 31));
       p.position.copy(spot).add(v3(0.75, 0, 0.05));
+      p.userData.id = it.id;
       piles.push(p);
       return world.tween(0.45, (k) => { model.position.y = spot.y + 2.5 * (1 - k); }).then(() => { sfx.plop(); squash(world, model, 0.2); });
     }
@@ -93,11 +98,11 @@ export default {
       done.removeFromParent();
       world.fx.sparkle(spot.clone().add(v3(0.6, 0.4, 0)), 8);
       if (live) ctx.good(spot.clone().add(v3(0.6, 0.6, 0)), `${it.name} picado!`);
-      const p = piles[item], from = p.position.clone(), to = v3(STATION_X.board + it.side, top, 1.05);
+      const p = piles[item], from = p.position.clone(), to = v3(STATION_X.board + it.rest[0], top, it.rest[1]);
       world.tween(0.4, (k) => p.position.lerpVectors(from, to, k));
       item++; chops = 0;
       if (item < ITEMS.length) await bring(item);
-      else if (live) { live = false; ctx.done(speedScore(used, 16)); }
+      else if (live) { live = false; ctx.done(speedScore(used, CHOPS * N * 0.57)); }
     }
 
     return {

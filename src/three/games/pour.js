@@ -1,20 +1,16 @@
-// Molho: segurar para inclinar a garrafa e soltar quando o medidor estiver na faixa.
-// Depois, uma colherada de amido por cima.
-import { THREE, build, mix, rgb } from "../kit.js";
-import { STATION_X } from "../sets.js";
-import { bandScore } from "../../game/rules.js";
+// Despejar: segurar para inclinar a garrafa (ou a jarra do liquidificador) e soltar quando
+// o medidor estiver na faixa. `spec.pours` diz o que cai, em que ordem e quanto;
+// `spec.into` diz onde. Com `spec.starch`, fecha com uma colherada de amido.
+import { THREE, build, fit } from "../kit.js";
+import { stock, PANTRY } from "../foods.js";
+import { bandScore, average } from "../../game/rules.js";
 import { sfx } from "../../game/sound.js";
-import { scope, hop, squash, stream, v3 } from "./common.js";
+import { scope, hop, squash, stream, vessels, mouthOf, surfaceOf, v3 } from "./common.js";
 
 const SLACK = 0.18;
-// faixa de cada garrafa no medidor (0 a 1) e quanto ela enche a tigela
-const BOTTLES = [
-  { id: "soy", name: "Shoyu", lo: 0.55, hi: 0.72, color: "#3a1a0a", fill: 0.22 },
-  { id: "oyster", name: "Molho de ostra", lo: 0.4, hi: 0.55, color: "#5e3416", fill: 0.16 },
-  { id: "sesame", name: "Óleo de gergelim", lo: 0.16, hi: 0.28, color: "#d8952a", fill: 0.07 },
-];
 const RATE = 0.36; // medidor por segundo com a garrafa bem inclinada
-const TILT = 1.95, POUR_AT = 1.3;
+const TILT = 1.95, POUR_AT = 1.3, CAP = 0.85;
+const Z = v3(0, 0, 1);
 
 export default {
   title: "Preparar o molho",
@@ -24,38 +20,58 @@ export default {
   shot: "bowl",
   seconds: 30,
 
-  create(world, ctx) {
+  create(world, ctx, spec, game) {
     const s = scope(world);
     const { stations, props } = world.kitchen;
-    const bowl = stations.bowl;
-    const bowlTop = v3(STATION_X.bowl, 0, bowl.position.z);
-    const liquid = bowl.userData.liquid;
-    const jet = s.add(stream("#3a1a0a"));
-    // a garrafa gira em volta da base: o grupo `pivot` fica na lateral da tigela
+    const targets = vessels(world, spec.into ?? "bowl"), bowl = targets[0];
+    const jar = stations.blender.userData.jar;
+    const nameOf = (id) => game.ingredients.find((i) => i.id === id)?.name;
+    // cada despejo: de onde sai (`from: "blender"` é a jarra), a cor e para qual recipiente vai
+    const POURS = spec.pours.map((p, i) => ({
+      ...p, name: p.name ?? nameOf(p.id), target: targets[i % targets.length],
+      color: p.from === "blender" ? jar.userData.liquid.material.color.clone() : new THREE.Color(PANTRY[p.id].tint),
+    }));
+    // garrafa que não mora na cozinha: `fit` embrulha o modelo, então a boca sobe junto para o embrulho
+    const shelfless = (id) => {
+      const m = stock(id), wrap = fit(m, 1.9);
+      wrap.userData.mouth = m.userData.mouth.clone().multiply(m.scale).add(m.position);
+      return wrap;
+    };
+    const steps = POURS.length + (spec.starch ? 1 : 0);
+    const jet = s.add(stream("#ffffff"));
+    // a garrafa gira em volta da base: o grupo `pivot` fica ao lado do recipiente
     const pivot = s.add(new THREE.Group());
-    pivot.position.set(STATION_X.bowl + 1.75, 2.1, bowl.position.z + 0.1);
 
     const scores = [];
-    let n = -1, level = 0, held = false, live = false, phase = "idle", bottle = null, home = null, total = 0, wait = 0;
-    let tint = rgb("#3a1a0a"), amount = 0, rescuing = false;
+    let n = -1, level = 0, held = false, live = false, phase = "idle", bottle = null, home = null, wait = 0, rescuing = false;
+    // a jarra esvazia na proporção do que os copos recebem
+    let jarLeft = jar.userData.level ?? 0;
+    const jarShare = jarLeft / (POURS.reduce((a, p) => a + (p.from === "blender" ? p.fill : 0), 0) || 1);
 
-    const fillTo = (k) => bowl.userData.fill(Math.min(0.7, k));
-    const liquidY = () => bowl.localToWorld(v3(0, liquid.position.y, 0)).y;
+    const fillTo = (v, k) => { v.userData.level = k; v.userData.fill(Math.min(CAP, k)); };
+    const finish = () => { phase = "done"; ctx.gauge(null); if (live) { live = false; ctx.done(average(scores)); } };
 
     async function next() {
       n++;
-      if (n >= BOTTLES.length) return spoon();
-      const b = BOTTLES[n];
+      if (n >= POURS.length) return spec.starch ? spoon() : finish();
+      const b = POURS[n];
       level = 0; held = false; phase = "hop";
       ctx.gauge({ kind: "band", level: 0, lo: b.lo, hi: b.hi, label: b.name });
-      jet.material.color.set(b.color);
-      const prop = props[b.id];
-      home = { pos: prop.position.clone(), rot: prop.rotation.clone(), parent: prop.parent };
+      jet.material.color.copy(b.color);
+      // vem da prateleira, do liquidificador ou (se não mora na cozinha) aparece ao lado
+      const prop = b.from === "blender" ? jar : props[b.id] ?? shelfless(b.id);
+      const fresh = !prop.parent;
+      if (prop === jar) jar.userData.lid.visible = false; // sem tampa para servir
+      if (fresh) { s.add(prop); prop.position.copy(mouthOf(b.target)).add(v3(2.6, 3, 0)); }
+      home = { pos: prop.position.clone(), rot: prop.rotation.clone(), parent: prop.parent, fresh };
       bottle = prop;
-      // sai da prateleira para a mão: pula até a lateral da tigela
       const at = prop.getWorldPosition(v3(0, 0, 0));
       world.scene.attach(prop);
       prop.position.copy(at);
+      // o pivô fica onde a boca, com a garrafa deitada, para bem em cima do recipiente
+      const m = prop.userData.mouth.clone().multiply(prop.scale).applyAxisAngle(Z, TILT);
+      pivot.rotation.z = 0;
+      pivot.position.copy(mouthOf(b.target)).add(v3(0.12 - m.x, 0.5 - m.y, 0.1));
       await hop(world, prop, pivot.position.clone(), { height: 1.4, dur: 0.55 });
       pivot.attach(prop);
       prop.position.set(0, 0, 0);
@@ -64,24 +80,30 @@ export default {
     }
 
     async function release() {
-      const b = BOTTLES[n];
+      const b = POURS[n];
       phase = "back";
       jet.visible = false;
       const score = bandScore(level, b.lo, b.hi, SLACK);
       scores.push(score);
-      const at = bowl.getWorldPosition(v3(0, 1.6, 0));
+      const at = mouthOf(b.target).add(v3(0, 0.6, 0));
       if (score >= 0.85) { world.fx.sparkle(at, 10); ctx.good(at, level > b.hi ? "No limite!" : "Na medida!"); }
       else if (score > 0.3) ctx.good(at, level < b.lo ? "Faltou um pouco" : "Passou um pouco");
       else ctx.bad(at, level < b.lo ? "Pouquinho demais!" : "Exagerou!");
-      ctx.progress(scores.length / (BOTTLES.length + 1));
+      ctx.progress(scores.length / steps);
       await world.tween(0.3, (k) => { pivot.rotation.z = pivot.rotation.z * (1 - k); });
       // volta para o lugar dela
       const p = bottle;
       world.scene.attach(p);
-      await hop(world, p, home.pos.clone(), { height: 1.2, dur: 0.5 });
-      home.parent.attach(p);
-      p.position.copy(home.pos); p.rotation.copy(home.rot);
-      sfx.plop();
+      if (home.fresh) await hop(world, p, p.position.clone().add(v3(2.6, 3, 0)), { height: 0.4, dur: 0.4 });
+      else {
+        const to = home.parent.localToWorld(home.pos.clone());
+        await hop(world, p, to, { height: 1.2, dur: 0.5 });
+        home.parent.attach(p);
+        p.position.copy(home.pos); p.rotation.copy(home.rot);
+        if (p === jar) jar.userData.lid.visible = true;
+        sfx.plop();
+      }
+      if (home.fresh) p.removeFromParent();
       bottle = null;
       if (live || rescuing) await next();
     }
@@ -98,58 +120,53 @@ export default {
       spoonObj.scale.setScalar(1.3);
       spoonObj.rotation.set(0, 0, 0.9);
       spoonObj.position.copy(props.cornstarch.getWorldPosition(v3(0, 1, 0)));
-      await hop(world, spoonObj, v3(STATION_X.bowl + 0.5, 1.9, bowl.position.z), { height: 1, dur: 0.5 });
+      await hop(world, spoonObj, mouthOf(bowl).add(v3(0.5, 1, 0)), { height: 1, dur: 0.5 });
       phase = "spoon";
       ctx.say("Agora uma colherada de amido: toque!");
     }
     async function dropStarch() {
-      phase = "done";
+      phase = "starch";
       sfx.swish();
       await world.tween(0.25, (k) => { spoonObj.rotation.z = 0.9 - k * 2.6; });
       spoonObj.userData.heap.visible = false;
       const island = new THREE.Mesh(new THREE.CircleGeometry(0.34, 24), new THREE.MeshStandardMaterial({ color: "#fffaf0", roughness: 1 }));
       island.rotation.x = -Math.PI / 2;
-      island.position.set(0.1, liquid.position.y + 0.006, 0);
+      island.position.set(0.1, bowl.userData.surface() + 0.006, 0);
       bowl.add(island);
       world.dish.island = island;
-      world.fx.steam(v3(STATION_X.bowl, liquidY() + 0.2, bowl.position.z), 3, { color: "#ffffff", size: 0.6, rise: 0.5 });
+      world.fx.steam(surfaceOf(bowl).add(v3(0, 0.2, 0)), 3, { color: "#ffffff", size: 0.6, rise: 0.5 });
       sfx.plop();
       squash(world, bowl, 0.06);
-      const at = bowl.getWorldPosition(v3(0, 1.6, 0));
       ctx.progress(1);
-      if (live) ctx.good(at, "Amido!");
+      if (live) ctx.good(mouthOf(bowl).add(v3(0, 0.6, 0)), "Amido!");
       await hop(world, spoonObj, props.cornstarch.getWorldPosition(v3(0, 1.2, 0)), { height: 0.8, dur: 0.45 });
       spoonObj.visible = false;
-      if (live) { live = false; ctx.done(scores.reduce((a, b) => a + b, 0) / scores.length); }
+      finish();
     }
 
     s.every((dt, t) => {
       if (phase !== "ready" || !bottle) return;
-      const b = BOTTLES[n];
+      const b = POURS[n], u = b.target.userData;
       const want = held ? TILT : 0.2;
       pivot.rotation.z += (want - pivot.rotation.z) * Math.min(1, dt * (held ? 3.2 : 8));
       const flow = Math.max(0, (pivot.rotation.z - POUR_AT) / (TILT - POUR_AT));
       jet.visible = flow > 0.02;
-      if (!jet.visible) { sfxWait(dt, false); return; }
+      wait -= dt;
+      if (!jet.visible) return;
+      const before = u.level ?? 0, add = b.fill / ((b.lo + b.hi) / 2) * RATE * flow * dt;
       level += RATE * flow * dt;
-      amount += b.fill / ((b.lo + b.hi) / 2) * RATE * flow * dt;
-      // a cor do molho mistura o que já está com o que cai
-      tint = mix(tint, rgb(b.color), Math.min(1, flow * dt * (total < 0.01 ? 50 : 1.2)));
-      liquid.material.color.setRGB(tint[0] / 255, tint[1] / 255, tint[2] / 255, THREE.SRGBColorSpace);
-      total = amount;
-      fillTo(total);
+      // a cor mistura o que já está com o que cai
+      u.liquid.material.color.lerp(b.color, before < 0.01 ? 1 : Math.min(1, add / (before + add) * 1.5));
+      fillTo(b.target, before + add);
+      if (b.from === "blender") { jarLeft = Math.max(0, jarLeft - add * jarShare); jar.userData.level = jarLeft; jar.userData.fill(jarLeft); }
       const mouth = bottle.localToWorld(bottle.userData.mouth.clone());
-      const below = v3(mouth.x - 0.12, liquidY(), mouth.z);
+      const below = v3(mouth.x - 0.12, surfaceOf(b.target).y, mouth.z);
       jet.userData.aim(mouth, below, 0.5 + flow * 0.8 + Math.sin(t * 30) * 0.05);
-      sfxWait(dt, true);
+      if (wait <= 0) { sfx.pour(); wait = 0.24; }
       if (Math.random() < flow * dt * 8) world.fx.bits(below, [b.color], 1, { size: 0.05, speed: 0.8, up: 1.2, floor: below.y });
       ctx.gauge({ kind: "band", level, lo: b.lo, hi: b.hi, label: b.name });
       if (level > b.hi + SLACK) { held = false; release(); } // transbordou: para sozinho
     });
-    function sfxWait(dt, on) {
-      wait -= dt;
-      if (on && wait <= 0) { sfx.pour(); wait = 0.24; }
-    }
 
     // segurar enquanto a garrafa ainda chega já vale: ela inclina assim que chegar
     const press = () => { if (!live) return; if (phase === "ready" || phase === "hop") held = true; else if (phase === "spoon") dropStarch(); };
@@ -160,7 +177,7 @@ export default {
     };
 
     return {
-      async intro() { liquid.visible = false; await next(); },
+      async intro() { await next(); },
       start() {
         live = true;
         world.input = { down: press, up: lift };
@@ -176,12 +193,12 @@ export default {
         // o chef despeja certinho o que faltou
         while (phase !== "done") {
           if (phase === "ready") {
-            const b = BOTTLES[n];
+            const b = POURS[n];
             phase = "rescue";
             pivot.rotation.z = 0;
             level = (b.lo + b.hi) / 2;
-            amount += b.fill;
-            fillTo(amount);
+            b.target.userData.liquid.material.color.lerp(b.color, (b.target.userData.level ?? 0) < 0.01 ? 1 : 0.5);
+            fillTo(b.target, (b.target.userData.level ?? 0) + b.fill);
             await release();
           } else if (phase === "spoon") await dropStarch();
           else await world.wait(0.05);
@@ -190,7 +207,7 @@ export default {
       finish() {
         jet.visible = false;
         ctx.gauge(null);
-        world.dish.sauceColor = liquid.material.color.clone();
+        world.dish.sauceColor = bowl.userData.liquid.material.color.clone();
         s.dispose();
       },
     };
