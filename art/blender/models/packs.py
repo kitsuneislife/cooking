@@ -115,32 +115,75 @@ def carton():
     return white, tinted, [label]
 
 
+SACK = (0.95, 0.62, 1.04)  # largura, profundidade e altura do saco
+
+
+def sack_half(x, t):
+    """Meia espessura do saco (até a frente, -Y) em x de -0.5 a 0.5 e na altura t de 0 a 1."""
+    W, D, H = SACK
+    flat = 1 - 0.8 * smooth(0.55, 1.0, t)  # a boca se achata até quase uma folha
+    pillow = 1 + 0.14 * (1 - (2 * x) ** 2) * (1 - 0.5 * smooth(0.6, 1.0, t))
+    return 0.5 * D * flat * pillow
+
+
+def sack_fold():
+    """A boca do saco enrolada uma vez para a frente: uma folha que nasce atrás, passa por cima
+    da boca e desce colada na frente. Vem de um caminho (y, z) varrido na largura."""
+    W, D, H = SACK
+    r, zc = 0.085, H - 0.03
+    path = [(r * math.cos(math.radians(a)), zc + r * math.sin(math.radians(a))) for a in range(-40, 181, 20)]
+    path += [(None, zc - 0.07 * k) for k in (1, 2, 3)]  # a aba desce pela frente
+    nu = 16
+    bm = bmesh.new()
+    rows = []
+    for i in range(nu + 1):
+        u = i / nu - 0.5
+        x = u * W * 0.96
+        row = []
+        for y, z in path:
+            out = sack_half(u, min(1.0, z / H)) + 0.02  # nunca entra no saco
+            if y is None:  # aba da frente: segue a frente do saco
+                y = -out
+            else:
+                y = min(y, -out) if y < 0 else max(y, out)
+            row.append(bm.verts.new((x, y, z)))
+        rows.append(row)
+    for i in range(nu):
+        for j in range(len(path) - 1):
+            bm.faces.new((rows[i][j], rows[i][j + 1], rows[i + 1][j + 1], rows[i + 1][j]))
+    fold = lib.from_bmesh("sack_fold", bm)
+    sol = fold.modifiers.new("espessura", "SOLIDIFY")
+    sol.thickness, sol.offset = 0.022, 1.0
+    lib.apply_all(fold)
+    bm = bmesh.new()
+    bm.from_mesh(fold.data)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(fold.data)
+    bm.free()
+    bev = fold.modifiers.new("bev", "BEVEL")
+    bev.width, bev.segments, bev.limit_method = 0.008, 2, "ANGLE"
+    lib.apply_all(fold)
+    creases(fold, 0.006, stretch=(10, 6, 6), seed=3)
+    return fold
+
+
 def sack():
     """Saco de açúcar (sack, foods.js): kraft estufado, mais claro em cima, a boca achatada e
-    dobrada duas vezes para a frente, vincos moles na vertical."""
-    W, D, H = 0.95, 0.62, 1.04
+    enrolada para a frente, vincos moles na vertical."""
+    W, D, H = SACK
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1)
     bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=9, use_grid_fill=True)
     for v in bm.verts:
         x, y, t = v.co.x, v.co.y, v.co.z + 0.5
-        flat = 1 - 0.62 * smooth(0.5, 1.0, t)  # a boca se achata
-        pillow = 1 + 0.14 * (1 - (2 * x) ** 2) * (1 - 0.5 * smooth(0.6, 1.0, t))
-        v.co = Vector((x * W * (1 + 0.02 * (1 - t)), y * D * flat * pillow, t * H))
+        v.co = Vector((x * W * (1 + 0.02 * (1 - t)), y * 2 * sack_half(x, t), t * H))
     body = lib.from_bmesh("sack_body", bm)
     lib.subsurf(body, 1)
     lib.apply_all(body)
     creases(body, 0.014, seed=1)
     lib.displace(body, 0.004, 9.0, 2)
-    folds = []
-    for i, (h, d, y, z, tilt) in enumerate(((0.2, 0.15, H - 0.06, 0.07, 0.35), (0.14, 0.12, H + 0.06, 0.11, 0.6))):
-        f = lib.box(f"sack_fold{i}", W * (0.97 - i * 0.03), h, d, at=(0, y, z), bevel=0.06, seg=3)
-        f.rotation_euler.x = tilt
-        lib.apply_all(f)
-        creases(f, 0.008, stretch=(10, 6, 6), seed=3 + i)
-        folds.append(f)
-    high = [lib.assign(o, kraft()) for o in [body] + folds]
-    label = parts.label_panel("sack_label", 0.62, 0.56, (0, -0.6, 0.47), target=body, off=0.006)
+    high = [lib.assign(o, kraft()) for o in [body, sack_fold()]]
+    label = parts.label_panel("sack_label", 0.62, 0.5, (0, -0.6, 0.45), target=body, off=0.006)
     return high, [label]
 
 
