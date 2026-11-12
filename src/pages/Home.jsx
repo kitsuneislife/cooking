@@ -3,6 +3,8 @@ import { games, MENU } from "../data/games";
 import RecipeCard from "../components/RecipeCard";
 import StatusMessage from "../components/StatusMessage";
 import Chef from "../components/Chef";
+import { useMusic } from "../hooks/useMusic";
+import { MUSIC } from "../data/music";
 
 // Um pedido do cardápio: cada card busca a própria receita na API.
 function Order({ id }) {
@@ -13,6 +15,7 @@ function Order({ id }) {
 }
 
 export default function Home() {
+  useMusic(MUSIC.title);
   return (
     <div className="title-screen">
       <section className="hero">

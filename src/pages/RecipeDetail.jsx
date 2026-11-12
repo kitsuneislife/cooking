@@ -2,8 +2,11 @@ import { Link, useParams } from "react-router-dom";
 import { useRecipe } from "../hooks/useRecipe";
 import { games, DIFFICULTY } from "../data/games";
 import StatusMessage from "../components/StatusMessage";
+import { useMusic } from "../hooks/useMusic";
+import { MUSIC } from "../data/music";
 
 export default function RecipeDetail() {
+  useMusic(MUSIC.menu);
   const { id } = useParams();
   const { status, recipe, error, retry } = useRecipe(id);
   const game = games[id];

@@ -7,6 +7,8 @@ import { starsFor, finalScore, average, stepGrade } from "../game/rules";
 import { rateRecipe } from "../services/recipes";
 import { sfx } from "../game/sound";
 import { confetti } from "../game/fx";
+import { useMusic } from "../hooks/useMusic";
+import { MUSIC } from "../data/music";
 
 // `steps`: a nota (0 a 1) e o tempo que sobrou em cada etapa jogada.
 export default function ResultPhase({ recipe, coins, steps, onReplay }) {
@@ -15,6 +17,7 @@ export default function ResultPhase({ recipe, coins, steps, onReplay }) {
   const { timeBonus, total } = finalScore({ coins, secondsLeft, difficulty: recipe.difficulty });
   const [rating, setRating] = useState(0);
   const [send, setSend] = useState({ status: "idle" });
+  useMusic(stars ? MUSIC.win : MUSIC.lose);
 
   useEffect(() => {
     if (!stars) return;

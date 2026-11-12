@@ -1,8 +1,18 @@
 // Efeitos sonoros gerados na hora com a Web Audio API: sem arquivos de áudio.
-let ctx;
+// A trilha (music.js) usa o mesmo contexto e passa pelo `musicOut`, que o botão de mudo zera.
+let ctx, bus;
 let muted = localStorage.getItem("mudo") === "1";
 
-const audio = () => (ctx ??= new AudioContext());
+export const audio = () => (ctx ??= new AudioContext());
+
+export function musicOut() {
+  if (!bus) {
+    bus = audio().createGain();
+    bus.gain.value = muted ? 0 : 1;
+    bus.connect(audio().destination);
+  }
+  return bus;
+}
 
 function tone(freq, { dur = 0.12, type = "triangle", vol = 0.14, delay = 0, to } = {}) {
   if (muted) return;
@@ -80,5 +90,7 @@ export const isMuted = () => muted;
 export function toggleMute() {
   muted = !muted;
   localStorage.setItem("mudo", muted ? "1" : "0");
+  // a trilha some e volta num instante, sem estalo
+  bus?.gain.setTargetAtTime(muted ? 0 : 1, audio().currentTime, 0.08);
   return muted;
 }

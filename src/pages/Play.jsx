@@ -4,6 +4,8 @@ import { useRecipe } from "../hooks/useRecipe";
 import { games, DIFFICULTY } from "../data/games";
 import { missingIngredients, brokenSteps, comboMultiplier } from "../game/rules";
 import { sfx, isMuted, toggleMute } from "../game/sound";
+import { useMusic } from "../hooks/useMusic";
+import { MUSIC, trackFor } from "../data/music";
 import { pop } from "../game/fx";
 import { THREE } from "../three/kit";
 import StatusMessage from "../components/StatusMessage";
@@ -26,6 +28,8 @@ export default function Play() {
   const game = games[id];
   const { status, recipe, error, retry } = useRecipe(id);
   const [round, setRound] = useState(0);
+  // a trilha do pedido já toca enquanto a receita carrega; a partida troca a cada fase
+  useMusic(MUSIC.order);
 
   let problem = null;
   if (!game) {
@@ -67,6 +71,9 @@ function Match({ recipe, game, onReplay }) {
   const current = PHASES[index];
   const multiplier = comboMultiplier(score.combo);
   const total = Object.values(game.play).reduce((n, list) => n + list.length, 0);
+
+  // no resultado quem escolhe a faixa é o ResultPhase, que sabe as estrelas
+  useMusic(phase === "result" ? null : trackFor(phase === "intro" ? "order" : phase, recipe.id));
 
   const say = (text, mood = "idle") => setChef((c) => ({ mood, text, n: c.n + 1 }));
 
