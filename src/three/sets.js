@@ -8,10 +8,9 @@ import {
   mix, fbm, hash, sstep, seeded, V2, servingPlate, castAll,
 } from "./kit.js";
 import { oven, grill, blender, fridge, pastrySlab } from "./gear.js";
-import { model } from "./models.js";
+import { model, part } from "./models.js";
 
 const repeatTex = (t, x, y) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(x, y); return t; };
-const part = (name, piece) => model(name, (n) => n === piece).children[0]; // uma malha do .glb
 
 /* ---------- Texturas do cenário ---------- */
 function wallpaper() { // papel de parede menta com listras claras e bolinhas brancas
@@ -146,19 +145,14 @@ function hangingSet() { // barra de utensílios pendurados
     obj.position.x = x; obj.rotation.z = rotZ;
     g.add(hook, obj);
   };
-  const ladle = new THREE.Group();
-  const lh = mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.6, 8), metal({ color: "#e6ebf0" })); lh.position.y = -0.95;
-  const cup = mesh(new THREE.SphereGeometry(0.28, 20, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), metal({ color: "#e6ebf0" })); cup.position.set(-0.26, -1.75, 0); // o cabo encosta na borda
-  ladle.add(lh, cup);
-  hang(ladle, -2.2);
+  hang(model("utensils", (n) => n === "ladle"), -2.2);
   // tudo pendurado pela ponta do cabo, a parte de trabalho para baixo
   const w = build.whisk(); w.position.y = -1.15; const wg = new THREE.Group(); wg.add(w); hang(wg, -1.2);
   const sp = build.spoon(); sp.position.y = -1.7; const sg = new THREE.Group(); sg.add(sp); hang(sg, -0.4);
   // panela de frente para a câmera, cabo para cima até o gancho
   const pan = build.pan(); pan.scale.setScalar(0.62); pan.rotation.set(0, Math.PI / 2, Math.PI / 2); pan.position.set(0, -1.85, -0.3);
   const pg = new THREE.Group(); pg.add(pan); hang(pg, 1.2);
-  const sm = build.pan(); sm.scale.setScalar(0.48); sm.rotation.set(0, Math.PI / 2, Math.PI / 2); sm.position.set(0, -1.45, -0.3);
-  sm.children[0].material = glossy({ color: "#ef6b4a" });
+  const sm = build.pan("coral"); sm.scale.setScalar(0.48); sm.rotation.set(0, Math.PI / 2, Math.PI / 2); sm.position.set(0, -1.45, -0.3);
   const sg2 = new THREE.Group(); sg2.add(sm); hang(sg2, 2.4);
   return g;
 }
@@ -267,7 +261,7 @@ export function buildKitchen() {
   place("oyster", build.oyster(), STATION_X.bowl - 1.1, -2.1, 1.05, -0.2);
   place("sesame", build.sesame(), STATION_X.bowl + 0.1, -2.3, 1.05, 0.1);
   place("cornstarch", build.cornstarch(), STATION_X.bowl + 2.3, -1.2, 0.75, -0.6);
-  place("rice", build.rice({ sticks: false }), STATION_X.plate + 2.9, -1.4, 1.0);
+  place("rice", build.rice(), STATION_X.plate + 2.9, -1.4, 1.0);
 
   castAll(k);
   // paredes, tampo e janela só recebem sombra

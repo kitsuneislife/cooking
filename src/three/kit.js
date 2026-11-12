@@ -6,7 +6,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
-import { model } from "./models.js";
+import { model, part } from "./models.js";
 
 export { THREE, RoundedBoxGeometry, mergeGeometries };
 
@@ -112,16 +112,6 @@ const TEX = {
       return mix(c, b, (fbm(u * 8, v * 8, 2) - 0.5) * 0.4);
     });
   },
-  // madeira clara de tábua: veio reto ao longo de u (a emenda espelhada some no sentido do veio)
-  maple: () => {
-    const a = rgb("#e4b37a"), b = rgb("#f6d9ab"), line = rgb("#c98a4c"); // mel, para o alho e a massa clara se destacarem
-    return paint(256, (u, v) => {
-      const w = v * 22 + fbm(u * 1.5, v * 6, 3) * 1.6;
-      let c = mix(a, b, 0.5 + 0.5 * Math.sin(w * Math.PI * 2));
-      c = mix(c, line, (1 - sstep(0.0, 0.08, Math.abs((w % 1 + 1) % 1 - 0.5))) * 0.35);
-      return mix(c, line, sstep(0.6, 0.85, fbm(u * 40, v * 3, 2)) * 0.15);
-    }, { repeat: 0.3 });
-  },
   speckle: () => {
     // esmalte cinza-azulado com pintinhas claras: o fundo da panela nunca fica preto
     const a = rgb("#56627a"), b = rgb("#6e7c95");
@@ -130,7 +120,6 @@ const TEX = {
       return hash(Math.floor(u * 160), Math.floor(v * 160)) > 0.93 ? mix(c, rgb("#e4e9f2"), 0.6) : c;
     });
   },
-  brushed: () => paint(256, (u, v) => { const g = 120 + fbm(u * 2, v * 90, 3) * 90; return [g, g, g]; }, { srgb: false }),
   gingham: () => {
     const w = rgb("#fff1f0"), mid = rgb("#f7a9b4"), full = rgb("#ee7186");
     return paint(256, (u, v) => {
@@ -185,15 +174,6 @@ const TEX = {
     const c = mix(rgb("#f07a1a"), rgb("#ffa63d"), fbm(u * 4, v * 30, 3));
     return mix(c, rgb("#c85a0a"), (1 - sstep(0.02, 0.08, Math.abs(((v * 14) % 1) - 0.5))) * 0.35);
   }),
-  riceBowl: () => canvasTex(512, 256, (x) => {
-    const gr = x.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, "#ffffff"); gr.addColorStop(1, "#e3ebf3");
-    x.fillStyle = gr; x.fillRect(0, 0, 512, 256);
-    x.strokeStyle = "#2f5f9a"; x.lineWidth = 7;
-    for (const y of [62, 132]) { x.beginPath(); x.moveTo(0, y); x.lineTo(512, y); x.stroke(); }
-    x.lineWidth = 4;
-    for (let i = 0; i < 12; i++) { x.beginPath(); x.arc(21 + i * 42.67, 97, 14, 0, Math.PI * 2); x.stroke(); }
-    x.lineWidth = 3; x.beginPath(); x.moveTo(0, 160); x.lineTo(512, 160); x.stroke();
-  }),
 };
 const cache = {};
 export const tex = (k) => cache[k] ??= TEX[k]();
@@ -244,27 +224,14 @@ export function egg() {
   return g;
 }
 
-// Tigela de cerâmica: perfil único, borda arredondada.
-export function bowlGeo(R, H) {
-  return new THREE.LatheGeometry([V2(0, 0), V2(R * 0.45, 0), V2(R * 0.5, 0.05), V2(R * 0.86, H * 0.45), V2(R * 0.98, H * 0.88),
-    V2(R, H), V2(R * 0.97, H + 0.03), V2(R * 0.93, H * 0.96), V2(R * 0.82, H * 0.5), V2(R * 0.42, H * 0.14), V2(0, H * 0.12)], 56);
-}
+// Louça, panelas e utensílios das estações vêm do Blender (tableware.glb e utensils.glb, cada
+// peça no referencial do procedural antigo, que está em archive/station.js).
+const group = (...objs) => { const g = new THREE.Group(); g.add(...objs); return g; };
+const ware = (piece) => part("tableware", piece);
+const tool = (piece) => part("utensils", piece);
 
-// Prato branco com aba azul e filete dourado.
-export function servingPlate() {
-  const plate = new THREE.Group();
-  const porcelain = new THREE.MeshPhysicalMaterial({ color: "#fdfcfa", roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.08, side: THREE.DoubleSide });
-  const well = mesh(new THREE.LatheGeometry([V2(0, 0.08), V2(1.15, 0.08), V2(1.3, 0.14)], 96), porcelain);
-  const rim = mesh(new THREE.LatheGeometry([V2(1.3, 0.14), V2(1.6, 0.19), V2(1.9, 0.24), V2(1.97, 0.25)], 96), glossy({ color: "#7cc4e8", roughness: 0.2 }));
-  const under = mesh(new THREE.LatheGeometry([V2(1.97, 0.25), V2(1.99, 0.22), V2(1.7, 0.1), V2(1.2, 0.02), V2(0, 0.02)], 96), porcelain);
-  for (const m of [well, rim, under]) { m.receiveShadow = true; plate.add(m); }
-  const gold = metal({ color: "#f0c060", roughness: 0.22 });
-  for (const [r, y] of [[1.31, 0.143], [1.95, 0.25], [1.62, 0.193]]) {
-    const t = mesh(new THREE.TorusGeometry(r, 0.016, 8, 128), gold);
-    t.rotation.x = Math.PI / 2; t.position.y = y; plate.add(t);
-  }
-  return plate;
-}
+// Prato branco com aba azul, filetes dourados e coroa de pintinhas.
+export const servingPlate = () => group(ware("plate"));
 
 // Tirinha de carne: crua (lisa) ou selada (com marcas de chapa).
 export function beefStrip(mat, seared = true) {
@@ -311,28 +278,8 @@ export function bottle({ r, shoulder, neckR, neckTop, glass, amber, cap, text, b
 
 /* ---------- Modelos ---------- */
 export const build = {
-  knife() {
-    const g = new THREE.Group();
-    const s = new THREE.Shape();
-    s.moveTo(0, -0.15); s.lineTo(1.35, -0.15);
-    s.quadraticCurveTo(2.2, -0.12, 2.55, 0.34);
-    s.quadraticCurveTo(2.05, 0.5, 1.4, 0.52);
-    s.lineTo(0, 0.52); s.closePath();
-    const blade = new THREE.ExtrudeGeometry(s, { depth: 0.05, bevelEnabled: true, bevelThickness: 0.035, bevelSize: 0.04, bevelSegments: 6, curveSegments: 24 });
-    blade.translate(0, 0, -0.025);
-    const rough = tex("brushed").clone(); rough.repeat.set(1.2, 1.2); rough.needsUpdate = true;
-    g.add(mesh(blade, metal({ color: "#eef2f7", roughnessMap: rough, roughness: 0.55 })));
-    const bolster = mesh(new RoundedBoxGeometry(0.18, 0.7, 0.24, 4, 0.07), metal({ color: "#c9d1dc", roughness: 0.3 }));
-    bolster.position.set(-0.07, 0.185, 0);
-    g.add(bolster);
-    const handle = mesh(new RoundedBoxGeometry(1.3, 0.5, 0.32, 8, 0.16), glossy({ color: "#e8453c" }));
-    handle.position.set(-0.8, 0.17, 0);
-    g.add(handle);
-    for (const x of [-0.4, -0.8, -1.2]) for (const z of [0.16, -0.16]) {
-      const r = mesh(new THREE.SphereGeometry(0.06, 16, 10), metal({ color: "#f2c45a", roughness: 0.25 }));
-      r.position.set(x, 0.17, z); r.scale.z = 0.45;
-      g.add(r);
-    }
+  knife() { // lâmina no plano xy (ponta em +x), deitada na tábua
+    const g = group(tool("knife_blade"), tool("knife_handle"));
     g.rotation.x = -Math.PI / 2;
     g.position.y = 0.2;
     const w = new THREE.Group(); w.add(g);
@@ -349,22 +296,7 @@ export const build = {
     return g;
   },
 
-  pan() {
-    const g = new THREE.Group();
-    const outer = [V2(0, 0), V2(0.9, 0), V2(1.0, 0.02), V2(1.08, 0.08), V2(1.13, 0.2), V2(1.18, 0.36), V2(1.22, 0.44), V2(1.25, 0.47)];
-    const inner = [V2(1.25, 0.47), V2(1.21, 0.5), V2(1.14, 0.46), V2(1.07, 0.24), V2(1.01, 0.14), V2(0.9, 0.1), V2(0, 0.1)];
-    g.add(mesh(new THREE.LatheGeometry(outer, 64), glossy({ color: "#22a58d" })));
-    const inside = mesh(new THREE.LatheGeometry(inner, 64), new THREE.MeshPhysicalMaterial({ map: tex("speckle"), roughness: 0.45, clearcoat: 0.6, clearcoatRoughness: 0.3, side: THREE.DoubleSide }));
-    inside.receiveShadow = true;
-    g.add(inside);
-    const neck = mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.3, 20), metal({ color: "#c9d1dc" }));
-    // rotação negativa: o eixo y deita para +x subindo, e o cabo encosta no pescoço
-    neck.rotation.z = -Math.PI / 2 + 0.14; neck.position.set(1.3, 0.4, 0);
-    const handle = mesh(new THREE.CapsuleGeometry(0.13, 1.25, 8, 20), woodMat());
-    handle.rotation.z = -Math.PI / 2 + 0.14; handle.position.set(2.05, 0.5, 0);
-    g.add(neck, handle);
-    return g;
-  },
+  pan: (color = "teal") => group(ware(`pan_${color}`)), // frigideira de esmalte: "teal" ou "coral"
 
   // Do Blender (public/models/broccoli.glb, 3 mil triângulos). O .glb tem 1 de altura com a
   // base em y = 0; aqui volta ao tamanho do procedural antigo (y de -1 a 1,5), que todo
@@ -476,64 +408,20 @@ export const build = {
     return g;
   },
 
-  cornstarch() {
-    const g = new THREE.Group();
-    g.add(mesh(bowlGeo(1.0, 0.62), glossy({ color: "#fbf3e2", roughness: 0.25 })));
-    const heap = mesh(new THREE.LatheGeometry([V2(0, 1.02), V2(0.18, 0.99), V2(0.4, 0.86), V2(0.65, 0.68), V2(0.92, 0.56)], 48),
-      food({ map: tex("powder"), roughness: 0.95, clearcoat: 0 }));
-    heap.receiveShadow = true;
-    g.add(heap);
-    const spoon = build.spoon();
-    spoon.rotation.set(0.15, 0, -0.95);
-    spoon.position.set(0.3, 0.86, 0.05);
-    g.add(spoon);
-    return g;
-  },
+  // tigela menta com o monte de amido e a colher de pau enterrada (uma malha só)
+  cornstarch: () => group(ware("starch")),
 
-  spoon() {
-    const wood = woodMat(), spoon = new THREE.Group();
-    // concha no centro (origem), alongada ao longo do cabo e achatada em z
-    const handle = mesh(new THREE.CapsuleGeometry(0.05, 1.3, 6, 12), wood);
-    handle.position.y = 0.9;
-    const head = mesh(new THREE.SphereGeometry(0.2, 24, 12), wood);
-    head.scale.set(1, 1.35, 0.3);
-    spoon.add(handle, head);
-    return spoon;
-  },
+  spoon: () => group(tool("spoon")), // colher de pau: concha na origem, abrindo para +z; cabo sobe em y
 
-  rice({ sticks = true } = {}) {
-    const g = new THREE.Group();
-    const outer = mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.42, 0), V2(0.46, 0.06), V2(0.8, 0.3), V2(0.97, 0.6), V2(1.0, 0.72)], 56),
-      glossy({ map: tex("riceBowl"), roughness: 0.2 }));
-    const inner = mesh(new THREE.LatheGeometry([V2(1.0, 0.72), V2(0.97, 0.75), V2(0.93, 0.7), V2(0.78, 0.38), V2(0.4, 0.14), V2(0, 0.12)], 56),
-      glossy({ color: "#fbfdff", roughness: 0.2 }));
-    g.add(outer, inner);
-    const dome = (r) => 0.66 + 0.4 * (1 - (r / 0.92) ** 2);
-    g.add(riceMound(dome, 0.92, 360, 5));
-    if (sticks) for (const dz of [-0.05, 0.05]) { // hashis apoiados na borda
-      const stick = mesh(new THREE.CylinderGeometry(0.022, 0.035, 2.2, 10), food({ color: "#4a2c1a", roughness: 0.35, clearcoat: 0.8 }));
-      stick.rotation.set(0, 0.3 + dz, Math.PI / 2 - 0.12);
-      stick.position.set(0.25, 0.86, 0.55 + dz * 3);
-      g.add(stick);
-    }
+  // tigela de arroz com o monte por cima; `userData.rice` é o monte (o prato esconde ao servir)
+  rice() {
+    const rice = ware("rice"), g = group(ware("ricebowl"), rice);
+    g.userData.rice = rice;
     return g;
   },
 
   board({ knife = true } = {}) {
-    const g = new THREE.Group();
-    const W = 1.5, H = 0.95, r = 0.25, s = new THREE.Shape();
-    s.moveTo(-W + r, -H); s.lineTo(W - r, -H); s.quadraticCurveTo(W, -H, W, -H + r);
-    s.lineTo(W, -0.3); s.quadraticCurveTo(W + 0.5, -0.32, W + 0.55, 0); s.quadraticCurveTo(W + 0.5, 0.32, W, 0.3); // alça
-    s.lineTo(W, H - r); s.quadraticCurveTo(W, H, W - r, H); s.lineTo(-W + r, H); s.quadraticCurveTo(-W, H, -W, H - r);
-    s.lineTo(-W, -H + r); s.quadraticCurveTo(-W, -H, -W + r, -H);
-    const hole = new THREE.Path(); hole.absarc(W + 0.24, 0, 0.1, 0, Math.PI * 2, true); s.holes.push(hole);
-    const geo = new THREE.ExtrudeGeometry(s, { depth: 0.14, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06, bevelSegments: 5, curveSegments: 24 });
-    geo.rotateX(-Math.PI / 2); geo.translate(0, 0.06, 0);
-    const uv = geo.attributes.uv; // mantém o UV longe do zero: o MirroredRepeat espelhava o veio no meio da tábua
-    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 0.6 + 1.7, uv.getY(i) * 0.6 + 1.7);
-    const top = mesh(geo, food({ map: tex("maple"), bumpMap: tex("maple"), bumpScale: 0.12, roughness: 0.5, clearcoat: 0.3 }));
-    top.receiveShadow = true;
-    g.add(top);
+    const g = group(ware("board"));
     if (knife) {
       const k = build.knife(); k.scale.setScalar(0.55); k.position.set(-0.2, 0.24, 0.35); k.rotation.y = 0.15;
       g.add(k);
@@ -542,29 +430,15 @@ export const build = {
     return g;
   },
 
-  whisk() {
-    const loop = new THREE.CatmullRomCurve3([[0, 0], [0.12, -0.3], [0.28, -0.75], [0.3, -1.05], [0.18, -1.3], [0, -1.36],
-      [-0.18, -1.3], [-0.3, -1.05], [-0.28, -0.75], [-0.12, -0.3], [0, 0]].map(([x, y]) => new THREE.Vector3(x, y, 0)));
-    const wires = [];
-    for (let i = 0; i < 4; i++) wires.push(new THREE.TubeGeometry(loop, 80, 0.018, 6).rotateY(i / 4 * Math.PI));
-    const whisk = new THREE.Group();
-    whisk.add(mesh(mergeGeometries(wires), metal({ color: "#e4e9ee", roughness: 0.2 })));
-    const ferrule = mesh(new THREE.CylinderGeometry(0.06, 0.04, 0.16, 16), metal({ color: "#c9d1dc" }));
-    ferrule.position.y = 0.05;
-    const handle = mesh(new THREE.CapsuleGeometry(0.085, 0.8, 8, 16), glossy({ color: "#5a3420" }));
-    handle.position.y = 0.55;
-    whisk.add(ferrule, handle);
-    return whisk; // a ponta do arame fica em y = -1.36
-  },
+  whisk: () => group(tool("whisk_wire"), tool("whisk_handle")), // a ponta do arame fica em y = -1.36
 
   // Tigela de misturar vazia; `userData.fill(level, color)` sobe o líquido de dentro.
   mixingBowl({ whisk = false } = {}) {
-    const g = new THREE.Group(), R = 1.1, H = 0.75;
-    g.add(mesh(bowlGeo(R, H), glossy({ color: "#a8d4ec", roughness: 0.22 })));
+    const g = group(ware("bowl")), R = 1.1, H = 0.75;
     const liquid = mesh(new THREE.CircleGeometry(1, 48), glossy({ color: "#8a4a1e", roughness: 0.12, side: THREE.FrontSide }));
     liquid.rotation.x = -Math.PI / 2; liquid.receiveShadow = true; liquid.visible = false;
     g.add(liquid);
-    // raio de dentro da tigela na altura y: interpola o perfil de dentro de bowlGeo
+    // raio de dentro da tigela na altura y: interpola o perfil de dentro da tigela (tableware.py)
     const wall = [[H * 0.14, R * 0.42], [H * 0.5, R * 0.82], [H * 0.96, R * 0.93]];
     const innerR = (y) => {
       if (y <= wall[0][0]) return wall[0][1];
@@ -594,14 +468,8 @@ export const build = {
 
   // Wok de ferro; `userData.floor(r)` dá a altura do fundo de dentro a cada raio.
   wok({ filled = false } = {}) {
-    const g = new THREE.Group();
-    // esmalte azul-piscina por fora, antiaderente cinza-azulado com pintinhas por dentro (nunca preto)
-    const iron = glossy({ color: "#35b4d8", roughness: 0.22, clearcoatRoughness: 0.08 });
-    g.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.4, 0), V2(0.8, 0.12), V2(1.15, 0.35), V2(1.4, 0.62), V2(1.48, 0.72), V2(1.5, 0.76), V2(1.46, 0.78)], 64), iron));
-    const inside = mesh(new THREE.LatheGeometry([V2(1.46, 0.78), V2(1.12, 0.42), V2(0.78, 0.2), V2(0.4, 0.09), V2(0, 0.07)], 64),
-      new THREE.MeshPhysicalMaterial({ map: tex("speckle"), roughness: 0.4, clearcoat: 0.7, clearcoatRoughness: 0.25, side: THREE.DoubleSide }));
-    inside.receiveShadow = true;
-    g.add(inside);
+    // esmalte azul-piscina por fora, aro de inox, antiaderente granito claro por dentro, cabo e alça
+    const g = group(ware("wok"));
     const floor = (r) => 0.06 + 0.27 * r * r;
     g.userData.floor = floor;
     const prof = []; for (let i = 8; i >= 0; i--) { const r = i / 8 * 0.85; prof.push(V2(r, floor(r) + 0.04)); }
@@ -609,12 +477,6 @@ export const build = {
     sauce.receiveShadow = true; sauce.visible = filled;
     g.userData.sauce = sauce;
     g.add(sauce);
-    const neck = mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.4, 16), metal({ color: "#c9d1dc" }));
-    neck.rotation.z = -Math.PI / 2 + 0.16; neck.position.set(1.62, 0.76, 0);
-    const handle = mesh(new THREE.CapsuleGeometry(0.12, 1.2, 8, 20), woodMat());
-    handle.rotation.z = -Math.PI / 2 + 0.16; handle.position.set(2.42, 0.89, 0);
-    const helper = mesh(new THREE.TorusGeometry(0.2, 0.04, 10, 24, Math.PI).rotateZ(Math.PI / 2).rotateX(Math.PI / 2).translate(-1.48, 0.74, 0), iron);
-    g.add(neck, handle, helper);
     if (filled) {
       const rand = seeded(7), beef = searedMat();
       for (let i = 0; i < 9; i++) {
@@ -635,23 +497,7 @@ export const build = {
   },
 
   // Espátula de wok: concha rasa de aço com cabo de madeira. A ponta fica na origem.
-  spatula() {
-    const g = new THREE.Group();
-    const s = new THREE.Shape();
-    s.moveTo(-0.32, 0); s.quadraticCurveTo(-0.34, 0.5, -0.12, 0.62); s.lineTo(0.12, 0.62); s.quadraticCurveTo(0.34, 0.5, 0.32, 0);
-    s.quadraticCurveTo(0, -0.06, -0.32, 0);
-    const head = new THREE.ExtrudeGeometry(s, { depth: 0.02, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.02, bevelSegments: 3, curveSegments: 16 });
-    const p = head.attributes.position;
-    for (let i = 0; i < p.count; i++) p.setZ(i, p.getZ(i) + p.getX(i) ** 2 * 0.6); // concha
-    head.computeVertexNormals();
-    g.add(mesh(head, metal({ color: "#e6ebf0", roughness: 0.22 })));
-    const neck = mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.7, 10), metal({ color: "#c9d1dc" }));
-    neck.position.set(0, 0.95, 0.12); neck.rotation.x = 0.3; // inclina para +z subindo, como as posições
-    const handle = mesh(new THREE.CapsuleGeometry(0.08, 0.9, 6, 14), woodMat());
-    handle.position.set(0, 1.7, 0.38); handle.rotation.x = 0.3;
-    g.add(neck, handle);
-    return g;
-  },
+  spatula: () => group(tool("spatula_head"), tool("spatula_handle")),
 
   stove() {
     const g = new THREE.Group();
@@ -719,18 +565,7 @@ export const build = {
 
   // Cúpula de servir, articulada na borda de trás: `userData.open(0..1)`.
   cloche() {
-    const shine = metal({ color: "#eef2f6", roughness: 0.14 });
-    const prof = [V2(1.62, 0), V2(1.6, 0.1)];
-    for (let i = 0; i <= 12; i++) { const a = i / 12 * Math.PI / 2; prof.push(V2(1.58 * Math.cos(a), 0.1 + 1.25 * Math.sin(a))); }
-    const dome = new THREE.Group();
-    dome.add(mesh(new THREE.LatheGeometry(prof, 72), shine));
-    const lip = mesh(new THREE.TorusGeometry(1.61, 0.05, 10, 96), shine);
-    lip.rotation.x = Math.PI / 2;
-    const stem = mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.16, 16), shine);
-    stem.position.y = 1.42;
-    const knob = mesh(new THREE.SphereGeometry(0.18, 24, 16), metal({ color: "#f0c060", roughness: 0.2 }));
-    knob.scale.y = 0.6; knob.position.y = 1.54;
-    dome.add(lip, stem, knob);
+    const dome = group(ware("cloche"), ware("cloche_knob"));
     dome.position.z = 1.6;
     const hinge = new THREE.Group();
     hinge.position.set(0, 0.24, -1.6);
@@ -772,9 +607,8 @@ export const build = {
     return g;
   },
 
-  sauce() {
-    const g = new THREE.Group();
-    g.add(mesh(bowlGeo(0.95, 0.62), glossy({ color: "#fdfcfa", roughness: 0.2 })));
+  sauce() { // children[1] é o molho (stir.js tinge e esvazia)
+    const g = group(ware("saucebowl"));
     const pool = mesh(new THREE.LatheGeometry([V2(0, 0.42), V2(0.8, 0.41), V2(0.83, 0.39)], 48), glossy({ color: "#7a3e16", roughness: 0.1 }));
     pool.receiveShadow = true;
     g.add(pool);

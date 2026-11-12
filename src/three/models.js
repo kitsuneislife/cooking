@@ -8,6 +8,7 @@ export const MODELS = [
   "broccoli", "lime", "mango", "stirfry", "chicken", "tiramisu", // ingredientes e pratos
   "counter", "wall", "shelves", "window", "hood", "lamp", "props", // cozinha
   "stand", "crate", "stalls", // feira
+  "tableware", "utensils", // louça, panelas e utensílios das estações
 ];
 const loaded = {};
 
@@ -29,6 +30,9 @@ export function model(name, keep = () => true) {
   g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   return g;
 }
+
+// Uma malha só do .glb (a peça `piece` de `name`), no referencial em que foi modelada.
+export const part = (name, piece) => model(name, (n) => n === piece).children[0];
 
 // Tudo o que veio do Blender, para compilar shaders e subir texturas antes de aparecer.
 export const loadedModels = () => Object.values(loaded);

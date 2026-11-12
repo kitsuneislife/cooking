@@ -116,7 +116,7 @@ export default {
       mound.position.set(x, 1.2, 0);
       ricePos.x = x;
       plated.add(mound);
-      rice.children[2].visible = false; // a tigela fica vazia
+      rice.userData.rice.visible = false; // a tigela fica vazia
       await world.tween(0.22, (k) => { mound.position.y = 1.2 * (1 - k) + 0.07; }, (k) => k * k);
       sfx.plop("rice"); world.shake(0.05);
       squash(world, mound, 0.22, 0.3);

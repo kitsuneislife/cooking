@@ -1,6 +1,7 @@
 // Equipamentos e utensílios das estações novas: forno, grelha, liquidificador, geladeira,
 // copos e ferramentas. Tudo apoiado em y = 0 (o tampo), como o resto do kit.
 import { THREE, RoundedBoxGeometry, mesh, food, glossy, metal, woodMat, canvasTex, paint, fbm, sstep, V2, seeded } from "./kit.js";
+import { model } from "./models.js";
 
 const C = (hex) => new THREE.Color(hex), TAU = Math.PI * 2;
 const box = (w, h, d, mat, x = 0, y = 0, z = 0, r = 0.05) => {
@@ -305,61 +306,33 @@ export function fridge() {
 }
 
 /* ---------- Utensílios ---------- */
+// Do Blender (utensils.glb), no referencial dos procedurais antigos (archive/station.js).
+const tool = (...pieces) => model("utensils", (n) => pieces.includes(n));
+
 export function rollingPin() { // eixo ao longo de x, apoiado em y = 0
-  const g = new THREE.Group(), wood = woodMat();
-  const body = mesh(new THREE.CylinderGeometry(0.24, 0.24, 2.3, 28).rotateZ(Math.PI / 2), wood);
-  g.add(body);
-  for (const x of [-1, 1]) {
-    const h = mesh(new THREE.CapsuleGeometry(0.1, 0.5, 6, 14).rotateZ(Math.PI / 2), glossy({ color: "#e5484d" }));
-    h.position.x = x * 1.55;
-    g.add(h);
-  }
+  const g = tool("pin");
   g.userData.r = 0.24;
   return g;
 }
 
-export function sieve() { // peneira de mão: aro, tela e cabo
-  const g = new THREE.Group(), steel = metal({ color: "#e6ebf0", roughness: 0.22 });
-  const ring = mesh(new THREE.TorusGeometry(0.62, 0.05, 10, 48).rotateX(Math.PI / 2), steel);
+export function sieve() { // peneira de mão: aro de inox e cabo do .glb; a tela fica aqui, porque é vazada
+  const g = tool("sieve_rim", "sieve_handle");
   const wire = canvasTex(64, 64, (x) => { x.fillStyle = "#000"; x.fillRect(0, 0, 64, 64); x.fillStyle = "#fff"; x.fillRect(0, 0, 64, 14); x.fillRect(0, 0, 14, 64); });
   wire.wrapS = wire.wrapT = THREE.RepeatWrapping; wire.repeat.set(26, 9);
   const net = mesh(new THREE.SphereGeometry(0.62, 28, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).scale(1, 0.55, 1),
     new THREE.MeshStandardMaterial({ color: "#cfd6dc", metalness: 0.7, roughness: 0.4, alphaMap: wire, alphaTest: 0.4, side: THREE.DoubleSide }));
-  const handle = mesh(new THREE.CapsuleGeometry(0.06, 0.9, 6, 12).rotateZ(Math.PI / 2), glossy({ color: "#e5484d" }));
-  handle.position.x = 1.2;
-  g.add(ring, net, handle);
+  g.add(net);
   return g;
 }
 
-export function muddler() { // socador de madeira; a ponta fica na origem
-  const g = new THREE.Group();
-  g.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.19, 0), V2(0.2, 0.3), V2(0.11, 0.5), V2(0.1, 1.5), V2(0.16, 1.7), V2(0.14, 1.95), V2(0, 2)], 24), woodMat()));
-  return g;
-}
+export const muddler = () => tool("muddler"); // socador de madeira; a ponta fica na origem
 
-export function barSpoon() { // colher bailarina; a ponta fica na origem
-  const g = new THREE.Group(), steel = metal({ color: "#e6ebf0", roughness: 0.18 });
-  const stem = mesh(new THREE.CylinderGeometry(0.025, 0.025, 2.4, 8), steel);
-  stem.position.y = 1.3;
-  const head = mesh(new THREE.SphereGeometry(0.13, 16, 10).scale(1, 1.4, 0.35), steel); // concha no plano da haste
-  head.position.y = 0.18;
-  const cap = mesh(new THREE.SphereGeometry(0.07, 12, 8), glossy({ color: "#e5484d" }));
-  cap.position.y = 2.52;
-  g.add(stem, head, cap);
-  return g;
-}
+export const barSpoon = () => tool("barspoon", "barspoon_cap"); // colher bailarina; a ponta fica na origem
 
 export function pizzaWheel() { // cortador de pizza: o disco roda sobre o eixo z
-  const g = new THREE.Group();
-  const disc = mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.03, 40).rotateX(Math.PI / 2), metal({ color: "#eef2f6", roughness: 0.15 }));
+  const g = tool("wheel_disc", "wheel_fork", "wheel_handle");
+  const disc = g.children.find((c) => c.name === "wheel_disc");
   disc.position.y = 0.34;
-  const hub = mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.1, 16).rotateX(Math.PI / 2), glossy({ color: "#e5484d" }));
-  hub.position.y = 0.34;
-  const arm = box(0.09, 0.5, 0.05, metal({ color: "#c9d1dc" }), 0.18, 0.55, 0, 0.02);
-  arm.rotation.z = -0.7;
-  const handle = mesh(new THREE.CapsuleGeometry(0.09, 0.7, 6, 14), glossy({ color: "#e5484d" }));
-  handle.position.set(0.72, 0.95, 0); handle.rotation.z = -1.0;
-  g.add(disc, hub, arm, handle);
   g.userData.disc = disc;
   return g;
 }
