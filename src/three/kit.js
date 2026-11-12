@@ -79,15 +79,32 @@ const TEX = {
     return paint(256, (u, v) => mix(mix(a, b, fbm(u * 8, v * 8)), dark, sstep(0.6, 0.75, fbm(u * 40, v * 40, 2)) * 0.6));
   },
   stem: () => paint(128, (u, v) => mix(rgb("#9ccc63"), rgb("#d4ecaa"), fbm(u * 18, v * 2, 3))),
-  wood: () => {
-    const a = rgb("#b8723c"), b = rgb("#e9b27a");
-    return paint(256, (u, v) => mix(a, b, 0.5 + 0.5 * Math.sin(v * 70 + fbm(u * 3, v * 3) * 9)));
+  wood: () => { // veio de verdade: anéis deformados pelo ruído, fibras finas e um nó de vez em quando
+    const a = rgb("#d9a066"), b = rgb("#f6d6a6"), fiber = rgb("#b87c44");
+    return paint(256, (u, v) => {
+      const warp = fbm(u * 2.5, v * 1.2, 4) * 6, knot = Math.exp(-((u - 0.7) ** 2 + (v - 0.35) ** 2) * 90) * 3;
+      const ring = 0.5 + 0.5 * Math.sin((v * 9 + warp + knot) * Math.PI * 2);
+      let c = mix(a, b, 0.35 + 0.5 * ring ** 1.6);
+      c = mix(c, fiber, sstep(0.55, 0.85, fbm(u * 60, v * 5, 2)) * 0.3);
+      return mix(c, b, (fbm(u * 8, v * 8, 2) - 0.5) * 0.4);
+    });
+  },
+  // madeira clara de tábua: veio reto ao longo de u (a emenda espelhada some no sentido do veio)
+  maple: () => {
+    const a = rgb("#ecc391"), b = rgb("#fbe6c4"), line = rgb("#d39a5c");
+    return paint(256, (u, v) => {
+      const w = v * 22 + fbm(u * 1.5, v * 6, 3) * 1.6;
+      let c = mix(a, b, 0.5 + 0.5 * Math.sin(w * Math.PI * 2));
+      c = mix(c, line, (1 - sstep(0.0, 0.08, Math.abs((w % 1 + 1) % 1 - 0.5))) * 0.35);
+      return mix(c, line, sstep(0.6, 0.85, fbm(u * 40, v * 3, 2)) * 0.15);
+    }, { repeat: 0.3 });
   },
   speckle: () => {
-    const a = rgb("#2b2733"), b = rgb("#4a4456");
+    // esmalte cinza-azulado com pintinhas claras: o fundo da panela nunca fica preto
+    const a = rgb("#56627a"), b = rgb("#6e7c95");
     return paint(256, (u, v) => {
       const c = mix(a, b, fbm(u * 10, v * 10));
-      return hash(Math.floor(u * 160), Math.floor(v * 160)) > 0.93 ? mix(c, rgb("#9a94a8"), 0.6) : c;
+      return hash(Math.floor(u * 160), Math.floor(v * 160)) > 0.93 ? mix(c, rgb("#e4e9f2"), 0.6) : c;
     });
   },
   brushed: () => paint(256, (u, v) => { const g = 120 + fbm(u * 2, v * 90, 3) * 90; return [g, g, g]; }, { srgb: false }),
@@ -213,7 +230,7 @@ export function servingPlate() {
   const plate = new THREE.Group();
   const porcelain = new THREE.MeshPhysicalMaterial({ color: "#fdfcfa", roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.08, side: THREE.DoubleSide });
   const well = mesh(new THREE.LatheGeometry([V2(0, 0.08), V2(1.15, 0.08), V2(1.3, 0.14)], 96), porcelain);
-  const rim = mesh(new THREE.LatheGeometry([V2(1.3, 0.14), V2(1.6, 0.19), V2(1.9, 0.24), V2(1.97, 0.25)], 96), glossy({ color: "#3e4f8f", roughness: 0.25 }));
+  const rim = mesh(new THREE.LatheGeometry([V2(1.3, 0.14), V2(1.6, 0.19), V2(1.9, 0.24), V2(1.97, 0.25)], 96), glossy({ color: "#7cc4e8", roughness: 0.2 }));
   const under = mesh(new THREE.LatheGeometry([V2(1.97, 0.25), V2(1.99, 0.22), V2(1.7, 0.1), V2(1.2, 0.02), V2(0, 0.02)], 96), porcelain);
   for (const m of [well, rim, under]) { m.receiveShadow = true; plate.add(m); }
   const gold = metal({ color: "#f0c060", roughness: 0.22 });
@@ -386,6 +403,9 @@ export const build = {
     s.bezierCurveTo(-0.8, -0.85, -1.15, -0.5, -1.2, 0);
     const meat = new THREE.ExtrudeGeometry(s, { depth: 0.26, bevelEnabled: true, bevelThickness: 0.14, bevelSize: 0.14, bevelSegments: 8, curveSegments: 40 });
     meat.rotateX(-Math.PI / 2);
+    // UV do extrude vai de -1.4 a 1.4: desloca para a textura (repeat 0.42) não espelhar no meio do bife
+    const uv = meat.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 0.8 + 1.2, uv.getY(i) * 0.8 + 1.2);
     const m = cooked ? tex("searedBeef") : tex("rawBeef");
     g.add(mesh(meat, food({ map: m, bumpMap: m, bumpScale: cooked ? 3 : 1.5, roughness: cooked ? 0.5 : 0.4, clearcoat: cooked ? 0.6 : 0.8, clearcoatRoughness: 0.3 })));
     // capa de gordura na borda de trás e da direita
@@ -524,8 +544,9 @@ export const build = {
     const hole = new THREE.Path(); hole.absarc(W + 0.24, 0, 0.1, 0, Math.PI * 2, true); s.holes.push(hole);
     const geo = new THREE.ExtrudeGeometry(s, { depth: 0.14, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06, bevelSegments: 5, curveSegments: 24 });
     geo.rotateX(-Math.PI / 2); geo.translate(0, 0.06, 0);
-    const grain = tex("wood").clone(); grain.repeat.set(0.35, 0.35); grain.needsUpdate = true;
-    const top = mesh(geo, food({ map: grain, bumpMap: grain, bumpScale: 0.6, roughness: 0.55, clearcoat: 0.25 }));
+    const uv = geo.attributes.uv; // mantém o UV longe do zero: o MirroredRepeat espelhava o veio no meio da tábua
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 0.6 + 1.7, uv.getY(i) * 0.6 + 1.7);
+    const top = mesh(geo, food({ map: tex("maple"), bumpMap: tex("maple"), bumpScale: 0.12, roughness: 0.5, clearcoat: 0.3 }));
     top.receiveShadow = true;
     g.add(top);
     if (knife) {
@@ -589,10 +610,11 @@ export const build = {
   // Wok de ferro; `userData.floor(r)` dá a altura do fundo de dentro a cada raio.
   wok({ filled = false } = {}) {
     const g = new THREE.Group();
-    const iron = metal({ color: "#3a3f46", metalness: 0.7, roughness: 0.35 });
+    // esmalte azul-piscina por fora, antiaderente cinza-azulado com pintinhas por dentro (nunca preto)
+    const iron = glossy({ color: "#35b4d8", roughness: 0.22, clearcoatRoughness: 0.08 });
     g.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.4, 0), V2(0.8, 0.12), V2(1.15, 0.35), V2(1.4, 0.62), V2(1.48, 0.72), V2(1.5, 0.76), V2(1.46, 0.78)], 64), iron));
     const inside = mesh(new THREE.LatheGeometry([V2(1.46, 0.78), V2(1.12, 0.42), V2(0.78, 0.2), V2(0.4, 0.09), V2(0, 0.07)], 64),
-      metal({ color: "#2a2e33", metalness: 0.6, roughness: 0.4 }));
+      new THREE.MeshPhysicalMaterial({ map: tex("speckle"), roughness: 0.4, clearcoat: 0.7, clearcoatRoughness: 0.25, side: THREE.DoubleSide }));
     inside.receiveShadow = true;
     g.add(inside);
     const floor = (r) => 0.06 + 0.27 * r * r;
@@ -648,17 +670,20 @@ export const build = {
 
   stove() {
     const g = new THREE.Group();
-    const body = mesh(new RoundedBoxGeometry(3.2, 0.55, 2.6, 4, 0.12), metal({ color: "#d5dade", roughness: 0.3, roughnessMap: tex("brushed") }));
+    // fogareiro de brinquedo: corpo de esmalte branco, tampo creme, moldura e trempe coloridas
+    const body = mesh(new RoundedBoxGeometry(3.2, 0.55, 2.6, 4, 0.12), glossy({ color: "#fffaf6", roughness: 0.25 }));
     body.position.y = 0.275;
-    const glass = mesh(new RoundedBoxGeometry(2.9, 0.06, 2.1, 3, 0.03), glossy({ color: "#30353b", roughness: 0.15 }));
+    const glass = mesh(new RoundedBoxGeometry(2.9, 0.06, 2.1, 3, 0.03), glossy({ color: "#f3f6fb", roughness: 0.15 }));
     glass.position.set(0, 0.56, -0.12); glass.receiveShadow = true;
-    g.add(body, glass);
-    const burner = mesh(new THREE.CylinderGeometry(0.4, 0.44, 0.08, 40), metal({ color: "#2a2e33", roughness: 0.4 }));
+    const frame = mesh(new THREE.TorusGeometry(0.98, 0.05, 10, 4).rotateX(Math.PI / 2).rotateY(Math.PI / 4), glossy({ color: "#5ec7e6", roughness: 0.25 }));
+    frame.scale.set(1.25, 1, 0.92); frame.position.set(0, 0.6, -0.12); // moldura quadrada em volta da boca
+    g.add(body, glass, frame);
+    const burner = mesh(new THREE.CylinderGeometry(0.4, 0.44, 0.08, 40), metal({ color: "#8a93a3", roughness: 0.35 }));
     burner.position.set(0, 0.63, -0.12);
-    const cap = mesh(new THREE.CylinderGeometry(0.26, 0.28, 0.07, 40), metal({ color: "#1a1d21", roughness: 0.35 }));
+    const cap = mesh(new THREE.CylinderGeometry(0.26, 0.28, 0.07, 40), metal({ color: "#5a6170", roughness: 0.35 }));
     cap.position.set(0, 0.7, -0.12);
     g.add(burner, cap);
-    const grate = metal({ color: "#1f2328", metalness: 0.5, roughness: 0.5 });
+    const grate = glossy({ color: "#ffb347", roughness: 0.3 });
     for (let i = 0; i < 4; i++) { // trempe: quatro braços com pezinho
       const a = i / 4 * Math.PI * 2 + Math.PI / 4, c = Math.cos(a), s = Math.sin(a);
       const arm = mesh(new RoundedBoxGeometry(0.7, 0.08, 0.08, 2, 0.03), grate);
@@ -688,9 +713,9 @@ export const build = {
     const knobs = [];
     for (const x of [-1.05, -0.35, 0.35, 1.05]) { // botões na frente
       const knob = new THREE.Group();
-      const k = mesh(new THREE.CylinderGeometry(0.13, 0.14, 0.12, 24), metal({ color: "#eef2f7", roughness: 0.2 }));
+      const k = mesh(new THREE.CylinderGeometry(0.13, 0.14, 0.12, 24), glossy({ color: "#f483a6", roughness: 0.25 }));
       k.rotation.x = Math.PI / 2;
-      const mark = mesh(new RoundedBoxGeometry(0.035, 0.14, 0.03, 2, 0.012), glossy({ color: "#30353b" }));
+      const mark = mesh(new RoundedBoxGeometry(0.035, 0.14, 0.03, 2, 0.012), glossy({ color: "#fffaf5" }));
       mark.position.set(0, 0.04, 0.07);
       knob.add(k, mark);
       knob.position.set(x, 0.28, 1.34);
