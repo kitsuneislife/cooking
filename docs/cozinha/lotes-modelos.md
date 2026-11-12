@@ -7,6 +7,8 @@ A lista de origem, com construtores e o que fica em código, é o [inventário](
 - **Procedural:** já existe em código e vai ser refeito no Blender, depois arquivado.
 - **Novo:** ainda não existe no jogo e nasce direto no Blender.
 - A ordem das levas é a ordem sugerida: primeiro o que aparece em toda partida, depois o que só as receitas novas pedem.
+- Para fazer uma leva: `/lote <número>` no Claude Code (acrescente `direto` para pular a espera da aprovação). O roteiro completo está em `.claude/commands/lote.md`.
+- Item novo de receita que ainda não é jogável é modelado e versionado, mas só entra no jogo quando a receita entrar.
 
 ## Visão geral
 

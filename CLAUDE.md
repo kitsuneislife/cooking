@@ -19,6 +19,8 @@ O visual 3D está sendo refeito aos poucos, uma leva de cada vez, com modelos ma
 6. **Depois de aprovado, trocar no jogo.** O modelo procedural sai do caminho do jogo e vai para `src/three/archive/` (arquivado, não apagado), e o jogo passa a carregar o `.glb` por `src/three/models.js`. Aproveitar cada troca para deixar o jogo mais leve: medir antes e depois (triângulos e chamadas de desenho), reaproveitar geometria e material, carregar o `.glb` uma vez só.
 7. Anotar sempre: toda lição nova e todo erro consertado vão para o fim de `pipeline-blender.md` (modelagem) ou de `modelos-3d.md` (troca no jogo e desempenho), e o progresso em `modelos-3d.md`. O objetivo é cada leva sair melhor e mais rápida que a anterior.
 
+As levas que faltam estão em [docs/cozinha/lotes-modelos.md](docs/cozinha/lotes-modelos.md). Para fazer uma leva inteira, da branch ao merge, usar o comando `/lote <número>` (roteiro em `.claude/commands/lote.md`); cada leva roda na sua worktree, então dá para tocar várias em paralelo.
+
 O que fica parado na cena (ingrediente na feira, prato pronto) vem do Blender como `.glb` em `public/models/`. O que muda durante o minijogo (massa que abre, queijo que derrete, líquido que enche) continua em código, em `src/three/`.
 
 ## Comandos
