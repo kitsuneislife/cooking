@@ -199,7 +199,20 @@ Ficaram de fora desta leva o brócolis (a proposta pesa muito em vértices) e o 
 
 **Próximas levas.** O mesmo vai ser feito com os outros modelos, progressivamente: primeiro os ingredientes da feira que aparecem mais, depois os pratos prontos da tela de resultado. Para cada um: abrir os modelos de referência parecidos, anotar o que eles fazem melhor, fazer a proposta fora do jogo, comparar lado a lado e só então trazer.
 
-**Blender (para testar depois).** Queremos testar o MCP do Blender para modelar. A ideia é um caminho misto: o que fica parado na cena (pratos prontos, embalagens, pratos com muita mistura, como o refogado) é modelado no Blender e exportado como `.glb`, com a textura já assada; o que muda durante o minijogo (massa que abre, queijo que derrete, líquido que enche) continua em código. Ainda não começou. O primeiro teste deve ser o refogado, justamente onde o código sozinho não chegou lá. Todo trabalho no Blender segue a skill [blender](../skills/blender/SKILL.md).
+**Leva 2 (12/11/2026): brócolis, limão, manga, refogado, frango com salsa de manga e tiramisù.** A primeira feita no Blender, pelo caminho misto: o que fica parado na cena vem do Blender como `.glb` com a textura assada, e o que muda durante o minijogo continua em código. O passo a passo e as lições estão em [pipeline-blender.md](pipeline-blender.md).
+
+Os seis modelos já estão em `public/models/`, mas **o jogo ainda não os carrega**. O próximo passo é trazê-los: carregar com o `GLTFLoader` do three.js, acertar a escala com a do código e trocar os construtores atuais, um de cada vez, conferindo na tela do jogo.
+
+| Modelo | Detalhado (triângulos) | No jogo (triângulos) | `.glb` |
+|---|---|---|---|
+| Brócolis (inteiro e florete) | 42 mil | 3.000 | 199 KB |
+| Limão (inteiro e metade) | 7 mil | 3.000 | 144 KB |
+| Manga (inteira e "porco-espinho") | 30 mil | 4.200 | 239 KB |
+| Refogado de carne com brócolis | 139 mil | 9.000 | 843 KB |
+| Frango com salsa de manga | 22 mil | 9.750 | 689 KB |
+| Tiramisù | 22 mil | 6.500 | 411 KB |
+
+Na comparação, o brócolis atual do jogo já era bom de silhueta; o ganho do novo está nos botões e na cor. O refogado é onde o Blender mais rendeu, porque o código sozinho não chegou lá. O frango é o mais fraco: as fatias ainda ficam soltas no prato e pedem outra volta antes de entrar no jogo. Todo trabalho no Blender segue a skill [blender](../skills/blender/SKILL.md).
 
 ## Para a próxima etapa
 
