@@ -58,6 +58,19 @@ Quadros tirados a cada minuto do mesmo vídeo, olhando só para luz, cor e acaba
 - **Efeitos fofos e coloridos.** Estrelas de quatro pontas em amarelo, rosa e menta, coraçõezinhos, nuvens de vapor redondinhas, bolhas na água. Um brilho suave (bloom) só nos pontos mais claros.
 - **Borda lisa.** Nenhum serrilhado nem cintilação; tudo parece bem acabado.
 
+### A comida de perto (revisto em 12/11/2026, para os modelos 3D)
+
+Quadros a cada 30 segundos, olhando só para a comida. Também é inferência.
+
+- **Comida quase foto, utensílio brinquedo.** O contraste é o segredo: a panela é lisa e de uma cor só, e a carne, o morango e a cebola têm textura de foto. Se a comida ficar lisa como o utensílio, tudo vira plástico.
+- **A comida ocupa a tela.** No close, o alimento enche metade do quadro; não existe "pecinha pequena" que precise ser lida de longe.
+- **Brilho onde é molhado.** Morango e carne crua têm um ponto de luz forte e pequeno; creme batido e massa ficam foscos. Um brilho espalhado em tudo deixa a comida com cara de vela.
+- **Creme em roseta** de bico pitanga, com sulcos em espiral, é o enfeite de sobremesa mais repetido.
+- **O prato pronto** fica num prato branco de borda azul, por cima da toalhinha de renda, com fruta inteira e cortada em volta.
+- **Corte mostra o miolo.** Cebola, batata e cenoura aparecem cortadas na tábua, com o miolo mais claro que a casca.
+
+Como isso vira modelo está em [../cozinha/pipeline-blender.md](../cozinha/pipeline-blender.md).
+
 ## O que levamos
 
 | Ideia | Onde entrou |
