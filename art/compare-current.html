@@ -1,0 +1,66 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#fff;overflow:hidden}</style></head>
+<body><script type="module">
+// Temporário: foto dos modelos atuais do jogo, sozinhos, para a comparação com o Blender.
+import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { build, servingPlate, beefStrip, searedMat, castAll } from "/src/three/kit.js";
+import { mango, lime, limeWedge, chicken, piece, ladyfinger } from "/src/three/foods.js";
+import { glassDish } from "/src/three/gear.js";
+
+const item = new URLSearchParams(location.search).get("item");
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setSize(innerWidth, innerHeight);
+r.toneMapping = THREE.NeutralToneMapping; r.toneMappingExposure = 0.98;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#ffffff");
+scene.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.75;
+scene.add(new THREE.HemisphereLight("#fffaf4", "#ffd3dc", 1.0));
+const sun = new THREE.DirectionalLight("#fff3e2", 1.8); sun.position.set(-5, 12, 7); scene.add(sun);
+const fill = new THREE.DirectionalLight("#ffe3ee", 0.7); fill.position.set(6, 4, -5); scene.add(fill);
+
+const g = new THREE.Group();
+const make = {
+  broccoli: () => g.add(build.broccoli()),
+  mango: () => g.add(mango()),
+  lime: () => { const a = lime(); a.position.x = -0.6; const b = limeWedge(); b.position.x = 0.6; g.add(a, b); },
+  stirfry: () => g.add(build.stirfry()),
+  chicken: () => { // como o minijogo Empratar deixa: sobrecoxa grelhada e colheradas de salsa
+    g.add(servingPlate());
+    const c = chicken("grilled"); c.position.y = 0.15; g.add(c);
+    let s = 7; const rand = () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
+    for (const id of ["mango", "onion", "cilantro", "jalapeno", "mango", "cilantro", "mango", "onion"]) {
+      const p = piece(id); p.scale.setScalar(1.5);
+      p.position.set((rand() - 0.5) * 1.1, 0.45, (rand() - 0.5) * 0.8); p.rotation.y = rand() * 6; g.add(p);
+    }
+  },
+  tiramisu: () => { // a travessa no fim: biscoitos molhados, creme e cacau
+    const d = glassDish(2.3, 1.8), inner = d.userData.inner; g.add(d);
+    for (let i = 0; i < 4; i++) {
+      const b = ladyfinger(); b.position.set(-0.75 + i * 0.5, inner.y + 0.08, 0); b.rotation.y = Math.PI / 2;
+      b.traverse((m) => m.material?.color?.set("#8a5a2c")); g.add(b);
+    }
+    const cream = new THREE.Mesh(new THREE.BoxGeometry(inner.w, 0.2, inner.d), new THREE.MeshPhysicalMaterial({ color: "#fff3cf", roughness: 0.5 }));
+    cream.position.y = inner.y + 0.3; g.add(cream);
+    const dot = new THREE.SphereGeometry(0.03, 6, 4);
+    for (let i = 0; i < 900; i++) {
+      const m = new THREE.Mesh(dot, new THREE.MeshStandardMaterial({ color: ["#5a2a12", "#6b3418", "#4a200c"][i % 3] }));
+      m.position.set((Math.random() - 0.5) * inner.w, inner.y + 0.41, (Math.random() - 0.5) * inner.d); g.add(m);
+    }
+  },
+};
+make[item]();
+castAll?.(g);
+scene.add(g);
+const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new THREE.Vector3()), rad = box.getSize(new THREE.Vector3()).length() / 2;
+const elev = { broccoli: 28, mango: 38, lime: 35 }[item] ?? 50, az = -30;
+const cam = new THREE.PerspectiveCamera(26, innerWidth / innerHeight, 0.01, 100);
+const e = THREE.MathUtils.degToRad(elev), a = THREE.MathUtils.degToRad(az), dist = rad * 0.8 / Math.sin(THREE.MathUtils.degToRad(13));
+// Blender é Z-up e olha de -Y; no three (Y-up) o mesmo ponto fica em +Z
+cam.position.set(c.x + Math.cos(e) * Math.sin(a) * dist, c.y + Math.sin(e) * dist, c.z + Math.cos(e) * Math.cos(a) * dist);
+cam.lookAt(c);
+r.render(scene, cam);
+window.ready = true;
+</script></body></html>
