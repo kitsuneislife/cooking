@@ -201,7 +201,7 @@ Ficaram de fora desta leva o brócolis (a proposta pesa muito em vértices) e o 
 
 **Leva 2 (12/11/2026): brócolis, limão, manga, refogado, frango com salsa de manga e tiramisù.** A primeira feita no Blender, pelo caminho misto: o que fica parado na cena vem do Blender como `.glb` com a textura assada, e o que muda durante o minijogo continua em código. O passo a passo e as lições estão em [pipeline-blender.md](pipeline-blender.md).
 
-Os seis modelos já estão em `public/models/`, mas **o jogo ainda não os carrega**. O próximo passo é trazê-los: carregar com o `GLTFLoader` do three.js, acertar a escala com a do código e trocar os construtores atuais, um de cada vez, conferindo na tela do jogo.
+Aprovados pelo usuário em 12/11/2026 e **já no jogo** (ver "Troca no jogo" abaixo).
 
 | Modelo | Detalhado (triângulos) | No jogo (triângulos) | `.glb` |
 |---|---|---|---|
@@ -212,7 +212,34 @@ Os seis modelos já estão em `public/models/`, mas **o jogo ainda não os carre
 | Frango com salsa de manga | 22 mil | 9.750 | 689 KB |
 | Tiramisù | 22 mil | 6.500 | 411 KB |
 
-Na comparação, o brócolis atual do jogo já era bom de silhueta; o ganho do novo está nos botões e na cor. O refogado é onde o Blender mais rendeu, porque o código sozinho não chegou lá. O frango é o mais fraco: as fatias ainda ficam soltas no prato e pedem outra volta antes de entrar no jogo. Todo trabalho no Blender segue a skill [blender](../skills/blender/SKILL.md).
+Na comparação, o brócolis atual do jogo já era bom de silhueta; o ganho do novo está nos botões e na cor. O refogado é onde o Blender mais rendeu, porque o código sozinho não chegou lá. O frango é o mais fraco e pede outra volta numa leva futura. Todo trabalho no Blender segue a skill [blender](../skills/blender/SKILL.md).
+
+### Troca no jogo
+
+A regra: depois que o usuário aprova uma leva, o modelo procedural sai do caminho do jogo e vai para `src/three/archive/procedural.js` (arquivado, não apagado; a página `art/compare-current.html` usa o arquivo para as próximas comparações), e o jogo passa a carregar o `.glb`. Cada troca também é uma chance de deixar o jogo mais leve, medida antes e depois.
+
+Como ficou a leva 2:
+
+- `src/three/models.js` carrega os `.glb` uma vez, junto com a fonte, antes de montar a cena. Depois disso `model(nome)` é síncrono, e cada cópia divide geometria, material e textura com as outras: só o nó é novo. O `warm()` do mundo também compila os shaders e sobe as texturas dos modelos que ainda não estão na cena (os pratos prontos), para a revelação não travar.
+- **Brócolis:** `build.broccoli()` devolve o `.glb` na escala do procedural antigo, então wok, cesta, porções e feira não mudaram.
+- **Manga e limão:** a feira mostra o modelo inteiro com a metade (o limão cortado, a banda da manga em cubinhos). Na tábua do picar, a manga entra só inteira, porque os cubinhos são o resultado do corte. O gomo de limão e os cubinhos que caem continuam em código.
+- **Pratos prontos:** a etapa ganhou o campo `dish` em `src/data/games.js`. No Empratar (refogado e frango), enquanto a cúpula está fechada, o que o jogador montou some e o prato do Blender toma o lugar. No tiramisù, a travessa sai da geladeira num brilho e volta como o prato pronto, que é o que a foto final enquadra. O paninho do Blender fica de fora: na cozinha o prato já está sobre a toalhinha de renda.
+- Saíram do jogo: o brócolis procedural (13 bolinhas calombentas), a manga e o limão em torno, as duas texturas pintadas do brócolis (menos trabalho na abertura) e dois pratos que nunca eram chamados (`build.stirfry` e `build.seared`).
+
+| Medida | Antes | Depois |
+|---|---|---|
+| Brócolis, triângulos por cópia | ~44.900 (2 malhas) | 3.000 (1 malha) |
+| Feira da receita 8, triângulos por quadro | 915.970 | 676.562 (−26%) |
+| Feira da receita 8, chamadas de desenho por quadro | 722 | 719 |
+
+A feira foi medida com a mesma arrumação (o sorteio fixado), contando as chamadas de desenho do WebGL num quadro, com a sombra e o pós-processamento. O brócolis pesa ainda mais no wok, que tem cinco cópias, e nas porções do prato. A manga (4.200) e o limão (3.000) ficaram mais pesados que os procedurais (~600 e ~500), de propósito: são eles que levam a cara de comida gostosa, e mesmo assim cabem no orçamento.
+
+Lições da troca:
+
+1. **Medir com a mesma cena.** A feira sorteia a posição dos itens, e a câmera corta o que fica fora do quadro, então duas medidas sem fixar o sorteio não se comparam. Fixar `Math.random` antes de começar a partida resolve.
+2. **Pane escondido não roda `requestAnimationFrame`.** Para contar um quadro, embrulhar o `requestAnimationFrame` e guardar a contagem de cada quadro; uma captura de tela força o quadro.
+3. **O tamanho cru do `.glb` não é o do procedural.** Quem passa por `fit` (feira, picar, despejar) não sente; quem usa escala fixa (o brócolis no wok e nas porções) precisa de um invólucro com a escala antiga. Conferir lado a lado, antigo e novo, numa página de teste antes de abrir o jogo.
+4. **O GLTFLoader limpa o nome do nó** (`lime.001` vira `lime001`). Filtrar partes por pedaço do nome (`cloth`, `cheek`), nunca pelo nome inteiro.
 
 ## Para a próxima etapa
 

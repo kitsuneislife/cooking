@@ -10,10 +10,10 @@ Cada leva:
 
 1. Escolhe alguns ingredientes e pratos do MVP (as receitas de `MENU` em `src/data/games.js`).
 2. Estuda a referência: o modelo parecido em `models/extracted` e os quadros do vídeo.
-3. Modela no Blender, pelos scripts de `art/blender/`.
+3. Modela no Blender, pelos scripts de `art/blender/`, pensando em desempenho desde o começo: dentro do orçamento abaixo, sem polígono que não aparece na tela.
 4. Compara lado a lado: a referência, o modelo atual do jogo e o novo.
-5. Só depois, se o novo ficou claramente melhor, leva para o jogo.
-6. Anota o que aprendeu aqui e o progresso em [modelos-3d.md](modelos-3d.md).
+5. Depois que o usuário aprova, troca no jogo: o procedural vai para `src/three/archive/` (arquivado, não apagado) e o jogo carrega o `.glb` por `src/three/models.js`, medindo triângulos e chamadas de desenho antes e depois. O como está em [modelos-3d.md](modelos-3d.md), em "Troca no jogo".
+6. Anota toda lição e todo erro consertado (aqui, os de modelagem; em [modelos-3d.md](modelos-3d.md), os da troca e de desempenho) e o progresso. Cada leva tem que sair melhor e mais rápida que a anterior.
 
 ## Por que script, e não arquivo `.blend`
 
@@ -31,7 +31,7 @@ O MCP do Blender também funciona, mas pede o Blender aberto com o servidor liga
 | `art/blender/build.py` | Monta, assa, exporta e renderiza um modelo. |
 | `art/blender/ref.py` | Renderiza um modelo de referência na mesma luz, só para comparar. |
 | `art/compare-current.html` | Foto do modelo atual do jogo, sozinho, com a luz do jogo (abrir pelo servidor de desenvolvimento). |
-| `public/models/<nome>.glb` | O que o jogo carrega. |
+| `public/models/<nome>.glb` | O que o jogo carrega, por `src/three/models.js` (nome novo entra na lista `MODELS`). |
 
 ## Rodar
 
