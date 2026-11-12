@@ -1,0 +1,20 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fde6ec}</style></head>
+<body><script type="module">
+// Foto do cenário (cozinha e feira) num plano de câmera, sem jogar uma partida.
+// Uso: /art/scene.html?shot=wide (nomes em SHOTS, src/three/world.js). `window.stats()` conta
+// triângulos e chamadas de desenho de um quadro, com sombra e pós-processamento.
+import { createWorld } from "/src/three/world.js";
+
+const shot = new URLSearchParams(location.search).get("shot") || "wide";
+const world = await createWorld(document.body);
+world.go(shot, 0);
+window.world = world;
+window.stats = () => new Promise((done) => {
+  const gl = world.canvas.getContext("webgl2"), r = { calls: 0, tris: 0 };
+  const wrap = (name) => { const f = gl[name].bind(gl); gl[name] = (mode, ...a) => { r.calls++; const n = name === "drawArrays" ? a[1] : a[0]; r.tris += mode === gl.TRIANGLES ? n / 3 : 0; return f(mode, ...a); }; return () => { gl[name] = f; }; };
+  const undo = ["drawElements", "drawArrays"].map(wrap);
+  requestAnimationFrame(() => requestAnimationFrame(() => { undo.forEach((u) => u()); r.tris = Math.round(r.tris); done(r); }));
+});
+window.ready = true;
+</script></body></html>

@@ -1,45 +1,19 @@
 // Cenários: a cozinha (onde ficam as estações) e a banca da feira (fase 1).
 // Unidade: o tampo da bancada fica em y = 0; a parede de azulejo fica em z = -3.2.
+// O que fica parado (bancada, azulejo, prateleiras, janela, coifa, luminárias, miudezas,
+// banca, caixotes e barracas do fundo) vem do Blender (art/blender/models, carregado por
+// models.js); a versão antiga, toda em código, está em archive/sets.js.
 import {
   THREE, RoundedBoxGeometry, build, mesh, food, glossy, metal, woodMat, canvasTex, paint, tex,
-  rgb, mix, fbm, hash, sstep, seeded, V2, servingPlate, riceMound, castAll,
+  mix, fbm, hash, sstep, seeded, V2, servingPlate, castAll,
 } from "./kit.js";
-import { oven, grill, blender, fridge, pastrySlab, glass } from "./gear.js";
+import { oven, grill, blender, fridge, pastrySlab } from "./gear.js";
+import { model } from "./models.js";
 
 const repeatTex = (t, x, y) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(x, y); return t; };
+const part = (name, piece) => model(name, (n) => n === piece).children[0]; // uma malha do .glb
 
 /* ---------- Texturas do cenário ---------- */
-// azulejo quadrado em cores pastel misturadas, rejunte branco e brilho de esmalte em cada peça
-const PASTEL = ["#fbc9d6", "#c6efe2", "#fff1b8", "#ddd2f8", "#fffaf4", "#c9e6fb"];
-function pastelTiles() {
-  return canvasTex(512, 512, (x) => {
-    x.fillStyle = "#fffdfb"; x.fillRect(0, 0, 512, 512);
-    const rand = seeded(3);
-    for (let row = 0; row < 8; row++) for (let col = 0; col < 8; col++) {
-      const px = col * 64 + 3, py = row * 64 + 3, c = PASTEL[Math.floor(rand() * PASTEL.length)];
-      const g = x.createLinearGradient(px, py, px + 58, py + 58);
-      g.addColorStop(0, "#ffffff"); g.addColorStop(0.25, c); g.addColorStop(1, c);
-      x.fillStyle = g; x.beginPath(); x.roundRect(px, py, 58, 58, 7); x.fill();
-      x.fillStyle = "#00000010"; x.beginPath(); x.roundRect(px + 2, py + 52, 54, 6, 3); x.fill(); // borda de baixo um pouco mais escura
-      x.fillStyle = "#ffffffb0"; x.beginPath(); x.roundRect(px + 7, py + 6, 22, 5, 3); x.fill(); // brilho do esmalte
-    }
-  });
-}
-function accentTiles() { // faixa decorada: florzinha rosa de quatro pétalas, miolo amarelo, cantos menta
-  return canvasTex(256, 256, (x) => {
-    x.fillStyle = "#fffaf4"; x.fillRect(0, 0, 256, 256);
-    x.strokeStyle = "#f4d8df"; x.lineWidth = 6; x.strokeRect(0, 0, 256, 256);
-    x.fillStyle = "#f483a6";
-    for (let i = 0; i < 4; i++) {
-      x.save(); x.translate(128, 128); x.rotate(i * Math.PI / 2 + Math.PI / 4);
-      x.beginPath(); x.ellipse(0, -44, 28, 40, 0, 0, Math.PI * 2); x.fill(); x.restore();
-    }
-    x.fillStyle = "#ffd45a"; x.beginPath(); x.arc(128, 128, 22, 0, Math.PI * 2); x.fill();
-    x.fillStyle = "#ffffffaa"; x.beginPath(); x.arc(121, 121, 7, 0, Math.PI * 2); x.fill();
-    x.fillStyle = "#8fdcc6";
-    for (const [cx, cy] of [[0, 0], [256, 0], [0, 256], [256, 256]]) { x.beginPath(); x.arc(cx, cy, 34, 0, Math.PI * 2); x.fill(); }
-  });
-}
 function wallpaper() { // papel de parede menta com listras claras e bolinhas brancas
   return canvasTex(256, 256, (x) => {
     x.fillStyle = "#b8ecd9"; x.fillRect(0, 0, 256, 256);
@@ -48,19 +22,6 @@ function wallpaper() { // papel de parede menta com listras claras e bolinhas br
     x.fillStyle = "#ffffffcc";
     for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { x.beginPath(); x.arc(i * 64 + 52, j * 64 + (i % 2) * 32 + 16, 4, 0, Math.PI * 2); x.fill(); }
   });
-}
-function butcherBlock() { // tampo de réguas amarelo-mel, cada régua de um tom, com veio macio
-  // amarelo-limão no albedo: sob a luz ele escurece para o amarelo-mel da referência, sem virar laranja
-  const tones = ["#ffe866", "#fff08c", "#ffe35a", "#fff29a", "#ffea72", "#ffee84"].map(rgb);
-  return paint(512, (u, v) => {
-    const strip = Math.floor(v * 8), base = tones[strip % tones.length];
-    const fiber = fbm(u * 3 + strip * 7, v * 60, 3);
-    const grain = 0.5 + 0.5 * Math.sin(u * 40 + fiber * 9 + strip);
-    let c = mix(base, mix(base, [236, 184, 60], 0.5), grain * 0.3);
-    c = mix(c, [255, 246, 214], sstep(0.62, 0.8, fbm(u * 6, v * 30 + strip, 2)) * 0.25); // reflexo claro no veio
-    const seam = Math.abs((v * 8) % 1 - 0.5);
-    return mix(c, [232, 184, 74], 1 - sstep(0.0, 0.012, seam - 0.485)); // junta entre réguas
-  }, { repeat: 1 });
 }
 // Jogo americano de pano: estampa, costura tracejada a 6% da borda e cantos arredondados.
 const MAT_PRINT = {
@@ -131,7 +92,7 @@ function cobble() {
     return mix([96, 74, 58], c, sstep(0.02, 0.12, edge));
   });
 }
-function skyTex(stalls) { // céu de fim de tarde com nuvens macias e, na feira, barracas ao fundo
+function skyTex() { // céu de fim de tarde com nuvens macias
   return canvasTex(1024, 512, (x, w, h) => {
     const g = x.createLinearGradient(0, 0, 0, h);
     g.addColorStop(0, "#7cc6f0"); g.addColorStop(0.6, "#bfe6f7"); g.addColorStop(1, "#ffe7c2");
@@ -142,44 +103,7 @@ function skyTex(stalls) { // céu de fim de tarde com nuvens macias e, na feira,
       const cx = rand() * w, cy = 60 + rand() * 160, s = 40 + rand() * 40;
       for (let k = 0; k < 5; k++) { x.beginPath(); x.arc(cx + (k - 2) * s * 0.7, cy + Math.abs(k - 2) * 8, s * (1 - Math.abs(k - 2) * 0.18), 0, Math.PI * 2); x.fill(); }
     }
-    if (!stalls) return;
-    const colors = ["#e5484d", "#2a8199", "#ff9a1f", "#4cbb5f", "#7a5cc8"];
-    for (let i = 0; i < 9; i++) { // barraquinhas distantes: toldo listrado e balcão
-      const sx = i * 120 - 20 + rand() * 30, sw = 100, top = 330 + rand() * 30;
-      x.fillStyle = "#c9a07a"; x.fillRect(sx + 6, top + 26, sw - 12, h - top);
-      for (let k = 0; k < 6; k++) { x.fillStyle = k % 2 ? "#fff6e3" : colors[i % colors.length]; x.fillRect(sx + k * sw / 6, top, sw / 6, 30); }
-      x.fillStyle = "#00000022"; x.fillRect(sx + 6, top + 30, sw - 12, 10);
-    }
   });
-}
-
-/* ---------- Peças de decoração ---------- */
-function jar(color, h, seed) { // pote de vidro com conteúdo e tampa de madeira
-  const g = new THREE.Group(), r = 0.42;
-  const glass = new THREE.MeshPhysicalMaterial({ color: "#eaf6ff", roughness: 0.05, transparent: true, opacity: 0.3, clearcoat: 1, depthWrite: false, side: THREE.DoubleSide });
-  g.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(r, 0), V2(r + 0.03, 0.08), V2(r + 0.03, h), V2(r - 0.05, h + 0.08)], 32), glass));
-  const fillH = h * (0.55 + seeded(seed)() * 0.3);
-  const stuff = mesh(new THREE.CylinderGeometry(r - 0.03, r - 0.03, fillH, 28), food({ color, roughness: 0.8, clearcoat: 0, bumpMap: tex("speckle"), bumpScale: 3 }));
-  stuff.position.y = fillH / 2 + 0.02;
-  const lid = mesh(new THREE.CylinderGeometry(r + 0.02, r + 0.04, 0.2, 28), woodMat());
-  lid.position.y = h + 0.16;
-  g.add(stuff, lid);
-  return g;
-}
-
-function pottedHerb(seed, leafColor = "#4cae3a", potColor = "#d9693a") {
-  const g = new THREE.Group(), rand = seeded(seed);
-  g.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.42, 0), V2(0.55, 0.7), V2(0.62, 0.72), V2(0.62, 0.86), V2(0.5, 0.86), V2(0, 0.8)], 32), glossy({ color: potColor, roughness: 0.6, clearcoat: 0.2 })));
-  const leafGeo = new THREE.SphereGeometry(0.17, 12, 8).scale(1, 0.35, 1.6);
-  const leaf = food({ color: leafColor, roughness: 0.45, clearcoat: 0.5 });
-  for (let i = 0; i < 22; i++) {
-    const a = rand() * Math.PI * 2, h = 0.9 + rand() * 0.9, r = rand() * 0.45;
-    const l = mesh(leafGeo, leaf);
-    l.position.set(Math.cos(a) * r, h, Math.sin(a) * r);
-    l.rotation.set(rand() - 0.5, a, 0.4 + rand() * 0.6);
-    g.add(l);
-  }
-  return g;
 }
 
 function floorTiles() { // piso xadrez creme e rosa
@@ -189,33 +113,20 @@ function floorTiles() { // piso xadrez creme e rosa
   });
 }
 
-// Janela com céu, caixilho branco, cortinas e vasos no peitoril.
-function windowUnit(seed) {
-  const win = new THREE.Group();
-  const sky = mesh(new THREE.PlaneGeometry(4.2, 3.6), new THREE.MeshBasicMaterial({ map: skyTex(false), color: new THREE.Color(1.25, 1.25, 1.25) }));
-  sky.position.z = -0.06; sky.userData.noShadow = true; // na frente da parede (z -3.2), atrás do caixilho
-  const frameMat = glossy({ color: "#fffaf0", roughness: 0.3 });
-  for (const [w, h, x, y] of [[4.6, 0.25, 0, 1.9], [4.6, 0.25, 0, -1.9], [0.25, 4, -2.2, 0], [0.25, 4, 2.2, 0], [0.12, 3.6, 0, 0], [4.2, 0.12, 0, 0.3]]) {
-    const b = mesh(new RoundedBoxGeometry(w, h, 0.3, 2, 0.05), frameMat); b.position.set(x, y, 0); win.add(b);
-  }
-  const sill = mesh(new RoundedBoxGeometry(5.2, 0.18, 0.9, 2, 0.06), frameMat); sill.position.set(0, -2.05, 0.3);
-  const herb = pottedHerb(seed); herb.scale.setScalar(0.6); herb.position.set(1.4, -1.96, 0.35);
-  const herb2 = pottedHerb(seed + 4, "#5fbf4a", "#f2c14a"); herb2.scale.setScalar(0.48); herb2.position.set(-1.6, -1.96, 0.35);
-  const cl = curtain(-1), cr = curtain(1);
-  cl.position.set(-2.5, -0.1, 0.35); cr.position.set(2.5, -0.1, 0.35);
-  win.add(sky, sill, herb, herb2, cl, cr);
-  win.userData.sky = sky;
+// Janela do Blender (caixilho, cortinas de xadrez, bandô, vasos) com o céu atrás do vidro.
+function windowUnit(sky) {
+  const win = model("window");
+  win.add(sky);
   return win;
 }
 
-function pendant(color, lit = true) { // luminária pendente: cúpula esmaltada e lâmpada que brilha
+// Luminária pendente do Blender (cúpula, fio) com a lâmpada que brilha e, nas primeiras, a luz.
+function pendant(lamp, lit = true) {
   const g = new THREE.Group();
-  const cord = mesh(new THREE.CylinderGeometry(0.025, 0.025, 6, 6), glossy({ color: "#2a1a10" }));
-  cord.position.y = 3.3;
-  const shade = mesh(new THREE.LatheGeometry([V2(0.12, 0.6), V2(0.25, 0.55), V2(0.75, 0.05), V2(0.82, 0), V2(0.78, -0.02)], 40), glossy({ color, roughness: 0.3 }));
+  g.add(part("lamp", lamp));
   const bulb = mesh(new THREE.SphereGeometry(0.22, 20, 14), new THREE.MeshBasicMaterial({ color: new THREE.Color("#fff1c8").multiplyScalar(2.2) }));
   bulb.position.y = 0.06; bulb.userData.noShadow = true;
-  g.add(cord, shade, bulb);
+  g.add(bulb);
   if (lit) { // só as primeiras iluminam de verdade: cada luz a mais pesa em todos os materiais
     const light = new THREE.PointLight("#ffe2b8", 5, 9, 1.6);
     light.position.y = -0.3;
@@ -252,38 +163,6 @@ function hangingSet() { // barra de utensílios pendurados
   return g;
 }
 
-function curtain(side) { // cortina de xadrez franzida, presa por uma fita
-  const geo = new THREE.PlaneGeometry(1.4, 4.4, 24, 30), p = geo.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), y = p.getY(i);
-    const pinch = 1 - 0.55 * Math.exp(-((y + 0.6) ** 2) * 2.2); // amarrada na altura da fita
-    p.setX(i, (x + side * 0.7) * pinch - side * 0.7);
-    p.setZ(i, Math.sin(x * 9 + y * 0.5) * 0.12 * pinch);
-  }
-  geo.computeVertexNormals();
-  const t = tex("gingham").clone(); t.repeat.set(0.7, 2.2); t.needsUpdate = true;
-  const m = mesh(geo, food({ map: t, roughness: 0.85, clearcoat: 0, sheen: 0.6, sheenColor: new THREE.Color("#fff") }));
-  const tie = mesh(new THREE.TorusGeometry(0.28, 0.06, 8, 20), glossy({ color: "#e5484d" }));
-  tie.position.set(side * -0.35, -0.6, 0.1); tie.scale.set(1, 0.5, 1); tie.rotation.x = Math.PI / 2;
-  const g = new THREE.Group(); g.add(m, tie);
-  return g;
-}
-
-function towel() { // pano de prato pendurado na beira da bancada
-  const geo = new THREE.PlaneGeometry(1.3, 2.2, 10, 20), p = geo.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), y = p.getY(i);
-    if (y > 0.4) { p.setZ(i, (y - 0.4) * -1); p.setY(i, 0.4 + 0.02); } // a parte de cima deita no tampo
-    p.setZ(i, p.getZ(i) + Math.sin(x * 6) * 0.04);
-  }
-  geo.computeVertexNormals();
-  const t = canvasTex(256, 256, (x) => {
-    x.fillStyle = "#fff8ee"; x.fillRect(0, 0, 256, 256);
-    x.fillStyle = "#e5484d"; for (const y of [40, 64, 192, 216]) x.fillRect(0, y, 256, y % 64 ? 8 : 14);
-  });
-  return mesh(geo, food({ map: t, roughness: 0.9, clearcoat: 0, sheen: 0.5 }));
-}
-
 /* ---------- Cozinha ---------- */
 // Onde fica cada estação no tampo (x) e os planos de câmera.
 export const STATION_X = { fridge: -13.3, board: -6.2, bowl: -1.2, stove: 3.8, plate: 9, grill: 15.5, oven: 21.5, bench: 27, blender: 32.5, bar: 37.5 };
@@ -292,149 +171,60 @@ const LEFT = -11, RIGHT = 40.5, MID = (LEFT + RIGHT) / 2, LENGTH = RIGHT - LEFT;
 export function buildKitchen() {
   const k = new THREE.Group();
 
-  // tampo de réguas e armários de baixo
+  // bancada: 12 módulos do Blender (tampo de réguas, gaveta, porta com almofada) que dividem
+  // geometria e material; separados, a câmera de perto só desenha os módulos que vê
   // o tampo e o chão recuam um pouco na profundidade: o fundo chato de cada peça apoiada
   // fica no mesmo plano do tampo e, sem isso, os dois brigam (z-fighting) na borda
   const under = { polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 };
-  const top = mesh(new RoundedBoxGeometry(LENGTH, 0.5, 6.2, 3, 0.12), food({ map: repeatTex(butcherBlock(), 6, 1), roughness: 0.5, clearcoat: 0.45, clearcoatRoughness: 0.35, ...under }));
-  top.position.set(MID, -0.25, -0.1); top.receiveShadow = true;
-  k.add(top);
-  const cab = mesh(new THREE.BoxGeometry(LENGTH - 0.4, 5, 5.8), glossy({ color: "#fff4ec", roughness: 0.4 }));
-  cab.position.set(MID, -2.75, -0.3);
-  k.add(cab);
+  const N = 12, step = LENGTH / N; // módulo de 4,3 no Blender
+  const counter = Array.from({ length: N }, (_, i) => {
+    const unit = part("counter", "counter");
+    Object.assign(unit.material, under);
+    unit.scale.x = step / 4.3; unit.position.x = LEFT + step * (i + 0.5);
+    k.add(unit);
+    return unit;
+  });
   const floor = mesh(new THREE.PlaneGeometry(90, 30), food({ map: repeatTex(floorTiles(), 30, 10), roughness: 0.5, clearcoat: 0.4, ...under }));
   floor.rotation.x = -Math.PI / 2; floor.position.set(MID, -5.25, 8); floor.receiveShadow = true;
   k.add(floor);
-  const doorMat = glossy({ color: "#f7a9bf", roughness: 0.3 }), panelMat = glossy({ color: "#fbc6d4", roughness: 0.3 }), knobMat = glossy({ color: "#fffaf5", roughness: 0.2 });
-  for (let i = 0; i < 12; i++) { // portas rosa com almofada e puxador branco
-    const door = mesh(new RoundedBoxGeometry(3.9, 4.2, 0.12, 3, 0.06), doorMat);
-    door.position.set(-9.8 + i * 4.15 + 2, -2.85, 2.6);
-    const inset = mesh(new RoundedBoxGeometry(3.2, 3.4, 0.06, 3, 0.03), panelMat);
-    inset.position.set(door.position.x, -2.95, 2.68);
-    const knob = mesh(new THREE.SphereGeometry(0.17, 20, 14), knobMat);
-    knob.scale.z = 0.7;
-    knob.position.set(door.position.x + (i % 2 ? -1.45 : 1.45), -1.35, 2.78);
-    k.add(door, inset, knob);
-  }
-
-  // parede: azulejo pastel até a faixa decorada, papel de parede menta acima
+  // parede: placa de azulejo do Blender (faixa de florzinhas e filete no alto) repetida na
+  // largura toda; papel de parede menta acima
   const WALL = 68, WALL_X = MID - 1; // sobra para os lados: a câmera nunca vê a ponta
-  const tiles = mesh(new THREE.PlaneGeometry(WALL, 3.4), food({ map: repeatTex(pastelTiles(), WALL / 6, 3.4 / 6), roughness: 0.25, clearcoat: 0.9, clearcoatRoughness: 0.15 }));
-  tiles.position.set(WALL_X, 1.7, -3.2); tiles.receiveShadow = true;
-  const band = mesh(new THREE.PlaneGeometry(WALL, 0.75), food({ map: repeatTex(accentTiles(), Math.round(WALL / 0.75), 1), roughness: 0.3, clearcoat: 0.8 }));
-  band.position.set(WALL_X, 3.77, -3.17); band.receiveShadow = true;
+  const tiles = part("wall", "wall"), PLATE = 4.08; // a placa vai de x 0 a 4,08 e fica em z 0,13
+  tiles.scale.x = WALL / PLATE; tiles.position.set(WALL_X - WALL / 2, 0, -3.33);
+  for (const t of new Set([tiles.material.map, tiles.material.normalMap, tiles.material.roughnessMap])) if (t) repeatTex(t, WALL / PLATE, 1);
   const paintWall = mesh(new THREE.PlaneGeometry(WALL, 12), food({ map: repeatTex(wallpaper(), WALL / 2.4, 5), roughness: 0.85, clearcoat: 0 }));
   paintWall.position.set(WALL_X, 10.1, -3.23); paintWall.receiveShadow = true;
   const lowWall = mesh(new THREE.PlaneGeometry(WALL, 5.3), food({ color: "#fde3e8", roughness: 0.9, clearcoat: 0 }));
   lowWall.position.set(WALL_X, -2.6, -3.24);
-  // filete branco entre a faixa e o papel de parede
-  const trim = mesh(new RoundedBoxGeometry(WALL, 0.14, 0.12, 2, 0.04), glossy({ color: "#fffaf5", roughness: 0.3 }));
-  trim.position.set(WALL_X, 4.17, -3.15);
-  k.add(tiles, band, paintWall, lowWall, trim);
+  k.add(tiles, paintWall, lowWall);
 
-  // janelas: uma na tigela, outra na bancada de massas
-  const windows = [STATION_X.bowl, STATION_X.bench].map((x, i) => {
-    const win = windowUnit(4 + i * 9);
-    win.position.set(x, 6.4, -3.1);
+  // janelas: uma na tigela, outra na bancada de massas, as duas com o mesmo céu
+  const sky = mesh(new THREE.PlaneGeometry(4.2, 3.6), new THREE.MeshBasicMaterial({ map: skyTex(), color: new THREE.Color(1.25, 1.25, 1.25) }));
+  sky.position.z = -0.06; sky.userData.noShadow = true; // na frente da parede (z -3.2), atrás do caixilho
+  const skies = [sky, sky.clone()];
+  skies.forEach((s, i) => {
+    const win = windowUnit(s);
+    win.position.set([STATION_X.bowl, STATION_X.bench][i], 6.4, -3.1);
     k.add(win);
-    return win;
   });
   // luz do sol entrando pela janela
   const sunPatch = new THREE.SpotLight("#fff2d0", 12, 22, 0.55, 0.8, 1.2);
   sunPatch.position.set(STATION_X.bowl - 1, 9, -2.6); sunPatch.target.position.set(STATION_X.bowl + 0.5, 0, 1);
   k.add(sunPatch, sunPatch.target);
 
-  // coifa acima do fogão
-  const hood = mesh(new THREE.CylinderGeometry(0.9, 2.3, 1.6, 4, 1), metal({ color: "#dfe4e8", roughness: 0.3, roughnessMap: tex("brushed") }));
-  hood.rotation.y = Math.PI / 4; hood.scale.set(1.35, 1, 0.75); hood.position.set(STATION_X.stove, 8.4, -2.05);
-  const chimney = mesh(new THREE.BoxGeometry(1.5, 4, 1.2), metal({ color: "#dfe4e8", roughness: 0.3 }));
-  chimney.position.set(STATION_X.stove, 11, -2.6);
+  // coifa esmaltada acima do fogão, prateleiras (despensa, pratos, temperos, bar) e miudezas
+  // (relógio, manjericão, saleiros, pote de colheres, pano de prato): tudo do Blender, já no lugar
   const hoodLight = new THREE.PointLight("#ffe2b0", 6, 7, 1.5); hoodLight.position.set(STATION_X.stove, 7.4, -1.2);
-  k.add(hood, chimney, hoodLight);
-
-  // prateleiras com potes, tigelas e livro de receitas
-  const shelfMat = woodMat();
-  for (const [x, y, w] of [[-8, 5.2, 5.5], [-8, 7.3, 5.5], [11, 5.6, 5], [35, 5.4, 7], [35, 7.5, 7], [18.5, 6.2, 4.5]]) {
-    const s = mesh(new RoundedBoxGeometry(w, 0.2, 1.1, 2, 0.06), shelfMat);
-    s.position.set(x, y, -2.6); s.receiveShadow = true;
-    for (const dx of [-w / 2 + 0.6, w / 2 - 0.6]) {
-      const br = mesh(new RoundedBoxGeometry(0.15, 0.6, 0.9, 1, 0.05), shelfMat); br.position.set(x + dx, y - 0.38, -2.65); k.add(br);
-    }
-    k.add(s);
-  }
-  [["#f2d27a", 1.1], ["#c2412d", 0.9], ["#fff6e3", 1.3], ["#6a3a1a", 0.8]].forEach(([c, h], i) => {
-    const j = jar(c, h, i + 2); j.position.set(-10 + i * 1.15, 5.3, -2.55); k.add(j);
-  });
-  for (let i = 0; i < 4; i++) { // pilha de tigelas
-    const b = mesh(new THREE.LatheGeometry([V2(0.3, 0), V2(0.6, 0.35), V2(0.62, 0.36), V2(0.32, 0.03)], 32), glossy({ color: ["#ef6b4a", "#ffd23f", "#7fc6c0", "#fff6e3"][i] }));
-    b.position.set(-6.4, 7.42 + i * 0.12, -2.55); k.add(b);
-  }
-  const book = mesh(new RoundedBoxGeometry(0.35, 1.5, 1.1, 2, 0.04), glossy({ color: "#e5484d" }));
-  book.position.set(-8.9, 8.15, -2.6); book.rotation.z = 0.12;
-  const book2 = mesh(new RoundedBoxGeometry(0.3, 1.3, 1.0, 2, 0.04), glossy({ color: "#2a8199" }));
-  book2.position.set(-9.3, 8.05, -2.6);
-  const ivy = pottedHerb(21, "#3f9a3a", "#fff6e3"); ivy.scale.setScalar(0.7); ivy.position.set(-10.2, 7.4, -2.55);
-  k.add(book, book2, ivy);
-  for (let i = 0; i < 5; i++) { // pratos de pé na prateleira da direita, em fila como num escorredor
-    const p = servingPlate(); p.scale.setScalar(0.3); p.rotation.set(0, 0.25, Math.PI / 2 - 0.22); p.position.set(9.0 + i * 0.3, 6.33, -2.55);
-    k.add(p);
-  }
-  const fruit = new THREE.Group(); // fruteira com limões
-  fruit.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.5, 0), V2(1.1, 0.5), V2(1.15, 0.52)], 32), glossy({ color: "#fff6e3" })));
-  for (let i = 0; i < 5; i++) {
-    const l = mesh(new THREE.SphereGeometry(0.32, 20, 14).scale(1.25, 1, 1), glossy({ color: "#ffd23f", roughness: 0.4 }));
-    l.position.set(Math.cos(i * 1.3) * 0.5, 0.45 + (i === 4 ? 0.3 : 0), Math.sin(i * 1.3) * 0.4); l.rotation.y = i;
-    fruit.add(l);
-  }
-  fruit.position.set(12.4, 5.72, -2.5); fruit.scale.setScalar(0.7);
-  k.add(fruit);
+  k.add(model("hood"), hoodLight, model("shelves"), model("props"));
 
   const rail = hangingSet(); rail.position.set(11, 3.95, -2.9); rail.scale.setScalar(0.8);
   k.add(rail);
 
-  // prateleiras do bar: copos, garrafas coloridas e potes
-  for (let i = 0; i < 5; i++) {
-    const gl = glass(i % 2 ? { r: 0.42, h: 1.5 } : {}); gl.scale.setScalar(0.6); gl.position.set(32.4 + i * 0.75, 5.5, -2.55); k.add(gl);
-  }
-  ["#2f7a44", "#c8352a", "#e8b060", "#3f8fd0", "#7a5cc8"].forEach((c, i) => {
-    const b = mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.3, 0), V2(0.32, 0.06), V2(0.32, 0.85), V2(0.12, 1.2), V2(0.1, 1.6), V2(0.13, 1.62), V2(0, 1.62)], 24), glossy({ color: c, roughness: 0.1 }));
-    b.position.set(36.2 + i * 0.6, 5.5, -2.55 + (i % 2) * 0.12); k.add(b);
-  });
-  [["#f2d27a", 1.0], ["#7a4a2a", 0.8], ["#fff6e3", 1.2], ["#c2412d", 0.9], ["#93b060", 0.8]].forEach(([c, h], i) => {
-    const j = jar(c, h, i + 12); j.position.set(32.6 + i * 1.2, 7.6, -2.55); k.add(j);
-  });
-  const lemons = pottedHerb(31, "#3f9a3a", "#ef6b4a"); lemons.scale.setScalar(0.75); lemons.position.set(38.1, 7.6, -2.55);
-  k.add(lemons);
-  // relógio e panos acima da grelha
-  const clock = new THREE.Group();
-  clock.add(mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.12, 40).rotateX(Math.PI / 2), glossy({ color: "#fffaf0" })),
-    mesh(new THREE.TorusGeometry(0.75, 0.07, 10, 48), glossy({ color: "#e5484d" })));
-  for (const [len, a] of [[0.4, 1.0], [0.58, -0.5]]) {
-    const hand = mesh(new RoundedBoxGeometry(0.06, len, 0.03, 1, 0.01).translate(0, len / 2, 0), glossy({ color: "#30353b" }));
-    hand.position.z = 0.08; hand.rotation.z = a; clock.add(hand);
-  }
-  clock.position.set(14.8, 6.6, -3.05);
-  k.add(clock);
-  [["#ffd23f", 1.0], ["#7fc6c0", 0.85], ["#ef6b4a", 1.1]].forEach(([c, h], i) => {
-    const j = jar(c, h, i + 20); j.position.set(17.3 + i * 1.2, 6.3, -2.55); k.add(j);
-  });
-
   // luminárias pendentes: tábua e prato iluminam; as outras só brilham
-  for (const [x, c, lit] of [[STATION_X.board, "#e5484d", true], [STATION_X.plate, "#ffd23f", true], [STATION_X.oven, "#7fc6c0", false], [STATION_X.blender, "#e5484d", false], [STATION_X.bar, "#ffd23f", false]]) {
-    const p = pendant(c, lit); p.position.set(x, 8.6, 0.2); k.add(p);
+  for (const [x, lamp, lit] of [[STATION_X.board, "lamp_red", true], [STATION_X.plate, "lamp_yellow", true], [STATION_X.oven, "lamp_mint", false], [STATION_X.blender, "lamp_red", false], [STATION_X.bar, "lamp_yellow", false]]) {
+    const p = pendant(lamp, lit); p.position.set(x, 8.6, 0.2); k.add(p);
   }
-
-  // detalhes no tampo, longe das estações
-  const basil = pottedHerb(14); basil.scale.setScalar(0.9); basil.position.set(13.4, 0, -2.2);
-  const tw = towel(); tw.position.set(-9.4, -0.6, 3.05);
-  const salt = mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.2, 0), V2(0.22, 0.5), V2(0.12, 0.7), V2(0, 0.72)], 20), glossy({ color: "#fffaf0" }));
-  salt.position.set(11.6, 0, -1.6);
-  const pepper = salt.clone(); pepper.material = glossy({ color: "#3a2a22" }); pepper.position.x = 12.1;
-  const utensilPot = new THREE.Group();
-  utensilPot.add(mesh(new THREE.CylinderGeometry(0.45, 0.4, 1.1, 24), glossy({ color: "#2a8199" })));
-  for (let i = 0; i < 3; i++) { const s = build.spoon(); s.scale.setScalar(0.9); s.rotation.set(0.15 * (i - 1), 0, Math.PI + 0.12 * (i - 1)); s.position.set((i - 1) * 0.12, 1.85, 0); utensilPot.add(s); }
-  utensilPot.position.set(-9.6, 0.55, -2.2);
-  k.add(basil, tw, salt, pepper, utensilPot);
 
   // estações
   const stations = {};
@@ -481,7 +271,7 @@ export function buildKitchen() {
 
   castAll(k);
   // paredes, tampo e janela só recebem sombra
-  for (const o of [top, cab, floor, tiles, band, paintWall, lowWall, lace, ...mats, ...windows.map((w) => w.userData.sky)]) o.castShadow = false;
+  for (const o of [...counter, floor, tiles, paintWall, lowWall, lace, ...mats, ...skies]) o.castShadow = false;
   return { group: k, stations, props };
 }
 
@@ -490,43 +280,14 @@ export function buildMarket() {
   const m = new THREE.Group();
   const ground = mesh(new THREE.PlaneGeometry(60, 40), food({ map: repeatTex(cobble(), 6, 4), roughness: 0.9, clearcoat: 0 }));
   ground.rotation.x = -Math.PI / 2; ground.position.y = -3.6; ground.receiveShadow = true;
-  const backdrop = mesh(new THREE.PlaneGeometry(90, 34), new THREE.MeshBasicMaterial({ map: skyTex(true) }));
+  const backdrop = mesh(new THREE.PlaneGeometry(90, 34), new THREE.MeshBasicMaterial({ map: skyTex() }));
   backdrop.position.set(0, 10, -18); backdrop.userData.noShadow = true;
   m.add(ground, backdrop);
 
-  // balcão de madeira com três degraus de caixotes
-  const wood = woodMat();
-  const counter = mesh(new RoundedBoxGeometry(18, 3.6, 6, 3, 0.15), food({ map: repeatTex(tex("wood").clone(), 3, 1), color: "#d9a46a", roughness: 0.6 }));
-  counter.position.set(0, -1.8, 0); counter.receiveShadow = true;
-  const front = mesh(new RoundedBoxGeometry(18.2, 0.9, 0.2, 2, 0.08), glossy({ color: "#e5484d" }));
-  front.position.set(0, -0.7, 2.95);
-  m.add(counter, front);
-
-  // degraus de madeira: ficam fixos; os caixotes de cada partida vêm de stall()
-  for (let tier = 0; tier < 3; tier++) {
-    const h = 0.2 + tier * 1.15;
-    const step = mesh(new RoundedBoxGeometry(13.6, h, 1.6, 2, 0.06), wood);
-    step.position.set(0, h / 2 - 0.05, -tier * 1.5 + 0.9); step.receiveShadow = true;
-    m.add(step);
-  }
-
-  // postes e toldo listrado, ondulado na borda
-  for (const x of [-9, 9]) {
-    const post = mesh(new THREE.CylinderGeometry(0.15, 0.17, 10, 12), wood);
-    post.position.set(x, 1.4, 2.6); m.add(post);
-    const back = post.clone(); back.position.z = -3.5; m.add(back);
-  }
-  const awnGeo = new THREE.PlaneGeometry(19.5, 7, 70, 12), ap = awnGeo.attributes.position;
-  for (let i = 0; i < ap.count; i++) {
-    const x = ap.getX(i), y = ap.getY(i);
-    ap.setZ(i, -Math.sin((y + 3.5) / 7 * Math.PI) * 0.6);
-    if (y < -3.3) ap.setY(i, y - 0.35 * Math.abs(Math.sin(x * 1.6))); // franja em arco
-  }
-  awnGeo.computeVertexNormals();
-  const stripes = canvasTex(512, 64, (x) => { for (let i = 0; i < 16; i++) { x.fillStyle = i % 2 ? "#fff6e3" : "#e5484d"; x.fillRect(i * 32, 0, 32, 64); } });
-  const awning = mesh(awnGeo, food({ map: stripes, roughness: 0.8, clearcoat: 0, sheen: 0.4 }));
-  awning.rotation.x = -Math.PI / 2 + 0.45; awning.position.set(0, 6.8, -0.4);
-  m.add(awning);
+  // banca do Blender (balcão de tábuas, faixa vermelha, três degraus para os caixotes, postes,
+  // toldo listrado) e, atrás, a fileira de barracas vizinhas com árvores
+  const stalls = model("stalls");
+  m.add(model("stand"), stalls);
 
   // varal de lampadinhas que brilham
   const bulbs = [];
@@ -562,6 +323,7 @@ export function buildMarket() {
 
   castAll(m);
   ground.castShadow = false;
+  stalls.traverse((o) => { o.castShadow = false; }); // longe demais para a sombra alcançar a banca
 
   // vento nas bandeirinhas e lâmpadas que piscam devagar, cada uma no seu tempo
   const tick = (t) => {
@@ -583,12 +345,9 @@ function stall(n) {
   perRow.forEach((count, tier) => {
     const y = tier * 1.15 + 0.15, z = -tier * 1.5 + 0.9;
     for (let i = 0; i < count; i++) {
-      const crate = new THREE.Group();
-      // fundo, frente baixa (deixa ver o que tem dentro), fundo alto e laterais
-      for (const [bw, bh, bd, px, py, pz] of [[w, 0.1, d, 0, 0.05, 0], [w, 0.22, 0.1, 0, 0.16, d / 2 - 0.05], [w, 0.55, 0.1, 0, 0.32, -d / 2 + 0.05], [0.1, 0.4, d, w / 2 - 0.05, 0.25, 0], [0.1, 0.4, d, -w / 2 + 0.05, 0.25, 0]]) {
-        const p = mesh(new RoundedBoxGeometry(bw, bh, bd, 1, 0.03), plank);
-        p.position.set(px, py, pz); crate.add(p);
-      }
+      // caixote de ripas do Blender (2,33 de largura), esticado para a largura da fileira
+      const crate = model("crate");
+      crate.children[0].scale.x = w / 2.33;
       const paper = mesh(new THREE.PlaneGeometry(w - 0.2, d - 0.15), food({ color: PAPER[(i + tier) % 3], roughness: 0.9, clearcoat: 0 }));
       paper.rotation.x = -Math.PI / 2; paper.position.y = 0.11; paper.receiveShadow = true;
       crate.add(paper);

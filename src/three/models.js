@@ -4,7 +4,11 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-export const MODELS = ["broccoli", "lime", "mango", "stirfry", "chicken", "tiramisu"];
+export const MODELS = [
+  "broccoli", "lime", "mango", "stirfry", "chicken", "tiramisu", // ingredientes e pratos
+  "counter", "wall", "shelves", "window", "hood", "lamp", "props", // cozinha
+  "stand", "crate", "stalls", // feira
+];
 const loaded = {};
 
 export async function loadModels(base = import.meta.env.BASE_URL) {
