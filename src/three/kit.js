@@ -66,12 +66,13 @@ const TEX = {
     }, { repeat: 0.42 });
   },
   searedBeef: () => {
-    const lo = rgb("#5e2614"), mid = rgb("#9a4a26"), hi = rgb("#c77a45");
+    // dourado de caramelo, não marrom-escuro: a carne selada tem de dar água na boca
+    const lo = rgb("#7e3a1c"), mid = rgb("#b9652f"), hi = rgb("#e7a25e");
     return paint(256, (u, v) => {
       const n = fbm(u * 6, v * 6);
       let c = n < 0.5 ? mix(lo, mid, n * 2) : mix(mid, hi, (n - 0.5) * 2);
       const grill = (((u + v) * 4.2) % 1 + 1) % 1; // marcas da chapa
-      return mix(c, rgb("#3a160a"), (1 - sstep(0.06, 0.13, Math.abs(grill - 0.5))) * 0.8);
+      return mix(c, rgb("#4a1d0c"), (1 - sstep(0.06, 0.13, Math.abs(grill - 0.5))) * 0.7);
     }, { repeat: 0.42 });
   },
   floret: () => {
@@ -91,7 +92,7 @@ const TEX = {
   },
   // madeira clara de tábua: veio reto ao longo de u (a emenda espelhada some no sentido do veio)
   maple: () => {
-    const a = rgb("#ecc391"), b = rgb("#fbe6c4"), line = rgb("#d39a5c");
+    const a = rgb("#e4b37a"), b = rgb("#f6d9ab"), line = rgb("#c98a4c"); // mel, para o alho e a massa clara se destacarem
     return paint(256, (u, v) => {
       const w = v * 22 + fbm(u * 1.5, v * 6, 3) * 1.6;
       let c = mix(a, b, 0.5 + 0.5 * Math.sin(w * Math.PI * 2));

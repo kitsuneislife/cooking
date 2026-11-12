@@ -78,6 +78,7 @@ export default {
     let live = false, plan = nextCut(BOX, [], CUTS, null), stroke = null, busy = false, aimX = null;
     const toFrac = (x) => ((x - center.x) / SCALE - LO) / (HI - LO);
     const toX = (f) => center.x + (LO + f * (HI - LO)) * SCALE;
+    ctx.guide({ kind: "swipe", at: () => (cuts.length < CUTS && !busy ? v3(toX(plan.guide), center.y + kind.h + 0.05, center.z) : null), r: 1.1, dir: v3(0, 0, 1) });
 
     s.every((dt, t) => {
       // fatias se afastam um pouquinho, com o tampo como mola

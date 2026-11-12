@@ -29,6 +29,7 @@ export default {
     spoon.position.copy(center).add(v3(2, 2.2, 0));
 
     let covered = 0, dabs = 0, live = false, used = 0, idle = 0, full = false, spiral = 0, held = false, pressed = false;
+    ctx.guide({ kind: () => (full ? null : "circle"), at: center, r: Math.min(lu.w, lu.d) * 0.36 });
 
     function complete() {
       full = true;

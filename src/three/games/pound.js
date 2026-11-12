@@ -20,6 +20,7 @@ export default {
     tool.position.set(mouth.x + 1.6, mouth.y + 2.4, mouth.z);
 
     let n = 0, live = false, busy = false, used = 0, idle = 0;
+    ctx.guide({ kind: () => (n < taps ? "rapid" : null), at: mouth, r: 0.55 });
 
     s.every((dt) => {
       if (live) { used += dt; idle += dt; }

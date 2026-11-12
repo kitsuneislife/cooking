@@ -82,6 +82,10 @@ export default {
 
     const scores = [];
     let phase = "idle", live = false, swingT = 0, target = 0, carried = null, home = null;
+    ctx.guide({
+      kind: () => (phase === "swing" || phase === "idle" ? "drop" : halo.visible ? "drop" : null),
+      at: () => (phase === "swing" || phase === "idle" ? v3(C.x, topY, C.z) : halo.visible ? halo.position : null), r: 0.6,
+    });
 
     s.every((dt, t) => {
       if (phase === "swing") {

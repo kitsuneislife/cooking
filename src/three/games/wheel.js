@@ -29,6 +29,7 @@ export default {
 
     const scores = [];
     let n = 0, live = false, busy = false, p0 = null, aim = null;
+    ctx.guide({ kind: "swipe", at: () => (n < ANGLES.length && !busy ? v3(C.x, C.y + CUT_Y + 0.05, C.z) : null), r: R * 0.85, dir: () => dir(ANGLES[n] ?? 0) });
 
     s.every((dt, t) => {
       guide.visible = live && n < ANGLES.length;

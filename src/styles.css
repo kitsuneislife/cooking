@@ -405,6 +405,96 @@ main.main-game { max-width: none; padding: 0; display: block; }
 @media (max-width: 1460px) {
   .step-card { bottom: 104px; }
   .gauge-beats { bottom: 256px; }
+/* guia do gesto em cima do alimento (src/components/Guide.jsx): setas brancas com contorno rosa,
+   anéis que pulsam e a mãozinha mostrando o movimento, como nos jogos de cozinha de referência */
+.guide {
+  --pink: #ff5c9a; --pink-dark: #c2386f;
+  position: fixed; left: 0; top: 0; width: 0; height: 0; z-index: 1; pointer-events: none;
+  transition: opacity .4s; filter: drop-shadow(0 3px 1px #7a1d4a33);
+  animation: guide-in .45s var(--spring) both;
+}
+.guide[data-faded] { opacity: .6; }
+.guide[data-kind=""] { display: none; }
+@keyframes guide-in { from { scale: .4; opacity: 0; } }
+.guide > *, .guide-axis > * { position: absolute; display: none; }
+.guide-axis { left: 0; top: 0; rotate: var(--a); }
+
+/* círculo: aro tracejado girando com duas pontas de seta */
+.guide[data-kind="circle"] .guide-ring { display: block; }
+.guide-ring { width: calc(var(--r) * 2.3); height: calc(var(--r) * 2.3); left: calc(var(--r) * -1.15); top: calc(var(--r) * -1.15); overflow: visible; animation: g-spin 2.4s linear infinite; }
+.guide-ring-line { fill: none; stroke: #fff; stroke-width: 6; stroke-dasharray: 14 12; stroke-linecap: round; filter: drop-shadow(0 0 1.5px var(--pink)) drop-shadow(0 0 1px var(--pink)); }
+.guide-head { fill: #fff; stroke: var(--pink); stroke-width: 5; stroke-linejoin: round; }
+@keyframes g-spin { to { rotate: 1turn; } }
+
+/* zigue-zague: setas para os dois lados, uma de cada vez, e a mão indo e vindo no eixo */
+.guide:is([data-kind="zigzag"], [data-kind="swipe"], [data-kind="drop"]) .guide-axis { display: block; }
+.guide-arrow { width: 54px; height: 54px; margin: -27px 0 0 -27px; overflow: visible; }
+.guide-arrow path { fill: #fff; stroke: var(--pink); stroke-width: 5; stroke-linejoin: round; }
+.guide-track { left: calc(var(--r) * -.8); width: calc(var(--r) * 1.6); top: -3px; height: 6px; border-radius: 3px; background: repeating-linear-gradient(90deg, #fff 0 12px, #0000 12px 22px); filter: drop-shadow(0 0 1.5px var(--pink)); }
+.guide[data-kind="zigzag"] :is(.guide-arrow, .guide-track) { display: block; }
+.guide[data-kind="zigzag"] .guide-arrow-a { translate: var(--r) 0; animation: g-nudge .5s ease-in-out infinite alternate; }
+.guide[data-kind="zigzag"] .guide-arrow-b { translate: calc(var(--r) * -1) 0; rotate: .5turn; animation: g-nudge .5s ease-in-out infinite alternate-reverse; }
+@keyframes g-nudge { from { scale: .8; opacity: .55; } to { scale: 1.12; opacity: 1; } }
+
+/* risco: divisas correndo de uma ponta à outra e a seta no fim */
+.guide[data-kind="swipe"] :is(.guide-arrow-a, .guide-chev) { display: block; }
+.guide[data-kind="swipe"] .guide-arrow-a { translate: var(--r) 0; animation: g-nudge .55s ease-in-out infinite alternate; }
+.guide-chev { width: 30px; height: 30px; margin: -15px 0 0 -22px; border: solid #fff; border-width: 9px 9px 0 0; border-radius: 3px; rotate: 45deg; filter: drop-shadow(0 0 1.5px var(--pink)) drop-shadow(0 0 1px var(--pink)); opacity: 0; animation: g-chev 1.2s linear infinite; }
+.guide-chev:nth-of-type(2) { animation-delay: .4s; }
+.guide-chev:nth-of-type(3) { animation-delay: .8s; }
+@keyframes g-chev { 0% { translate: calc(var(--r) * -.9) 0; opacity: 0; } 20%, 70% { opacity: 1; } 100% { translate: calc(var(--r) * .75) 0; opacity: 0; } }
+
+/* soltar: seta pulando para baixo em cima do alvo e um anel deitado no lugar certo */
+.guide[data-kind="drop"] .guide-axis { rotate: .25turn; }
+.guide[data-kind="drop"] .guide-arrow-a { display: block; animation: g-drop .7s ease-in-out infinite alternate; }
+@keyframes g-drop { from { translate: calc(var(--r) * -.75 - 34px) 0; } to { translate: calc(var(--r) * -.75 - 14px) 0; } }
+.guide[data-kind="drop"] .guide-pulse { display: block; height: calc(var(--r) * .7); top: calc(var(--r) * -.35); }
+
+/* tocar, ritmo e hora certa: anéis abrindo no alvo e a mão batendo */
+.guide-pulse { width: calc(var(--r) * 1.4); height: calc(var(--r) * 1.4); left: calc(var(--r) * -.7); top: calc(var(--r) * -.7); border-radius: 50%; border: 6px solid #fff; box-shadow: 0 0 0 2px var(--pink), inset 0 0 0 2px var(--pink); opacity: 0; animation: g-pulse 1.1s ease-out infinite; }
+.guide-pulse + .guide-pulse { animation-delay: .55s; }
+@keyframes g-pulse { 0% { scale: .25; opacity: 0; } 25% { opacity: 1; } 100% { scale: 1; opacity: 0; } }
+.guide:is([data-kind="tap"], [data-kind="rapid"], [data-kind="rhythm"], [data-kind="timing"]) .guide-pulse { display: block; }
+.guide[data-kind="rapid"] .guide-pulse { animation-duration: .45s; }
+.guide[data-kind="rapid"] .guide-pulse + .guide-pulse { animation-delay: .22s; }
+.guide[data-kind="rhythm"] .guide-pulse { animation-duration: .6s; }
+.guide[data-kind="timing"] .guide-pulse { border-color: var(--sun); box-shadow: 0 0 0 2px var(--orange-dark), inset 0 0 0 2px var(--orange-dark); }
+
+/* segurar: um disco que enche em volta do dedo e fica verde */
+@property --hold { syntax: "<number>"; inherits: false; initial-value: 0; }
+.guide[data-kind="hold"] .guide-fill { display: block; }
+.guide-fill {
+  width: calc(var(--r) * 1.1); height: calc(var(--r) * 1.1); left: calc(var(--r) * -.55); top: calc(var(--r) * -.55); border-radius: 50%;
+  background: radial-gradient(#0000 58%, #fff 59% 70%, #0000 71%), conic-gradient(#ffffffcc calc(var(--hold) * 1turn), #ffffff33 0);
+  -webkit-mask: radial-gradient(#0000 54%, #000 55% 74%, #0000 75%); mask: radial-gradient(#0000 54%, #000 55% 74%, #0000 75%);
+  filter: drop-shadow(0 0 1.5px var(--pink)); animation: g-fill 2s ease-in-out infinite;
+}
+@keyframes g-fill { 0%, 10% { --hold: 0; } 75% { --hold: 1; } 100% { --hold: 1; opacity: 0; } }
+
+/* a mãozinha: a ponta do dedo fica no ponto do guia */
+.guide-hand { display: block !important; width: 46px; left: -18px; top: -5px; fill: #fff; stroke: var(--wood-deep); stroke-width: 2.4; stroke-linejoin: round; filter: drop-shadow(0 3px 2px #0005); }
+.guide:is([data-kind="tap"], [data-kind="timing"]) .guide-hand { animation: g-press 1.1s ease-in-out infinite; }
+.guide[data-kind="rapid"] .guide-hand { animation: g-press .45s ease-in-out infinite; }
+.guide[data-kind="rhythm"] .guide-hand { animation: g-press .6s ease-in-out infinite; }
+.guide[data-kind="hold"] .guide-hand { animation: g-hold-press 2s ease-in-out infinite; }
+.guide[data-kind="drop"] .guide-hand { display: none !important; }
+@keyframes g-press { 0%, 100% { translate: 10px 14px; scale: 1; } 45%, 55% { translate: 0 0; scale: .86; } }
+@keyframes g-hold-press { 0%, 100% { translate: 10px 14px; scale: 1; } 12%, 80% { translate: 0 0; scale: .86; } }
+.guide[data-kind="circle"] .guide-hand { animation: g-orbit 2.4s linear infinite; }
+@keyframes g-orbit { from { transform: rotate(0turn) translateX(calc(var(--r) * .97)) rotate(0turn); } to { transform: rotate(1turn) translateX(calc(var(--r) * .97)) rotate(-1turn); } }
+.guide[data-kind="zigzag"] .guide-hand { animation: g-along .5s ease-in-out infinite alternate; }
+.guide[data-kind="swipe"] .guide-hand { animation: g-swipe-along 1.2s ease-in-out infinite; }
+@keyframes g-along {
+  from { translate: calc(cos(var(--a)) * var(--r) * -.6) calc(sin(var(--a)) * var(--r) * -.6); }
+  to { translate: calc(cos(var(--a)) * var(--r) * .6) calc(sin(var(--a)) * var(--r) * .6); }
+}
+@keyframes g-swipe-along {
+  0% { translate: calc(cos(var(--a)) * var(--r) * -.9) calc(sin(var(--a)) * var(--r) * -.9); opacity: 0; }
+  15% { opacity: 1; } 80% { opacity: 1; }
+  100% { translate: calc(cos(var(--a)) * var(--r) * .8) calc(sin(var(--a)) * var(--r) * .8); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .guide * { animation-duration: 3s !important; } }
+
 }
 
 /* lista de compras presa no canto, como papel com alfinete */

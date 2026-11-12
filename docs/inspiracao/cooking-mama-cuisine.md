@@ -75,6 +75,8 @@ Quadros tirados a cada minuto do mesmo vídeo, olhando só para luz, cor e acaba
 | Tampo amarelo, parede menta, azulejo pastel, armário rosa | `buildKitchen` em `src/three/sets.js` |
 | Jogo americano estampado e toalhinha de renda | `placemat` e `doily` em `src/three/sets.js` |
 | Estrelas coloridas, corações e vapor redondo | `Particles` em `src/three/world.js` |
+| Guia no centro de cada etapa: anel girando para mexer, setas para o zigue-zague, chevrons no corte, ondas para tocar, anel enchendo para segurar | `src/components/Guide.jsx`, cada jogo chama `ctx.guide` |
+| Comida úmida e com cor de dar fome: carne selada dourada, picadinho brilhante | `searedBeef` em `src/three/kit.js`, `pile` em `mince.js` |
 
 ## Avisos
 

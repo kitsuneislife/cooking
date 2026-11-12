@@ -23,6 +23,7 @@ export default {
 
     const scores = [];
     let n = -1, obj = null, phase = "idle", live = false, t = 0;
+    ctx.guide({ kind: "drop", at: () => (phase === "swing" ? mouth : null), r: rim });
 
     async function bring() {
       n++;

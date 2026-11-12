@@ -33,6 +33,7 @@ export default {
     // os materiais da comida passam a ser só desta panela: o brilho do molho não vaza
     const mats = [];
     let total = 0, live = false, used = 0, lastA = null, held = 0, idle = 0, steamT = 0;
+    ctx.guide({ kind: () => (total < GOAL ? "circle" : null), at: center.clone().add(v3(0, 0.35, 0)), r: 0.95 });
 
     function own(obj) {
       obj.traverse((o) => {

@@ -22,6 +22,7 @@ export default {
     const worldY = t.localToWorld(v3(0, Y, 0)).y;
     const halo = s.add(ring(0.3));
     halo.rotation.x = -Math.PI / 2; halo.visible = false;
+    ctx.guide({ kind: "drop", at: () => (halo.visible ? halo.position : null), r: 0.4 });
 
     const scores = [];
     let n = 0, carried = null, live = false, busy = false;

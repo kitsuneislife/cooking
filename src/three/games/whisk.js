@@ -34,6 +34,7 @@ export default {
     const restY = () => surface() + 1.36 * 1.15 - 0.08; // a ponta do arame encosta no fundo do molho
 
     let live = false, strokes = 0, used = 0, side = 1, swing = 0, last = null, dir = 0, idle = 0;
+    ctx.guide({ kind: () => (strokes < STROKES ? "zigzag" : null), at: () => v3(center.x, surface(), center.z + 0.3), r: 0.75, dir: v3(1, 0, 0) });
     const startColor = liquid.material.color.clone();
     const startRough = liquid.material.roughness;
     const endColor = cream ? new THREE.Color(cream.to) : world.dish.sauceColor?.clone().offsetHSL(0, 0.05, 0.08) ?? startColor;

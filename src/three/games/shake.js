@@ -54,6 +54,7 @@ export default {
     tool.position.set(mid.x + 2.2, hoverY + 1.6, mid.z);
 
     let n = 0, live = false, used = 0, idle = 0, goal = mid.x, ready = false, kick = 0;
+    ctx.guide({ kind: () => (n < strokes ? "zigzag" : null), at: mid, r: list.length > 1 ? 1 : 0.8, dir: v3(1, 0, 0) });
 
     s.every((dt, t) => {
       if (live) { used += dt; idle += dt; }

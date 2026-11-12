@@ -21,6 +21,7 @@ export default {
     const from = u.liquid.material.color.clone(), to = spec.color ? new THREE.Color(spec.color) : from.clone();
     const top = mouthOf(jar);
     let live = false, held = false, level = 0, good = 0, off = 0, used = 0, hum = 0, warn = 0, hits = 0, done = false;
+    ctx.guide({ kind: () => (done ? null : pulse ? "rapid" : "hold"), at: top.clone().add(v3(0, -0.9, 0.4)), r: 0.6 });
 
     // k de 0 a 1: os pedaços somem e a cor chega na do creme pronto
     function mash(k) {

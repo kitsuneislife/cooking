@@ -33,6 +33,7 @@ export default {
 
     const scores = [];
     let n = -1, b = null, soak = 0, held = false, live = false, phase = "idle";
+    ctx.guide({ kind: () => (phase === "ready" ? "hold" : null), at: v3(cup.position.x, coffeeY, C.z + 0.4), r: 0.5 });
 
     async function bring() {
       n++;

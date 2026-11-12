@@ -45,6 +45,7 @@ export default {
   gesture: "tap",
   shot: "market",
   seconds: 45,
+  guide: null, // os montes da lista já acendem sob o ponteiro
 
   create(world, ctx, spec, game) {
     const s = scope(world), { group, basket } = world.market;

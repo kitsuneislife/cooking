@@ -29,6 +29,7 @@ export default {
     const from = u.liquid.material.color.clone(), to = spec.color ? new THREE.Color(spec.color) : from;
     const melting = solids.children.filter((o) => o.userData.melts);
     let total = 0, angle = 0, live = false, used = 0, last = null, held = 0, idle = 0;
+    ctx.guide({ kind: () => (total < goal ? "circle" : null), at: mouth, r: rimOf(v) * 0.8 });
 
     const place = () => {
       tool.position.set(mouth.x + Math.cos(angle) * r, dipY(), mouth.z + Math.sin(angle) * r);

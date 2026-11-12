@@ -159,6 +159,9 @@ export default {
     const scores = [];
     let live = false, focus = 0, sizzleT = 0, outCount = 0, told = false;
     const inPan = () => strips.filter((g) => g.userData.state === "cook");
+    // a mãozinha aponta a tira que ficou verde
+    const ready = () => strips.find((g) => g.userData.label === "flip" || g.userData.label === "out");
+    ctx.guide({ kind: "tap", at: () => ready()?.getWorldPosition(v3(0, 0, 0)) ?? null, r: 0.3 });
     const up = v3(0, 0, 0);
 
     s.every((dt, t) => {

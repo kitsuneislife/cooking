@@ -25,6 +25,8 @@ export default {
     const sign = slot.clone().add(v3(0, 1.4, 1.6));
     const scores = [];
     let phase = "idle", live = false, held = false, temp = 0, level = 0, dinged = false;
+    // segurar no pré-aquecimento; na espera, o alvo só acende quando entra no ponto
+    ctx.guide({ kind: () => (phase === "heat" || (phase === "idle" && spec.preheat) ? "hold" : phase === "cook" && level >= LO ? "timing" : null), at: slot.clone().add(v3(0, 0.2, 1.4)), r: 0.8 });
 
     async function putIn() {
       phase = "move";

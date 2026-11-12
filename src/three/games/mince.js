@@ -10,7 +10,7 @@ const GRAINS = 90;
 
 // Montinho de picadinho: grãos instanciados que vão aparecendo, mais altos no meio.
 function pile(colors, seed) {
-  const mesh = new THREE.InstancedMesh(new RoundedBoxGeometry(0.075, 0.05, 0.075, 1, 0.015), food({ roughness: 0.4, clearcoat: 0.6 }), GRAINS);
+  const mesh = new THREE.InstancedMesh(new RoundedBoxGeometry(0.075, 0.05, 0.075, 1, 0.015), food({ roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.15 }), GRAINS); // úmido e brilhante, como picado na hora
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
   let s = seed;
   const rand = () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
@@ -55,6 +55,7 @@ export default {
 
     const piles = [];
     let item = 0, chops = 0, live = false, busy = false, used = 0, idle = 0, model = null;
+    ctx.guide({ kind: "rapid", at: () => (model ? spot.clone().add(v3(0.35, 0.3, 0)) : null), r: 0.55 });
 
     function bring(n) {
       const it = ITEMS[n];

@@ -48,6 +48,9 @@ export default {
     const taken = new Set(), hits = BEATS.map(() => null);
     let now = -LEAD, live = false, running = false, wild = 0, tick = 0;
 
+    // perto da batida o alvo pisca forte; entre batidas fica só o pulso do ritmo
+    const near = () => BEATS.some((b, i) => hits[i] == null && Math.abs(b - now) < WINDOW);
+    ctx.guide({ kind: () => (now > LENGTH ? null : near() ? "timing" : "rhythm"), at: wok.getWorldPosition(v3(0, 0.5, 0.6)), r: 0.9 });
     const gauge = () => ctx.gauge({ kind: "beats", beats: BEATS, now, length: LENGTH, window: WINDOW, hits });
 
     s.every((dt) => {

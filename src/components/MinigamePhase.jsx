@@ -5,6 +5,7 @@ import { SHOTS } from "../three/world";
 import { stepGrade } from "../game/rules";
 import { sfx } from "../game/sound";
 import GestureIcon from "./GestureIcon";
+import Guide, { GUIDE_FOR } from "./Guide";
 
 const CANCEL = Symbol("cancel");
 const RESCUE_SCORE = 0.25; // etapa que o chef terminou: conta pouco, mas não zera
@@ -20,6 +21,7 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
   const cb = useRef(null);
   cb.current = { good, bad, say, onStep, onDone };
 
+  const guide = useRef(null);
   useEffect(() => {
     let cancelled = false, inst = null, finished = true;
     const offs = new Set();
@@ -59,6 +61,9 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
         gauge: (g) => setHud((h) => ({ ...h, gauge: g })),
         list: (items) => setHud((h) => ({ ...h, list: items })),
         done: (score) => { if (live) settle({ score }); },
+      // guia padrão: o gesto da etapa no meio do enquadramento; o minijogo pode trocar ou tirar (`guide: null`)
+      const look = (typeof mg.shot === "string" ? SHOTS[mg.shot] : mg.shot).look;
+      guide.current = mg.guide === null ? null : { kind: mg.guide ?? GUIDE_FOR[mg.gesture], at: look, r: 1.2, dir: new world.THREE.Vector3(1, 0, 0) };
       };
       inst = mg.create(world, ctx, spec, game);
       finished = false;
@@ -68,6 +73,7 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
       sfx.go();
       setView((v) => ({ ...v, stage: "go" }));
       await guard(world.wait(0.65));
+        guide: (g) => { guide.current = g; },
 
       // valendo: tempo correndo e teclado ligado
       setView((v) => ({ ...v, stage: "live" }));
@@ -193,6 +199,7 @@ function Clock({ left, total, low }) {
     </div>
   );
 }
+      <Guide world={world} guide={guide} show={stage === "card" || stage === "go" || stage === "live"} faded={stage === "live" && hud.progress > 0} />
 
 // Medidor de despejo: a faixa verde é a medida certa.
 function BandGauge({ level, lo, hi, label }) {

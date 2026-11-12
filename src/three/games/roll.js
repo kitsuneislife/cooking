@@ -28,6 +28,7 @@ export default {
     pin.position.set(C.x, C.y + 3.6, C.z);
 
     let n = 0, shown = 0, live = false, used = 0, idle = 0, side = 1, z = 0, rolling = false;
+    ctx.guide({ kind: () => (n < STROKES ? "zigzag" : null), at: C.clone().add(v3(pu.R * 0.9, 0.1, 0)), r: pu.R * 0.6, dir: v3(0, 0, 1) });
 
     s.every((dt) => {
       if (live) { used += dt; idle += dt; }

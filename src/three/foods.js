@@ -365,7 +365,7 @@ export const PANTRY = {
   soy: { model: build.soy, tint: "#3a1a0a" },
   oyster: { model: build.oyster, tint: "#5e3416" },
   sesame: { model: build.sesame, tint: "#d8952a" },
-  garlic: { model: build.garlic, tint: "#fbf3dc", chop: { model: build.cloves, size: 1.25, colors: ["#fbf3dc", "#f1e2b8", "#fffaf0"] } },
+  garlic: { model: build.garlic, tint: "#fbf3dc", chop: { model: build.cloves, size: 1.25, colors: ["#fff1c4", "#f0d892", "#fffaf0"] } },
   ginger: { model: build.ginger, tint: "#f6dc86", chop: { size: 1.35, colors: ["#f6dc86", "#e9c45c", "#fff1b8"] } },
   cornstarch: { model: cornstarchBox, tint: "#fffdf6" },
   rice: { model: () => build.rice({ sticks: false }), tint: "#fffcf4" },

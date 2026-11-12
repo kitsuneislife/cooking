@@ -47,6 +47,10 @@ export default {
     // a jarra esvazia na proporção do que os copos recebem
     let jarLeft = jar.userData.level ?? 0;
     const jarShare = jarLeft / (POURS.reduce((a, p) => a + (p.from === "blender" ? p.fill : 0), 0) || 1);
+    ctx.guide({
+      kind: () => (phase === "spoon" ? "tap" : phase === "ready" || phase === "hop" ? "hold" : null),
+      at: () => mouthOf(phase === "spoon" ? bowl : POURS[Math.max(0, n)].target).add(v3(0, 0, 0.5)), r: 0.6,
+    });
 
     const fillTo = (v, k) => { v.userData.level = k; v.userData.fill(Math.min(CAP, k)); };
     const finish = () => { phase = "done"; ctx.gauge(null); if (live) { live = false; ctx.done(average(scores)); } };
