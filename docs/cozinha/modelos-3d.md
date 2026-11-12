@@ -197,7 +197,7 @@ A ideia é melhorar os modelos do jogo aos poucos, um grupo de cada vez, sempre 
 
 Ficaram de fora desta leva o brócolis (a proposta pesa muito em vértices) e o refogado (ficou ruim). O azeite por cima da pizza também ficou de fora, porque a pizza do jogo é montada pelo jogador.
 
-**Próximas levas.** O mesmo vai ser feito com os outros modelos, progressivamente: primeiro os ingredientes da feira que aparecem mais, depois os pratos prontos da tela de resultado. Para cada um: abrir os modelos de referência parecidos, anotar o que eles fazem melhor, fazer a proposta fora do jogo, comparar lado a lado e só então trazer.
+**Próximas levas.** O que falta, procedural ou ainda inexistente, está em [inventario-modelos.md](inventario-modelos.md). O mesmo vai ser feito com os outros modelos, progressivamente: primeiro os ingredientes da feira que aparecem mais, depois os pratos prontos da tela de resultado. Para cada um: abrir os modelos de referência parecidos, anotar o que eles fazem melhor, fazer a proposta fora do jogo, comparar lado a lado e só então trazer.
 
 **Leva 2 (12/11/2026): brócolis, limão, manga, refogado, frango com salsa de manga e tiramisù.** A primeira feita no Blender, pelo caminho misto: o que fica parado na cena vem do Blender como `.glb` com a textura assada, e o que muda durante o minijogo continua em código. O passo a passo e as lições estão em [pipeline-blender.md](pipeline-blender.md).
 
