@@ -6,6 +6,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { buildKitchen, buildMarket, STATION_X } from "./sets.js";
 
 export const MARKET_X = -70; // a feira fica longe da cozinha: a câmera "viaja" entre as duas
@@ -50,18 +51,41 @@ const SOFT = () => spriteTex((x) => {
   g.addColorStop(0, "#fff"); g.addColorStop(0.4, "#ffffffaa"); g.addColorStop(1, "#fff0");
   x.fillStyle = g; x.fillRect(0, 0, 64, 64);
 });
+// estrela de quatro pontas com as laterais curvas e um halo, como um brilho de desenho
 const STAR = () => spriteTex((x) => {
-  x.fillStyle = "#fff"; x.translate(32, 32); x.beginPath();
-  for (let i = 0; i < 8; i++) { const r = i % 2 ? 6 : 30, a = i / 8 * Math.PI * 2; x.lineTo(Math.sin(a) * r, -Math.cos(a) * r); }
+  const halo = x.createRadialGradient(32, 32, 0, 32, 32, 30);
+  halo.addColorStop(0, "#ffffffcc"); halo.addColorStop(0.35, "#ffffff33"); halo.addColorStop(1, "#fff0");
+  x.fillStyle = halo; x.fillRect(0, 0, 64, 64);
+  x.fillStyle = "#fff"; x.translate(32, 32); x.beginPath(); x.moveTo(0, -30);
+  for (let i = 1; i <= 4; i++) { const a = i / 4 * Math.PI * 2; x.quadraticCurveTo(0, 0, Math.sin(a) * 30, -Math.cos(a) * 30); }
   x.fill();
 });
+const HEART = () => spriteTex((x) => {
+  x.fillStyle = "#fff"; x.beginPath(); x.moveTo(32, 54);
+  x.bezierCurveTo(4, 36, 6, 10, 22, 10); x.bezierCurveTo(28, 10, 32, 15, 32, 20);
+  x.bezierCurveTo(32, 15, 36, 10, 42, 10); x.bezierCurveTo(58, 10, 60, 36, 32, 54);
+  x.fill();
+  x.fillStyle = "#ffffff"; x.globalAlpha = 0.5; x.beginPath(); x.ellipse(21, 21, 5, 3, -0.6, 0, Math.PI * 2); x.fill(); // reflexo
+});
+// nuvenzinha de vapor: três bolotas macias juntas
+const PUFF = () => spriteTex((x) => {
+  for (const [cx, cy, r] of [[24, 36, 18], [40, 34, 17], [32, 24, 18]]) {
+    const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, "#ffffffb0"); g.addColorStop(0.6, "#ffffff60"); g.addColorStop(1, "#fff0");
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+  }
+});
+const RING = () => spriteTex((x) => {
+  x.strokeStyle = "#fff"; x.lineWidth = 5; x.beginPath(); x.arc(32, 32, 27, 0, Math.PI * 2); x.stroke();
+});
+const TWINKLE = ["#ffe27a", "#ff9ec4", "#8fe3d0", "#ffffff", "#b9a4ff"]; // amarelo, rosa, menta, branco, lilás
 
 class Particles {
   constructor(scene) {
     this.scene = scene;
     this.list = [];
-    this.tex = { soft: SOFT(), star: STAR() };
-    this.bitGeo = new THREE.BoxGeometry(1, 1, 1);
+    this.tex = { soft: SOFT(), star: STAR(), heart: HEART(), puff: PUFF(), ring: RING() };
+    this.bitGeo = new THREE.IcosahedronGeometry(0.6, 1); // pedacinho redondinho, não um cubo
   }
   add(obj, p) { this.scene.add(obj); this.list.push({ obj, age: 0, ...p }); }
   sprite(kind, color, additive) {
@@ -74,8 +98,9 @@ class Particles {
   bits(pos, colors, n = 10, { speed = 3, size = 0.09, floor = pos.y - 0.05, up = 3 } = {}) {
     if (calm()) return;
     for (let i = 0; i < n; i++) {
-      const m = new THREE.Mesh(this.bitGeo, new THREE.MeshStandardMaterial({ color: colors[i % colors.length], roughness: 0.5 }));
-      m.scale.setScalar(size * (0.6 + Math.random() * 0.8));
+      const m = new THREE.Mesh(this.bitGeo, new THREE.MeshPhysicalMaterial({ color: colors[i % colors.length], roughness: 0.4, clearcoat: 0.8, clearcoatRoughness: 0.3 }));
+      m.scale.set(1, 0.7 + Math.random() * 0.5, 1).multiplyScalar(size * (0.6 + Math.random() * 0.8));
+      m.castShadow = true;
       m.position.copy(pos);
       const a = Math.random() * Math.PI * 2;
       this.add(m, {
@@ -88,23 +113,34 @@ class Particles {
   steam(pos, n = 1, { color = "#ffffff", size = 0.9, rise = 1.6 } = {}) {
     if (calm()) return;
     for (let i = 0; i < n; i++) {
-      const s = this.sprite("soft", color);
+      const s = this.sprite("puff", color);
       s.material.opacity = 0;
+      s.material.rotation = Math.random() * Math.PI * 2;
       s.position.copy(pos).add(v((Math.random() - 0.5) * 1.2, 0, (Math.random() - 0.5) * 1.2));
       s.scale.setScalar(size * 0.4);
-      this.add(s, { life: 1.8 + Math.random(), vel: v((Math.random() - 0.5) * 0.3, rise, 0), grow: size, fade: 0.45 });
+      this.add(s, { life: 1.8 + Math.random(), vel: v((Math.random() - 0.5) * 0.3, rise, 0), grow: size, fade: 0.55, sway: 0.5 + Math.random() * 0.4, phase: Math.random() * 6, spin2d: (Math.random() - 0.5) * 0.8 });
     }
   }
-  // brilhos de acerto: estrelinhas que estouram para fora
-  sparkle(pos, n = 12, color = "#ffe27a", spread = 2.6) {
+  // brilhos de acerto: estrelinhas coloridas e coraçõezinhos que estouram para fora,
+  // com um anel que abre no meio. Sem `color`, cada brilho sai de uma cor.
+  sparkle(pos, n = 12, color, spread = 2.6) {
     if (calm()) return;
     for (let i = 0; i < n; i++) {
-      const s = this.sprite("star", color, true);
+      const heart = i % 4 === 3;
+      const s = this.sprite(heart ? "heart" : "star", heart ? "#ff7fae" : color ?? TWINKLE[i % TWINKLE.length], !heart);
       s.position.copy(pos);
-      const a = i / n * Math.PI * 2, e = (Math.random() - 0.3) * 1.2;
-      s.scale.setScalar(0.35 + Math.random() * 0.25);
-      this.add(s, { life: 0.7 + Math.random() * 0.3, vel: v(Math.cos(a) * spread, 1.5 + e * spread * 0.5, Math.sin(a) * spread * 0.6), drag: 2.5, spin2d: 6, fade: 1 });
+      const a = i / n * Math.PI * 2 + Math.random() * 0.3, e = (Math.random() - 0.3) * 1.2;
+      const size = heart ? 0.26 + Math.random() * 0.1 : 0.3 + Math.random() * 0.3;
+      s.scale.setScalar(size * 0.2);
+      this.add(s, {
+        life: 0.75 + Math.random() * 0.35, vel: v(Math.cos(a) * spread, 1.5 + e * spread * 0.5 + (heart ? 0.8 : 0), Math.sin(a) * spread * 0.6),
+        drag: 2.5, gravity: heart ? -0.6 : 0, spin2d: heart ? 0 : 5 * (Math.random() < 0.5 ? -1 : 1), fade: 1, pop: size,
+      });
     }
+    const ring = this.sprite("ring", color ?? "#fff6c8", true);
+    ring.position.copy(pos);
+    ring.scale.setScalar(0.2);
+    this.add(ring, { life: 0.45, vel: v(0, 0, 0), grow: 5, fade: 0.8 });
   }
   // gotinhas de óleo e faíscas que pulam da panela
   sizzle(pos, n = 4, radius = 0.9) {
@@ -150,11 +186,31 @@ class Particles {
       if (p.spin) { o.rotation.x += p.spin.x * dt; o.rotation.y += p.spin.y * dt; o.rotation.z += p.spin.z * dt; }
       if (p.spin2d) o.material.rotation += p.spin2d * dt;
       if (p.grow) o.scale.addScalar(p.grow * dt);
+      if (p.pop) o.scale.setScalar(p.pop * (k < 0.2 ? ease.back(k / 0.2) : 1 - ((k - 0.2) / 0.8) ** 3)); // nasce com um pulinho e encolhe no fim
+      if (p.sway) o.position.x += Math.cos(p.age * 2.4 + p.phase) * p.sway * dt; // vapor serpenteia ao subir
       if (p.fade) o.material.opacity = p.fade * Math.sin(Math.min(1, k) * Math.PI) ** 0.6;
       if (p.shrink && k > 0.7) o.scale.multiplyScalar(1 - dt * 6);
     }
   }
 }
+
+// Acabamento de cor, depois do tom: um pouco mais de saturação, sombras puxadas para o rosa
+// e um vinheta bem leve que segura o olho no meio, como nos jogos de cozinha de referência.
+const GRADE = {
+  uniforms: { tDiffuse: { value: null } },
+  vertexShader: "varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+  fragmentShader: `
+    uniform sampler2D tDiffuse; varying vec2 vUv;
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+      c.rgb = mix(vec3(l), c.rgb, 1.12);
+      c.rgb += vec3(0.02, 0.0, 0.015) * (1.0 - l) * (1.0 - l);
+      vec2 d = vUv - 0.5;
+      c.rgb *= 1.0 - dot(d, d) * 0.28;
+      gl_FragColor = vec4(clamp(c.rgb, 0.0, 1.0), c.a);
+    }`,
+};
 
 /* ---------- Mundo ---------- */
 export async function createWorld(host) {
@@ -163,34 +219,39 @@ export async function createWorld(host) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
   renderer.toneMapping = THREE.NeutralToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 0.98;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.VSMShadowMap; // sombra de contato macia, sem a borda dura do PCF
   renderer.localClippingEnabled = true; // a carne fatiada usa planos de corte
   const canvas = renderer.domElement;
   canvas.className = "stage3d-canvas";
   host.append(canvas);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#f6e3bf");
-  scene.fog = new THREE.Fog("#f3dcbc", 40, 120);
+  scene.background = new THREE.Color("#fde6ec");
+  scene.fog = new THREE.Fog("#fde6ec", 45, 120);
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.5;
+  scene.environmentIntensity = 0.75; // plástico e esmalte com reflexo limpo, de brinquedo
   pmrem.dispose();
 
-  scene.add(new THREE.HemisphereLight("#fff6ec", "#e9a99c", 0.85));
-  const sun = new THREE.DirectionalLight("#fff0da", 2.3);
+  // luz alta e macia: muito céu, sol mais fraco; nada fica preto
+  scene.add(new THREE.HemisphereLight("#fffaf4", "#ffd3dc", 1.0));
+  const sun = new THREE.DirectionalLight("#fff3e2", 1.8);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  sun.shadow.bias = -0.0004;
-  sun.shadow.normalBias = 0.02;
-  sun.shadow.radius = 4;
+  sun.shadow.bias = -0.0006;
+  sun.shadow.normalBias = 0.03;
+  sun.shadow.radius = 9;
+  sun.shadow.blurSamples = 16;
+  sun.shadow.intensity = 0.7; // a sombra é só um contato, não um buraco escuro
   Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 });
   scene.add(sun, sun.target);
-  const fill = new THREE.DirectionalLight("#ffd9e6", 0.55);
+  const fill = new THREE.DirectionalLight("#ffe3ee", 0.7);
   fill.position.set(10, 6, 8);
-  scene.add(fill);
+  const rim = new THREE.DirectionalLight("#e6f4ff", 0.6); // contraluz frio: separa a peça do fundo
+  rim.position.set(-4, 8, -10);
+  scene.add(fill, rim);
 
   const kitchen = buildKitchen();
   const market = buildMarket();
@@ -198,12 +259,14 @@ export async function createWorld(host) {
   scene.add(kitchen.group, market.group);
 
   const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
-  const composer = new EffectComposer(renderer);
+  // o alvo do pós-processamento tem MSAA próprio: sem ele, o antialias do renderer some e a borda serrilha
+  const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }));
   composer.addPass(new RenderPass(scene, camera));
-  // só o que passa do branco (faíscas, chamas, brilhos) floresce; o creme da cozinha fica nítido
-  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.22, 0.35, 1.3);
+  // só o que passa do branco (faíscas, chamas, brilhos, reflexos) floresce; o resto fica nítido
+  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.22, 0.3, 2.2);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
+  composer.addPass(new ShaderPass(GRADE));
 
   const fx = new Particles(scene);
 
