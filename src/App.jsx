@@ -3,7 +3,6 @@ import { NavLink, Route, Routes, useMatch } from "react-router-dom";
 import { SharedArtDefs } from "./components/Illustration";
 import StatusMessage from "./components/StatusMessage";
 import Chef from "./components/Chef";
-import { DEMO_ID } from "./data/games";
 import Home from "./pages/Home";
 import RecipeDetail from "./pages/RecipeDetail";
 import NotFound from "./pages/NotFound";
@@ -37,7 +36,6 @@ export default function App() {
           <NavLink to="/" className="logo">Cozinhe Comigo</NavLink>
           <nav aria-label="Principal">
             <NavLink to="/" end>Início</NavLink>
-            <NavLink to={`/receitas/${DEMO_ID}`}>Receita da demo</NavLink>
           </nav>
         </header>
       )}
@@ -55,7 +53,7 @@ export default function App() {
       </main>
       {!playing && (
         <footer className="site-footer">
-          Receitas da <a href="https://dummyjson.com/docs/recipes">DummyJSON</a>. Demo com uma receita.
+          Receitas da <a href="https://dummyjson.com/docs/recipes">DummyJSON</a>. Seis pedidos para cozinhar.
         </footer>
       )}
     </>

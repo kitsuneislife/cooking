@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useRecipe } from "../hooks/useRecipe";
-import { games, DEMO_ID, DIFFICULTY } from "../data/games";
+import { games, DIFFICULTY } from "../data/games";
 import { missingIngredients, brokenSteps, comboMultiplier } from "../game/rules";
 import { sfx, isMuted, toggleMute } from "../game/sound";
 import { pop } from "../game/fx";
@@ -14,10 +14,11 @@ import Stage3D from "../components/Stage3D";
 import MinigamePhase from "../components/MinigamePhase";
 import ResultPhase from "../components/ResultPhase";
 
-const PHASES = [
+// A feira é igual para todo pedido; as outras duas fases têm nome e dica da receita.
+const phasesOf = (game) => [
   { key: "market", name: "Mercado", art: "basket", hint: "Primeiro, as compras! Pegue só o que está na lista." },
-  { key: "prep", name: "Preparo", art: "board", hint: "Hora de preparar: fatiar, picar e fazer o molho." },
-  { key: "cook", name: "Fogão", art: "stove", hint: "Fogo alto! Agora é no wok." },
+  { key: "prep", ...game.phases.prep },
+  { key: "cook", ...game.phases.cook },
 ];
 
 export default function Play() {
@@ -28,7 +29,7 @@ export default function Play() {
 
   let problem = null;
   if (!game) {
-    problem = <StatusMessage status="error">Por enquanto só a receita {DEMO_ID} tem fases prontas.</StatusMessage>;
+    problem = <StatusMessage status="error">Esta receita ainda não tem fases prontas.</StatusMessage>;
   } else if (status === "loading") {
     problem = <StatusMessage status="loading">Buscando a receita na API…</StatusMessage>;
   } else if (status === "error") {
@@ -60,6 +61,7 @@ function Match({ recipe, game, onReplay }) {
   const [muted, setMuted] = useState(isMuted);
   const comboRef = useRef(0);
 
+  const PHASES = phasesOf(game);
   const index = PHASES.findIndex((p) => p.key === phase);
   const current = PHASES[index];
   const multiplier = comboMultiplier(score.combo);
@@ -94,7 +96,11 @@ function Match({ recipe, game, onReplay }) {
   useEffect(() => {
     if (!world) return;
     if (phase === "intro") world.orbit(new THREE.Vector3(1.5, 1.4, 0), 15, 6, 0.06, 40);
-    if (phase === "result") world.orbit(new THREE.Vector3(9, 0.6, 0.3), 5.4, 2.8, 0.18, 30);
+    if (phase === "result") {
+      // o prato pronto: onde a última etapa deixou (ou o prato da estação de servir)
+      const { center, radius } = world.dish.hero ?? { center: new THREE.Vector3(9, 0.6, 0.3), radius: 5.4 };
+      world.orbit(center, radius, 2.8, 0.18, 30);
+    }
   }, [world, phase]);
 
   useEffect(() => {

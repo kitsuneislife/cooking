@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { minigame } from "../three/games";
+import { hero } from "../three/games/common";
+import { SHOTS } from "../three/world";
 import { stepGrade } from "../game/rules";
 import { sfx } from "../game/sound";
 import GestureIcon from "./GestureIcon";
 
 const CANCEL = Symbol("cancel");
 const RESCUE_SCORE = 0.25; // etapa que o chef terminou: conta pouco, mas não zera
+const FAR = 14; // distância (no eixo da bancada) a partir da qual a câmera corta em vez de voar
 
 // Uma fase da partida: roda os minijogos 3D dela um depois do outro.
 // Cada etapa: câmera viaja → cartão com o gesto → "Já!" → jogo com tempo → carimbo da nota.
@@ -22,19 +25,25 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
     const offs = new Set();
     const guard = (p) => p.then((v) => { if (cancelled) throw CANCEL; return v; });
 
+    // Leva a câmera até `shot` (nome ou enquadramento). Longe demais (feira, outra ponta
+    // da bancada), corta com uma cortina em vez de voar. Devolve `{ arrived }`: a promessa
+    // da chegada vai embrulhada para o `await` daqui não esperar a viagem inteira.
+    async function travelTo(shot, dur) {
+      const from = world.shot, to = typeof shot === "string" ? SHOTS[shot] : shot;
+      const far = from && Math.abs(from.look.x - to.look.x) > FAR;
+      if (far) { setWipe(true); await guard(world.wait(0.45)); }
+      world.shot = to; // só depois da espera: uma fase cancelada no meio não deixa a cortina presa
+      if (!far) return { arrived: world.go(to, dur) };
+      world.go(to, 0);
+      return { arrived: world.wait(0.15).then(() => setWipe(false)) };
+    }
+
     async function play(spec, i) {
-      const mg = minigame(spec.game);
+      // a receita pode trocar título, textos, câmera e tempo do minijogo na própria etapa
+      const mg = { ...minigame(spec.game), ...spec };
       setView({ i, mg, spec, stage: "travel" });
       setHud({ progress: 0, gauge: null, list: null, left: mg.seconds, total: mg.seconds });
-      // da feira para a cozinha é longe: corta com uma cortina em vez de voar
-      let travel;
-      if (world.shot && (world.shot === "market") !== (mg.shot === "market")) {
-        setWipe(true);
-        await guard(world.wait(0.45));
-        world.go(mg.shot, 0);
-        travel = world.wait(0.15).then(() => setWipe(false));
-      } else travel = world.go(mg.shot, world.shot ? 1.3 : 1.8);
-      world.shot = mg.shot;
+      const { arrived: travel } = await travelTo(mg.shot, world.shot ? 1.3 : 1.8);
 
       let settle;
       const result = new Promise((r) => { settle = r; });
@@ -106,6 +115,12 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
       if (inst.outro) await guard(inst.outro());
       inst.finish();
       finished = true;
+      // etapa que termina o prato: a câmera chega perto do que ficou pronto
+      if (spec.hero) {
+        const h = hero(world, spec.hero);
+        await guard((await travelTo(h.shot, 1.4)).arrived);
+        await guard(h.show());
+      }
     }
 
     (async () => {
