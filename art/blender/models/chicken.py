@@ -73,7 +73,7 @@ def build():
         bpy.data.objects.remove(cut)
         # leque: cada fatia gira um pouco e desliza, mostrando o miolo
         sl.rotation_euler = (0, -0.25, (i - 2) * 0.09)
-        sl.location = (i * 0.1 - 0.2, (i - 2) * 0.07, 0.27)
+        sl.location = (i * 0.06 - 0.12, (i - 2) * 0.05, 0.27)
         food.append(sl)
     bpy.data.objects.remove(breast)
 
@@ -81,16 +81,16 @@ def build():
     onion_m = parts.M("redonion", lambda: lib.ramp_mat(
         "cebola_roxa", [(0, "#f2e4f2"), (1, "#8e2f78")], rough=0.15, spec=0.6, scale=9, sss=0.3))
     pepper_m = parts.M("redpepper", lambda: lib.mat("pimentao", "#d8231c", rough=0.15, spec=0.7))
-    sc = (0.0, 0, 0.5)
-    pieces = [(flesh, 34, 0.12), (lambda: onion_m, 12, 0.085), (lambda: pepper_m, 10, 0.085)]
+    sc = (0.05, 0, 0.36)  # base no topo das fatias: a salsa assenta na carne, não flutua
+    pieces = [(flesh, 40, 0.12), (lambda: onion_m, 14, 0.085), (lambda: pepper_m, 12, 0.085)]
     for k, (m, count, s) in enumerate(pieces):
-        for i, (loc, nrm, r) in enumerate(parts.on_dome(count, 0.7, 0.3, sc, seed=50 + k, depth=(0.7, 1.0))):
+        for i, (loc, nrm, r) in enumerate(parts.on_dome(count, 0.7, 0.22, sc, seed=50 + k, depth=(0.7, 1.0))):
             c = lib.cylinder(f"salsa{k}_{i}", s, s, s * 1.5, 4)
             c.modifiers.new("bev", "BEVEL").width = s * 0.3
             lib.subsurf(c, 1)
             c.scale = (1, 1, r.uniform(0.7, 1.2))
             food.append(parts.place(lib.assign(c, m()), loc, nrm, r.uniform(0, math.tau)))
-    for i, (loc, nrm, r) in enumerate(parts.on_dome(9, 0.66, 0.32, sc, seed=70, depth=(1.0, 1.1))):
+    for i, (loc, nrm, r) in enumerate(parts.on_dome(9, 0.66, 0.24, sc, seed=70, depth=(1.0, 1.1))):
         lf = parts.leaf(0.28, ("#2f8a34", "#5dbb4a"), f"cilantro{i}", cup=0.15)
         food.append(parts.place(lf, loc, nrm, r.uniform(0, math.tau)))
 
