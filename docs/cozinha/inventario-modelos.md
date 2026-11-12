@@ -163,6 +163,8 @@ As 44 receitas que ainda não são jogáveis não têm prato pronto. O modelo de
 
 ## Ordem sugerida
 
+A divisão completa em levas de até 8 modelos está em [lotes-modelos.md](lotes-modelos.md).
+
 1. **Embalagens genéricas** (garrafa, pote, caixinha, saco, lata, caixa, saleiro, potinho de tempero). Uma leva só tira de código metade da despensa atual e já deixa prontos uns 50 ingredientes futuros.
 2. **Frescos que já estão no jogo e são os mais usados:** alho, tomate, frango, cebola, coentro, manjericão, gengibre. Juntos, aparecem em quase todas as receitas.
 3. **Estações:** fogareiro, forno, grelha, geladeira, liquidificador, copos. Aparecem em todo plano de câmera, então pesam no desempenho e no visual de toda partida.
