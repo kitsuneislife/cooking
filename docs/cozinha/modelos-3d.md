@@ -262,7 +262,7 @@ Leva 5, `utensils.glb` (14.960 triângulos no jogo, 599 KB):
 
 **Leva 7 (12/11/2026): embalagens de papel e plástico.** O usuário pediu direto no jogo. A referência está em [../inspiracao/cooking-mama-cuisine.md](../inspiracao/cooking-mama-cuisine.md) ("Embalagens de perto"): proporção gordinha, rótulo grande e o saco kraft com a boca dobrada. O Blender faz o formato; o rótulo (texto e cor do ingrediente) continua pintado em código.
 
-`packs.glb` (3.532 triângulos no jogo, 202 KB):
+`packs.glb` (3.532 triângulos no jogo, 203 KB):
 
 | Peça | No jogo (triângulos) | Textura |
 |---|---|---|
@@ -274,7 +274,7 @@ Leva 5, `utensils.glb` (14.960 triângulos no jogo, 599 KB):
 | Lata, corpo pintado e rótulo | 320 + 48 | 512 |
 | Borda, pé e tampa de alavanca da lata | 380 | 256 |
 
-`butter.glb` (432 triângulos, 42 KB): tablete em papel dourado com as pontas dobradas e um rótulo no topo. Pronto e **fora do jogo**, porque nenhuma receita jogável usa manteiga ainda.
+`butter.glb` (468 triângulos, 37 KB): tablete em papel dourado com a ponta dobrada em aba de envelope e um rótulo no topo. Pronto e **fora do jogo**, porque nenhuma receita jogável usa manteiga ainda.
 
 ### Troca no jogo
 
