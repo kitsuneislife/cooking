@@ -5,7 +5,7 @@ import { shuffle } from "../../game/rules.js";
 import { sfx } from "../../game/sound.js";
 import { scope, hop, squash, v3 } from "./common.js";
 
-const ONLY = { rice: 2 }; // itens que não empilham bem: quantos lado a lado
+const ONLY = { rice: 2, cornstarch: 2 }; // itens que não empilham bem: quantos lado a lado
 
 // Item já comprado: o monte fica cinza e meio transparente (materiais clonados, não afeta o resto).
 function dim(obj) {

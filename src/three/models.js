@@ -9,6 +9,7 @@ export const MODELS = [
   "counter", "wall", "shelves", "window", "hood", "lamp", "props", // cozinha
   "stand", "crate", "stalls", // feira
   "tableware", "utensils", // louça, panelas e utensílios das estações
+  "packs", // embalagens da despensa (o rótulo é pintado em foods.js)
 ];
 const loaded = {};
 

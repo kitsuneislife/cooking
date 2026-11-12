@@ -29,7 +29,7 @@ export const chickenTex = (k) => once(`chicken-${k}`, () => {
     return mix(c, rgb("#3a1a08"), (1 - sstep(0.05, 0.12, Math.abs(bar - 0.5))) * 0.85);
   }, { repeat: 0.6 });
 });
-function packTex(text, bg, band) { // embalagem de papel: faixa colorida com o nome
+export function packTex(text, bg, band) { // embalagem de papel: faixa colorida com o nome
   return canvasTex(256, 256, (x) => {
     x.fillStyle = bg; x.fillRect(0, 0, 256, 256);
     x.fillStyle = band; x.fillRect(0, 78, 256, 84);
@@ -134,49 +134,29 @@ const MINT = () => leafMat("#3caa48", "#62c456", "#8fd878");
 const leaf = (L, mat) => mesh(once(`leafGeo${L}`, () => leafGeo(L, L * 0.36, 0.55, 0.12)), mat);
 const CILANTRO_LEAF = () => once("cilantroLeaf", () => new THREE.SphereGeometry(1, 8, 6).scale(0.12, 0.03, 0.14));
 
-function tub(text, band, lid) { // pote de plástico com tampa de alumínio
-  const g = new THREE.Group();
-  g.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.48, 0), V2(0.52, 0.04), V2(0.62, 0.84), V2(0.67, 0.86), V2(0.67, 0.92), V2(0, 0.92)], 40), glossy({ color: "#fffdf8", roughness: 0.3 })));
-  const label = mesh(new THREE.CylinderGeometry(0.606, 0.546, 0.52, 40, 1, true, -1.7, 3.4), new THREE.MeshStandardMaterial({ map: labelTexture(text, band, band), roughness: 0.6 }));
-  label.position.y = 0.46;
-  const foil = mesh(new THREE.CylinderGeometry(0.68, 0.68, 0.035, 40), metal({ color: lid, roughness: 0.35 }));
-  foil.position.y = 0.935;
-  g.add(label, foil);
+// Embalagens do Blender (packs.glb, leva 7): o formato vem de lá, o rótulo é pintado aqui e as
+// peças de `tints` (saem quase brancas do Blender) ganham a cor do ingrediente. Os materiais são
+// feitos uma vez por ingrediente e divididos entre as cópias da feira.
+function pack(kind, text, label, tints = {}) {
+  const g = model("packs", (n) => n === kind || n.startsWith(`${kind}_`));
+  const mats = once(`pack-${kind}-${text}`, () => {
+    const map = label();
+    map.flipY = false; // UV do glTF: v cresce para baixo
+    const m = { [`${kind}_label`]: new THREE.MeshStandardMaterial({ map, roughness: 0.6 }) };
+    for (const c of g.children) {
+      if (!tints[c.name]) continue;
+      m[c.name] = c.material.clone();
+      m[c.name].color.set(tints[c.name]);
+    }
+    return m;
+  });
+  for (const c of g.children) if (mats[c.name]) c.material = mats[c.name];
   return g;
 }
-function carton(text, band, cap) { // caixa de leite com telhadinho
-  const g = new THREE.Group(), map = packTex(text, "#fffaf0", band);
-  const body = mesh(new RoundedBoxGeometry(0.78, 1.15, 0.78, 3, 0.05), new THREE.MeshStandardMaterial({ map, roughness: 0.45 }));
-  body.position.y = 0.575;
-  const tri = new THREE.Shape([V2(-0.38, 0), V2(0.38, 0), V2(0, 0.3)]);
-  const roof = mesh(new THREE.ExtrudeGeometry(tri, { depth: 0.76, bevelEnabled: false }).translate(0, 1.15, -0.38), glossy({ color: band, roughness: 0.4 }));
-  const fin = mesh(new RoundedBoxGeometry(0.05, 0.16, 0.76, 1, 0.02), glossy({ color: "#fffaf0" }));
-  fin.position.y = 1.5;
-  const lid = mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 20), glossy({ color: cap }));
-  lid.position.set(0.2, 1.33, 0.12); lid.rotation.z = -0.9;
-  g.add(body, roof, fin, lid);
-  return g;
-}
-function sack(text, band) { // saco de papel dobrado em cima
-  const g = new THREE.Group();
-  const body = mesh(new RoundedBoxGeometry(0.95, 1.1, 0.62, 4, 0.14), new THREE.MeshStandardMaterial({ map: packTex(text, "#fff6e6", band), roughness: 0.8 }));
-  body.position.y = 0.55;
-  const fold = mesh(new RoundedBoxGeometry(0.9, 0.2, 0.3, 3, 0.08), food({ color: "#f3e3c8", roughness: 0.85, clearcoat: 0 }));
-  fold.position.set(0, 1.14, 0.02); fold.rotation.x = 0.25;
-  g.add(body, fold);
-  return g;
-}
-function tin(text, band, body) { // lata com tampa de metal
-  const g = new THREE.Group();
-  const can = mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.0, 40), glossy({ color: body, roughness: 0.3 }));
-  can.position.y = 0.5;
-  const label = mesh(new THREE.CylinderGeometry(0.426, 0.426, 0.62, 40, 1, true, -1.7, 3.4), new THREE.MeshStandardMaterial({ map: labelTexture(text, band, band), roughness: 0.6 }));
-  label.position.y = 0.48;
-  const lid = mesh(new THREE.CylinderGeometry(0.44, 0.44, 0.09, 40), metal({ color: "#e6ebf0", roughness: 0.25 }));
-  lid.position.y = 1.03;
-  g.add(can, label, lid);
-  return g;
-}
+const tub = (text, band, lid) => pack("tub", text, () => labelTexture(text, band, band), { tub_lid: lid }); // pote com tampa de alumínio
+const carton = (text, band) => pack("carton", text, () => packTex(text, "#fffaf0", band), { carton_roof: band }); // caixinha com telhadinho
+const sack = (text, band) => pack("sack", text, () => packTex(text, "#fff6e6", band)); // saco de papel kraft
+const tin = (text, band, body) => pack("tin", text, () => labelTexture(text, band, band), { tin: body }); // lata de tampa de alavanca
 function shaker(body, band) { // saleiro de cerâmica com tampa furadinha
   const g = new THREE.Group();
   g.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.22, 0), V2(0.25, 0.04), V2(0.2, 0.5), V2(0.24, 0.62)], 28), glossy({ color: body })));
@@ -492,12 +472,6 @@ function cheddar() {
   const g = new THREE.Group(); g.add(m);
   return g;
 }
-function cornstarchBox() { // caixa de amido com rótulo
-  const box = mesh(new RoundedBoxGeometry(1, 1.4, 0.6, 3, 0.06), new THREE.MeshStandardMaterial({ map: packTex("AMIDO", "#ffd23f", "#2a8199"), roughness: 0.5 }));
-  box.position.y = 0.7;
-  const g = new THREE.Group(); g.add(box);
-  return g;
-}
 
 const BOTTLES = {
   oliveOil: () => bottle({ r: 0.36, shoulder: 1.15, neckR: 0.1, neckTop: 1.95, glass: "#9aa83a", amber: "#c2b52a", cap: "#2a1a10", text: "AZEITE", band: "#4a6a1a", ink: "#3a4a1a" }),
@@ -522,7 +496,7 @@ export const PANTRY = {
   sesame: { model: build.sesame, tint: "#d8952a" },
   garlic: { model: build.garlic, tint: "#fbf3dc", chop: { model: build.cloves, size: 1.25, colors: ["#fff1c4", "#f0d892", "#fffaf0"] } },
   ginger: { model: build.ginger, tint: "#f6dc86", chop: { size: 1.35, colors: ["#f6dc86", "#e9c45c", "#fff1b8"] } },
-  cornstarch: { model: cornstarchBox, tint: "#fffdf6" },
+  cornstarch: { model: build.cornstarch, tint: "#fffdf6" }, // a mesma tigela da bancada
   rice: { model: () => build.rice(), tint: "#fffcf4" },
   shrimp: { model: build.shrimp }, tofu: { model: build.tofu }, carrot: { model: build.carrot },
   mushroom: { model: build.mushroom }, teriyaki: { model: build.teriyaki },
@@ -544,7 +518,7 @@ export const PANTRY = {
   lemon: { model: lemon },
   // lassi de manga
   yogurt: { model: () => tub("IOGURTE", "#2a8199", "#bfe6f7"), tint: "#fffbf0" },
-  milk: { model: () => carton("LEITE", "#3f8fd0", "#3f8fd0"), tint: "#ffffff" },
+  milk: { model: () => carton("LEITE", "#3f8fd0"), tint: "#ffffff" },
   honey: { model: BOTTLES.honey, tint: "#e89a10", piece: drop("#f0a818", { emissive: "#c87a00", emissiveIntensity: 0.25 }) },
   cardamom: { model: BOTTLES.cardamom, tint: "#93b060" },
   ice: { model: icePile, tint: "#dff4ff", solid: true, piece: iceCube },
@@ -552,7 +526,7 @@ export const PANTRY = {
   espresso: { model: espresso, tint: "#2e1508" },
   ladyfingers: { model: ladyfingerPack, tint: "#f2d28c" },
   mascarpone: { model: () => tub("MASCARPONE", "#c8352a", "#f2c14a"), tint: "#fff6dc" },
-  cream: { model: () => carton("CREME", "#e5484d", "#e5484d"), tint: "#fffaf0" },
+  cream: { model: () => carton("CREME", "#e5484d"), tint: "#fffaf0" },
   sugar: { model: () => sack("AÇÚCAR", "#e5484d"), tint: "#ffffff", solid: true, melts: true, piece: drop("#ffffff", { roughness: 1, clearcoat: 0, bumpMap: tex("powder"), bumpScale: 3 }) },
   cocoa: { model: () => tin("CACAU", "#5a2a12", "#7a3a1a"), tint: "#5a2a12" },
   // caipirinha

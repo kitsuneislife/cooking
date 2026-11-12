@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { servingPlate, castAll } from "/src/three/kit.js";
 import { limeWedge, chicken, piece, ladyfinger } from "/src/three/foods.js";
-import { broccoli, mango, lime, stirfry } from "/src/three/archive/procedural.js";
+import { broccoli, mango, lime, stirfry, tub, carton, sack, tin } from "/src/three/archive/procedural.js";
 import { glassDish } from "/src/three/gear.js";
 
 const item = new URLSearchParams(location.search).get("item");
@@ -29,6 +29,8 @@ const make = {
   mango: () => g.add(mango()),
   lime: () => { const a = lime(); a.position.x = -0.6; const b = limeWedge(); b.position.x = 0.6; g.add(a, b); },
   stirfry: () => g.add(stirfry()),
+  packs: () => [tub("IOGURTE", "#2a8199", "#bfe6f7"), carton("LEITE", "#3f8fd0", "#3f8fd0"), sack("AÇÚCAR", "#e5484d"),
+    tin("CACAU", "#5a2a12", "#7a3a1a")].forEach((p, i) => { p.position.x = (i - 1.5) * 1.6; g.add(p); }),
   chicken: () => { // como o minijogo Empratar deixa: sobrecoxa grelhada e colheradas de salsa
     g.add(servingPlate());
     const c = chicken("grilled"); c.position.y = 0.15; g.add(c);

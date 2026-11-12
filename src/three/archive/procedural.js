@@ -2,9 +2,10 @@
 // (ver docs/cozinha/modelos-3d.md). Ficam aqui, fora do caminho do jogo, para comparar
 // (art/compare-current.html) e para voltar atrás se precisar. Nada no jogo importa este arquivo.
 import {
-  THREE, mergeGeometries, mesh, food, glossy, paint, rgb, mix, fbm, sstep, seeded, V2, tex,
-  servingPlate, beefStrip, searedMat,
+  THREE, RoundedBoxGeometry, mergeGeometries, mesh, food, glossy, metal, paint, rgb, mix, fbm, sstep, seeded, V2, tex,
+  servingPlate, beefStrip, searedMat, labelTexture,
 } from "../kit.js";
+import { packTex } from "../foods.js";
 
 const cache = {};
 const once = (key, make) => cache[key] ??= make();
@@ -133,5 +134,56 @@ export function stirfry() {
       g.add(s);
     }
   }
+  return g;
+}
+
+/* ---------- Embalagens (leva 7): trocadas por packs.glb; o amido da feira virou a tigela da bancada ---------- */
+export function tub(text, band, lid) { // pote de plástico com tampa de alumínio
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.48, 0), V2(0.52, 0.04), V2(0.62, 0.84), V2(0.67, 0.86), V2(0.67, 0.92), V2(0, 0.92)], 40), glossy({ color: "#fffdf8", roughness: 0.3 })));
+  const label = mesh(new THREE.CylinderGeometry(0.606, 0.546, 0.52, 40, 1, true, -1.7, 3.4), new THREE.MeshStandardMaterial({ map: labelTexture(text, band, band), roughness: 0.6 }));
+  label.position.y = 0.46;
+  const foil = mesh(new THREE.CylinderGeometry(0.68, 0.68, 0.035, 40), metal({ color: lid, roughness: 0.35 }));
+  foil.position.y = 0.935;
+  g.add(label, foil);
+  return g;
+}
+export function carton(text, band, cap) { // caixa de leite com telhadinho
+  const g = new THREE.Group(), map = packTex(text, "#fffaf0", band);
+  const body = mesh(new RoundedBoxGeometry(0.78, 1.15, 0.78, 3, 0.05), new THREE.MeshStandardMaterial({ map, roughness: 0.45 }));
+  body.position.y = 0.575;
+  const tri = new THREE.Shape([V2(-0.38, 0), V2(0.38, 0), V2(0, 0.3)]);
+  const roof = mesh(new THREE.ExtrudeGeometry(tri, { depth: 0.76, bevelEnabled: false }).translate(0, 1.15, -0.38), glossy({ color: band, roughness: 0.4 }));
+  const fin = mesh(new RoundedBoxGeometry(0.05, 0.16, 0.76, 1, 0.02), glossy({ color: "#fffaf0" }));
+  fin.position.y = 1.5;
+  const lid = mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 20), glossy({ color: cap }));
+  lid.position.set(0.2, 1.33, 0.12); lid.rotation.z = -0.9;
+  g.add(body, roof, fin, lid);
+  return g;
+}
+export function sack(text, band) { // saco de papel dobrado em cima
+  const g = new THREE.Group();
+  const body = mesh(new RoundedBoxGeometry(0.95, 1.1, 0.62, 4, 0.14), new THREE.MeshStandardMaterial({ map: packTex(text, "#fff6e6", band), roughness: 0.8 }));
+  body.position.y = 0.55;
+  const fold = mesh(new RoundedBoxGeometry(0.9, 0.2, 0.3, 3, 0.08), food({ color: "#f3e3c8", roughness: 0.85, clearcoat: 0 }));
+  fold.position.set(0, 1.14, 0.02); fold.rotation.x = 0.25;
+  g.add(body, fold);
+  return g;
+}
+export function tin(text, band, body) { // lata com tampa de metal
+  const g = new THREE.Group();
+  const can = mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.0, 40), glossy({ color: body, roughness: 0.3 }));
+  can.position.y = 0.5;
+  const label = mesh(new THREE.CylinderGeometry(0.426, 0.426, 0.62, 40, 1, true, -1.7, 3.4), new THREE.MeshStandardMaterial({ map: labelTexture(text, band, band), roughness: 0.6 }));
+  label.position.y = 0.48;
+  const lid = mesh(new THREE.CylinderGeometry(0.44, 0.44, 0.09, 40), metal({ color: "#e6ebf0", roughness: 0.25 }));
+  lid.position.y = 1.03;
+  g.add(can, label, lid);
+  return g;
+}
+export function cornstarchBox() { // caixa de amido com rótulo
+  const box = mesh(new RoundedBoxGeometry(1, 1.4, 0.6, 3, 0.06), new THREE.MeshStandardMaterial({ map: packTex("AMIDO", "#ffd23f", "#2a8199"), roughness: 0.5 }));
+  box.position.y = 0.7;
+  const g = new THREE.Group(); g.add(box);
   return g;
 }

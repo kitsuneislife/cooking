@@ -6,9 +6,19 @@
 // triângulos e chamadas de desenho de um quadro, com sombra e pós-processamento.
 import { createWorld } from "/src/three/world.js";
 
-const shot = new URLSearchParams(location.search).get("shot") || "wide";
+// `&shop=yogurt,milk` monta a banca da feira com esses ingredientes, com o sorteio fixado, para
+// medir e fotografar os itens da feira sempre na mesma arrumação.
+const params = new URLSearchParams(location.search), shot = params.get("shot") || "wide";
 const world = await createWorld(document.body);
 world.go(shot, 0);
+if (params.get("shop")) {
+  let seed = 7;
+  Math.random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  const { default: shop } = await import("/src/three/games/shop.js");
+  const ingredients = params.get("shop").split(",").map((id) => ({ id, api: id, name: id }));
+  const ctx = new Proxy({}, { get: () => () => {} });
+  shop.create(world, ctx, {}, { ingredients, intruders: [] });
+}
 window.world = world;
 window.stats = () => new Promise((done) => {
   const gl = world.canvas.getContext("webgl2"), r = { calls: 0, tris: 0 };
