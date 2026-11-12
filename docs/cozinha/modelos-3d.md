@@ -214,6 +214,21 @@ Aprovados pelo usuário em 12/11/2026 e **já no jogo** (ver "Troca no jogo" aba
 
 Na comparação, o brócolis atual do jogo já era bom de silhueta; o ganho do novo está nos botões e na cor. O refogado é onde o Blender mais rendeu, porque o código sozinho não chegou lá. O frango é o mais fraco e pede outra volta numa leva futura. Todo trabalho no Blender segue a skill [blender](../skills/blender/SKILL.md).
 
+**Leva 3 (12/11/2026): o cenário.** Bancada, parede de azulejo, prateleiras, janelas, coifa, luminárias e miudezas da cozinha; na feira, a banca, os caixotes e as barracas vizinhas ao fundo. Bacias, utensílios e estações ficaram de fora de propósito. A referência do cenário está em [../inspiracao/cooking-mama-cuisine.md](../inspiracao/cooking-mama-cuisine.md) ("O cenário de perto"). O usuário pediu a leva inteira de uma vez, já direto no jogo.
+
+| Modelo | Detalhado (triângulos) | No jogo (triângulos) | `.glb` |
+|---|---|---|---|
+| Bancada (módulo, repetido 12 vezes) | 4.000 | 2.000 | 164 KB |
+| Parede (placa que repete) | 29.500 | 2 | 51 KB |
+| Prateleiras (despensa, pratos, temperos, bar) | 45 mil | 18.100 | 1.037 KB |
+| Janela (caixilho, cortinas, bandô, vasos) | 17.500 | 5.000 | 503 KB |
+| Coifa | 1.400 | 1.400 | 61 KB |
+| Luminárias (vermelha, amarela, menta) | 5.000 | 4.500 | 176 KB |
+| Miudezas (relógio, manjericão, saleiros, pote de colheres, pano) | 14.600 | 8.300 | 507 KB |
+| Banca da feira (balcão, degraus, postes, toldo) | 12.400 | 11.700 | 495 KB |
+| Caixote | 1.500 | 1.500 | 86 KB |
+| Barracas vizinhas e árvores | 50.700 | 12.000 | 917 KB |
+
 ### Troca no jogo
 
 A regra: depois que o usuário aprova uma leva, o modelo procedural sai do caminho do jogo e vai para `src/three/archive/procedural.js` (arquivado, não apagado; a página `art/compare-current.html` usa o arquivo para as próximas comparações), e o jogo passa a carregar o `.glb`. Cada troca também é uma chance de deixar o jogo mais leve, medida antes e depois.
@@ -240,6 +255,32 @@ Lições da troca:
 2. **Pane escondido não roda `requestAnimationFrame`.** Para contar um quadro, embrulhar o `requestAnimationFrame` e guardar a contagem de cada quadro; uma captura de tela força o quadro.
 3. **O tamanho cru do `.glb` não é o do procedural.** Quem passa por `fit` (feira, picar, despejar) não sente; quem usa escala fixa (o brócolis no wok e nas porções) precisa de um invólucro com a escala antiga. Conferir lado a lado, antigo e novo, numa página de teste antes de abrir o jogo.
 4. **O GLTFLoader limpa o nome do nó** (`lime.001` vira `lime001`). Filtrar partes por pedaço do nome (`cloth`, `cheek`), nunca pelo nome inteiro.
+
+Como ficou a leva 3:
+
+- O `src/three/sets.js` antigo, todo em código, foi copiado inteiro para `src/three/archive/sets.js`. No jogo, `sets.js` perdeu o tampo pintado, os armários, as portas, os três planos da parede, as prateleiras e tudo o que estava nelas, a janela, a coifa, a cúpula das luminárias, as miudezas do tampo, o balcão da feira, os degraus, os postes, o toldo e os caixotes de cinco tábuas.
+- **Bancada:** um módulo de armário repetido 12 vezes, esticado para a bancada caber de ponta a ponta. As cópias dividem geometria e material. O material leva o `polygonOffset` que o tampo antigo tinha.
+- **Parede:** a placa de 6 azulejos é esticada na largura da parede, e a textura repete na mesma conta (`repeat.x = 68 / 4,08`). O papel de parede menta e o rodapé rosa continuam em código.
+- **Janela e luminárias:** o jogo posiciona cada cópia. O céu atrás do vidro, a lâmpada que brilha e as luzes continuam em código.
+- **Prateleiras, coifa e miudezas** já vêm no lugar certo, nas medidas do jogo. A barra de utensílios pendurados ficou como estava (utensílio está fora desta leva).
+- **Feira:** a banca e as barracas do fundo entram inteiras; o céu do fundo perdeu as barracas pintadas. Cada caixote da partida é uma cópia do modelo, esticada para a largura da fileira; o papel colorido e o calço continuam em código. As barracas do fundo não fazem sombra.
+
+| Plano de câmera | Chamadas de desenho (antes, depois) | Triângulos (antes, depois) |
+|---|---|---|
+| Cozinha inteira (`wide`) | 1.456, 772 (−47%) | 552.602, 398.518 (−28%) |
+| Prato (`plate`) | 738, 454 (−38%) | 303.210, 249.402 (−18%) |
+| Liquidificador (`blender`) | 456, 192 (−58%) | 110.722, 117.590 (+6%) |
+| Feira (`market`, sem caixotes) | 174, 146 (−16%) | 40.068, 120.132 (3x) |
+
+A feira ficou mais pesada em triângulos porque antes era quase só caixas lisas e um céu pintado; mesmo assim é o plano mais leve do jogo depois do liquidificador.
+
+Medido em `art/scene.html?shot=<plano>` a 1280x720, um quadro com sombra e pós-processamento, contando as chamadas de desenho do WebGL.
+
+Lições da troca:
+
+5. **Não juntar o que a câmera de perto corta.** Com os 12 módulos da bancada numa malha só, o plano do liquidificador desenhava a bancada inteira e foi de 111 mil para 269 mil triângulos. Separados, dividindo geometria e material, cada plano desenha só os módulos que vê.
+6. **Uma textura que repete precisa de `RepeatWrapping` em todos os mapas.** Cor, relevo e rugosidade do `.glb` têm cada um o seu `repeat`; mudar só o da cor deixa o brilho de um azulejo esticado na parede inteira.
+7. **Cada malha na tela é desenhada umas 4 vezes** (sombra e passadas do pós-processamento). Por isso o módulo da bancada, que aparece de perto em quase todo plano, caiu de 4.000 para 2.000 triângulos. Para achar o culpado, esconder um nó de cada vez e contar o quadro de novo.
 
 ## Para a próxima etapa
 

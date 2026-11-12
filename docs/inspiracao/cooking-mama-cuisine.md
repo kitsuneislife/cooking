@@ -71,6 +71,17 @@ Quadros a cada 30 segundos, olhando só para a comida. Também é inferência.
 
 Como isso vira modelo está em [../cozinha/pipeline-blender.md](../cozinha/pipeline-blender.md).
 
+### O cenário de perto (revisto em 12/11/2026, para a leva 3)
+
+Quadros do mesmo vídeo, olhando só para o que fica atrás da comida. Também é inferência.
+
+- **Armário de marcenaria.** Cada porta tem moldura branca em volta, uma gaveta em cima e a porta com almofada (o painel rebaixado), puxador redondo. Não é uma tampa lisa colada no armário.
+- **Tampo grosso.** As réguas amarelo-mel têm espessura de verdade e a borda da frente é arredondada; a junta entre réguas é fina.
+- **Azulejo com relevo.** Cada peça tem a borda arredondada e um brilho de esmalte; a faixa decorada no alto tem florzinha em relevo e um filete branco por cima.
+- **Fundo cheio, mas calmo.** Prateleiras com potes, tigelas empilhadas, livro e planta; janela pequena com cortina de xadrez presa por fita; coifa esmaltada de cor pastel. Tudo de cor clara e acabamento macio, para a comida continuar sendo o assunto.
+
+Os modelos que saíram daqui (bancada, parede, prateleiras, janela, coifa, luminárias, miudezas e a banca da feira) estão em `art/blender/models/`. O que é da feira está em [feira.md](feira.md).
+
 ## O que levamos
 
 | Ideia | Onde entrou |

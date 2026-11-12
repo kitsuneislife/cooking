@@ -73,6 +73,9 @@ Uma parte em `build()` é um dicionário:
 |---|---|---|---|
 | Ingrediente da feira | até 3.000 | 512 | até 300 KB |
 | Prato pronto (com prato e paninho) | até 10.000 | 1024 na comida, 512 no resto | até 900 KB |
+| Cenário perto da câmera (módulo da bancada, janela, banca da feira) | até 2.000 no que repete, 5.000 a 12.000 na peça única | 1024 | até 700 KB |
+| Cenário de fundo (prateleira, coifa, luminária, barracas) | até 5.000 por peça | 512 (1024 só nas barracas) | até 1 MB o arquivo |
+| Placa que repete (azulejo) | 2 (um quad) | 1024 | até 100 KB |
 
 O high pode ter o tamanho que precisar (o refogado tem 140 mil triângulos), porque não sai do Blender.
 
@@ -90,3 +93,16 @@ Cada uma custou um erro. Vale ler antes de mexer.
 8. **Peça composta guarda o recuo na malha, não em `location`.** A membrana do meio limão ficava um pouco abaixo dos gomos por `location`; o modelo que usa a peça posiciona todas as partes por `location` e apagou o recuo. A membrana encostou na polpa, ganhou a briga de profundidade e o corte ficou branco. Deslocamento interno vai para a malha (`data.transform`). Para achar esse tipo de culpado, renderizar só algumas partes de cada vez.
 9. **A comida tem que encher o prato.** Com o prato no tamanho do refogado, o frango ficou miúdo e o prato virou o assunto. Na referência a comida ocupa uns dois terços do prato.
 10. **Pane escondido para o relógio do jogo.** Para fotografar o jogo, usar `art/compare-current.html`, e não esperar uma partida inteira rodar sozinha.
+
+Lições da leva 3 (cenário):
+
+11. **Cenário se modela nas medidas do jogo.** `lib.T` troca o eixo do jogo (y para cima) pelo do Blender, e `lib.box` faz caixa arredondada já em unidades do jogo. Copiar a posição de `src/three/sets.js` evita medir de novo depois. Quando o jogo é que posiciona a peça (janela, luminária), `"origin"` leva o nó para a origem antes de exportar.
+12. **O que repete vira módulo ou placa.** A bancada é um módulo de armário que o jogo repete 12 vezes numa malha só. A parede é uma placa de 6 colunas de azulejo (a sequência de cores fecha a cada 6) assada num quad com UV inteira (`"low"` pronto): o jogo estica e repete a textura. Dois triângulos no lugar de três planos e um filete.
+13. **Peças do high não se encostam por dentro.** O montante da porta passava por dentro da travessa, e a oclusão assou um quadrado escuro em cada canto. Cortar o montante na altura da travessa.
+14. **Oclusão de cenário pede amostras.** Com 16 amostras a oclusão saiu granulada nas superfícies grandes e lisas. Cenário usa `"samples"` de 48 a 64.
+15. **Madeira de cenário é discreta.** Veio forte e junta larga parecem desenho; as cores do degradê ficam próximas e o chanfro entre réguas é de 0,012.
+16. **O nó do `.glb` leva o nome da peça.** Se uma peça do high já tem esse nome, o Blender chama o low de `spice.001` e o jogo vê `spice001`. O `build.py` agora renomeia a peça do high antes.
+17. **Prévia de peças espalhadas sai vazia.** As miudezas ficam em pontos distantes da cozinha, e o estúdio enquadra a origem. Para cenário, a prova é a foto no jogo (`art/scene.html?shot=wide`).
+18. **Casco simplificado longe do detalhe assa buraco.** Nas barracas do fundo, o low de 12 mil triângulos ficou afastado das peças, e com extrusão de 0,03 o raio não alcançava: o balcão saiu com uma mancha marrom e as copas com pintas escuras. Peça de fundo simplificada usa extrusão de 0,2.
+19. **Veio forte em área grande vira mancha.** Os degraus da banca pareciam cortiça; o degradê da madeira encurtou para tons vizinhos.
+20. **Fundo pequeno na tela não precisa de detalhe.** As prateleiras com 9.000 triângulos cada deixaram o quadro mais pesado que o cenário antigo; com 5.000 a diferença não aparece.
