@@ -62,8 +62,8 @@ export default {
       holder.userData = { item: it, hover: 0 };
       // hitbox fixa do caixote: o monte sobe e cresce no hover, então mirar nele fazia piscar.
       // baixa o bastante para não tampar o caixote do degrau de trás
-      const hit = s.add(new THREE.Mesh(new THREE.BoxGeometry(size, 1.2, 1.4), hitMat), group);
-      hit.position.copy(pos).add(v3(0, 0.5, 0));
+      const hit = s.add(new THREE.Mesh(new THREE.BoxGeometry(size, 0.7, 1.4), hitMat), group);
+      hit.position.copy(pos).add(v3(0, 0.25, 0));
       hit.rotation.x = stall.tilt;
       hit.userData.holder = holder;
       holder.userData.hit = hit;
