@@ -188,7 +188,7 @@ function Match({ recipe, game, onReplay }) {
               <StatusMessage status="error">Este aparelho não conseguiu abrir a cozinha 3D (WebGL). {failed.message}</StatusMessage>
             ) : world ? (
               <button type="button" className="btn btn-big" disabled={leaving} onClick={() => {
-                sfx.go();
+                sfx.start();
                 setLeaving(true);
                 // um relógio, não o fim da animação: sem animação (movimento reduzido) o evento nunca vem
                 setTimeout(() => go(PHASES[0]), 400);

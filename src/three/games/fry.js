@@ -157,7 +157,7 @@ export default {
     strips.forEach((g) => s.add(g, wok));
 
     const scores = [];
-    let live = false, focus = 0, sizzleT = 0, outCount = 0, told = false;
+    let live = false, focus = 0, outCount = 0, told = false;
     const inPan = () => strips.filter((g) => g.userData.state === "cook");
     // a mãozinha aponta a tira que ficou verde
     const ready = () => strips.find((g) => g.userData.label === "flip" || g.userData.label === "out");
@@ -166,8 +166,8 @@ export default {
 
     s.every((dt, t) => {
       const cooking = inPan();
-      sizzleT -= dt;
-      if (cooking.length && sizzleT <= 0) { sfx.sizzle(0.06 + cooking.length * 0.03); sizzleT = 1.1; }
+      // quanto mais pedaços na chapa, mais forte o chiado (wok) ou o estalo da brasa (grelha)
+      sfx.loop(grilling ? "grill" : "sizzle", cooking.length && Math.min(1, 0.15 + cooking.length * 0.22));
       const sel = cooking[focus % Math.max(1, cooking.length)];
       up.setFromMatrixColumn(world.camera.matrixWorld, 1);
       for (const g of strips) {
@@ -193,8 +193,9 @@ export default {
         if (label !== u.label) {
           u.label = label; u.pop = 0;
           if (label) u.sign.material.map = art[label];
+          if (label === "burn") sfx.smoke();
           if (label === "flip" || label === "out") {
-            sfx.pick();
+            sfx.ready();
             if (!told && live) { told = true; ctx.say("Ficou verde: toque na tira!", "happy"); }
           }
         }
@@ -235,7 +236,7 @@ export default {
         const y0 = g.position.y, rx = g.rotation.x;
         sfx.swish();
         await world.tween(0.42, (k) => { g.position.y = y0 + Math.sin(k * Math.PI) * 0.7; g.rotation.x = rx + Math.PI * k; });
-        sfx.sizzle(0.25); world.fx.sizzle(g.getWorldPosition(v3(0, 0, 0)), 6, 0.4);
+        sfx.sear(); world.fx.sizzle(g.getWorldPosition(v3(0, 0, 0)), 6, 0.4);
         squash(world, g, 0.18, 0.25);
         u.state = "cook";
         return;
@@ -269,7 +270,7 @@ export default {
           const y = g.position.y;
           g.visible = true; g.position.y = y + 2;
           await world.tween(0.3, (k) => { g.position.y = y + 2 * (1 - k); });
-          sfx.sizzle(0.3); world.shake(0.04);
+          sfx.sear("high"); world.shake(0.04);
           world.fx.sizzle(g.getWorldPosition(v3(0, 0, 0)), 8, 0.4);
           g.userData.state = "cook";
         }));

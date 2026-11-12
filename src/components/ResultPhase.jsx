@@ -20,7 +20,7 @@ export default function ResultPhase({ recipe, coins, steps, onReplay }) {
   useMusic(stars ? MUSIC.win : MUSIC.lose);
 
   useEffect(() => {
-    if (!stars) return;
+    if (!stars) { sfx.lose(); return; }
     sfx.win();
     confetti();
   }, [stars]);

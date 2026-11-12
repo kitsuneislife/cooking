@@ -66,7 +66,7 @@ export default {
       o.rotation.set(0, Math.PI / 2, 0); // deitado, ao comprido da travessa
       await hop(world, o, dish.localToWorld(v3((n - (N - 1) / 2) * 0.5, inner.y, 0)), { height: 0.8, dur: 0.45 });
       dish.attach(o);
-      sfx.plop();
+      sfx.plop("place");
       ctx.progress((n + 1) / N);
       if (s.alive) await bring();
     }
@@ -82,7 +82,7 @@ export default {
       if (soak > HI + SLACK) release(); // desmanchou: sai sozinho
     });
 
-    const press = () => { if (live && phase === "ready") { held = true; sfx.plop(); } };
+    const press = () => { if (live && phase === "ready") { held = true; sfx.plop("dip"); } };
     const lift = () => { if (held && soak > 0.03) release(); else held = false; };
     return {
       async intro() { await bring(); },

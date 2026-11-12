@@ -46,7 +46,7 @@ export default {
     function stroke(d) {
       if (n >= STROKES) return;
       n++; idle = 0; side = d;
-      sfx.swish();
+      sfx.roll();
       if (n % 3 === 0) world.fx.steam(v3(C.x, C.y + 0.2, C.z + d * 0.6), 2, { size: 0.5, rise: 0.4 }); // farinha
       ctx.progress(n / STROKES);
       if (n < STROKES) return;
@@ -59,7 +59,7 @@ export default {
     return {
       async intro() {
         await hop(world, pin, v3(C.x, C.y + h * 0.85 + r, C.z), { height: 0.4, dur: 0.6 });
-        sfx.thud();
+        sfx.plop();
         rolling = true;
       },
       start() { live = true; world.input = zz.input; },

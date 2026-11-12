@@ -48,7 +48,7 @@ export default {
       u.liquid.material.color.copy(from).lerp(to, k);
       for (const o of melting) o.scale.setScalar(Math.max(0.01, 1 - k));
       ctx.progress(k);
-      if (Math.floor(before / Math.PI) !== Math.floor(total / Math.PI)) spec.tool === "barSpoon" ? sfx.pick() : sfx.whisk();
+      if (Math.floor(before / Math.PI) !== Math.floor(total / Math.PI)) sfx.mix(spec.tool === "barSpoon" ? "glass" : "bowl");
       if (total >= goal) {
         melting.forEach((o) => o.removeFromParent());
         const at = mouth.clone().add(v3(0, 0.5, 0));

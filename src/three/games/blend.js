@@ -43,7 +43,7 @@ export default {
       if (done || hits >= pulses) return;
       hits++;
       level = 1;
-      sfx.blend(1); sfx.chop();
+      sfx.crush();
       world.shake(0.05);
       mash(hits / pulses);
       if (hits === pulses) finishUp();
@@ -66,6 +66,7 @@ export default {
       inside(jar).rotation.y -= dt * level * 14;
       u.liquid.rotation.y -= dt * level * 9;
       solids.forEach((o, i) => { if (o.parent) o.position.y += Math.sin(t * 30 + i * 2) * level * dt * 1.2; });
+      sfx.loop("pot", level * 0.8); // o líquido batendo no copo
       hum -= dt;
       if (level > 0.08 && hum <= 0 && !pulse) { sfx.blend(level); hum = 0.2; }
     });

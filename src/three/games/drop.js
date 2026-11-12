@@ -48,7 +48,7 @@ export default {
     // o pedaço entrou: os sólidos empilham lá dentro, o resto vira líquido
     function settle(o, id) {
       const p = PANTRY[id];
-      sfx.plop();
+      sfx.plop(id === "ice" ? "ice" : id === "sugar" ? "sprinkle" : p.solid ? "default" : "splat");
       squash(world, v, 0.05, 0.25);
       if (p.solid) {
         const box = inside(v);

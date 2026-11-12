@@ -24,17 +24,18 @@ export default {
     front.y = 0.02; // apoiado na bancada, em frente à porta
     const sign = slot.clone().add(v3(0, 1.4, 1.6));
     const scores = [];
-    let phase = "idle", live = false, held = false, temp = 0, level = 0, dinged = false;
+    let phase = "idle", live = false, held = false, temp = 0, level = 0, dinged = false, tock = 0;
     // segurar no pré-aquecimento; na espera, o alvo só acende quando entra no ponto
     ctx.guide({ kind: () => (phase === "heat" || (phase === "idle" && spec.preheat) ? "hold" : phase === "cook" && level >= LO ? "timing" : null), at: slot.clone().add(v3(0, 0.2, 1.4)), r: 0.8 });
 
     async function putIn() {
       phase = "move";
       ctx.gauge(null);
+      sfx.door(true);
       await world.tween(0.4, (k) => su.open(k));
       await hop(world, item, slot, { height: 0.5, dur: 0.6 });
       await world.tween(0.4, (k) => su.open(1 - k));
-      sfx.thud();
+      sfx.door(false);
       phase = "cook";
       if (live) ctx.say("Agora espere... e toque para tirar no verde!");
     }
@@ -52,6 +53,7 @@ export default {
       ctx.gauge(null);
       const score = bandScore(level, LO, HI, 0.2);
       scores.push(score);
+      sfx.door(true);
       await world.tween(0.4, (k) => su.open(k));
       if (hot) world.fx.steam(slot, 5, { size: 1, rise: 1.4 }); else world.fx.steam(slot, 4, { color: "#d8f0ff", size: 0.9, rise: 0.4 });
       if (score >= 0.85) { world.fx.sparkle(sign, 10); ctx.good(sign, "No ponto!"); }
@@ -59,6 +61,7 @@ export default {
       if (hot) { // a geladeira fica aberta mostrando a sobremesa; do forno, sai para a bancada
         await hop(world, item, front, { height: 0.5, dur: 0.6 });
         await world.tween(0.4, (k) => su.open(1 - k));
+        sfx.door(false);
       }
       phase = "done";
       if (live) { live = false; ctx.done(average(scores)); }
@@ -67,20 +70,28 @@ export default {
     s.every((dt) => {
       if (phase === "heat") {
         temp = Math.max(0, Math.min(1, temp + (held ? 0.32 : -0.05) * dt));
+        sfx.loop("grill", temp * 0.7); // o fogo do forno crepita mais conforme esquenta
         su.setTemp(temp * 300); su.heat(temp);
         ctx.gauge({ kind: "band", level: temp, lo: T_LO, hi: T_HI, label: "Temperatura" });
         if (temp > T_HI + 0.12) lock();
       } else if (phase === "cook") {
         level += RATE * dt;
         item.userData.ready?.(level / SWEET);
+        // a espera tem relógio: tique-taque a cada meio segundo (e o queijo borbulhando, no forno)
+        const beat = Math.floor(level / RATE * 2);
+        if (beat !== tock) { tock = beat; sfx.tick(beat); }
+        if (hot) sfx.loop("bake", 0.5);
         ctx.gauge({ kind: "band", level, lo: LO, hi: HI, label: spec.label });
-        if (!dinged && level >= LO) { dinged = true; sfx.ding(); if (live) ctx.say("No ponto: toque para tirar!", "happy"); }
+        if (!dinged && level >= LO) { dinged = true; sfx.done(hot); if (live) ctx.say("No ponto: toque para tirar!", "happy"); }
         if (hot && level > HI && Math.random() < dt * 4) world.fx.steam(slot, 1, { color: "#5a4a40", size: 0.7, rise: 1.2 });
         if (level >= OVER) takeOut();
       }
     });
 
-    const press = () => { if (!live) return; if (phase === "heat") held = true; else takeOut(); };
+    const press = () => {
+      if (!live) return;
+      if (phase === "heat") { if (!held) sfx.switch(); held = true; } else takeOut();
+    };
     const lift = () => { if (!held) return; held = false; if (temp > 0.08) lock(); };
     return {
       async intro() {
@@ -89,7 +100,7 @@ export default {
         item.position.copy(slot);
         await world.wait(0.9);
         await world.tween(0.5, (k) => su.open(1 - k));
-        sfx.thud();
+        sfx.door(false);
       },
       start() {
         live = true;

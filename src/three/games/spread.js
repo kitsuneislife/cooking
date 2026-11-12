@@ -44,7 +44,7 @@ export default {
       lu.dot(lx, lz, brush, spec.color, 0.95);
       for (const c of cells) if (!c.on && Math.hypot(c.lx - lx, c.lz - lz) < brush) { c.on = true; covered++; }
       spoon.position.copy(lay.localToWorld(v3(lx, 0.03, lz)));
-      if (++dabs % 8 === 0) sfx.whisk();
+      if (++dabs % 8 === 0) sfx.spread(spec.on);
       const k = covered / cells.length;
       ctx.progress(Math.min(1, k / FULL));
       if (k >= FULL) complete();

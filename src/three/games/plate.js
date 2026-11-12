@@ -117,7 +117,7 @@ export default {
       plated.add(mound);
       rice.children[2].visible = false; // a tigela fica vazia
       await world.tween(0.22, (k) => { mound.position.y = 1.2 * (1 - k) + 0.07; }, (k) => k * k);
-      sfx.plop(); world.shake(0.05);
+      sfx.plop("rice"); world.shake(0.05);
       squash(world, mound, 0.22, 0.3);
       world.fx.steam(plated.localToWorld(v3(x, 0.8, 0)), 3, { size: 0.7 });
       const at = plated.localToWorld(v3(x, 1.3, 0));
@@ -141,7 +141,7 @@ export default {
       sfx.swish();
       await hop(world, g, land, { height: 0.4, dur: 0.3 });
       plated.attach(g);
-      sfx.plop();
+      sfx.plop("place");
       squash(world, g, 0.25, 0.3);
       const w = plated.localToWorld(v3(at.x, 0.9, at.z));
       if (live) score > 0.75 ? (world.fx.sparkle(w, 8), ctx.good(w, "No alvo!")) : score > 0.35 ? ctx.good(w, "Pertinho") : ctx.bad(w, "Longe do alvo");
@@ -226,7 +226,7 @@ export default {
         wrap.position.copy(C).add(v3(0, 5, 0));
         cloche.userData.open(0);
         await world.tween(0.5, (k) => { wrap.position.y = C.y + 5 * (1 - k); }, (k) => k * k);
-        sfx.plop(); world.shake(0.08);
+        sfx.plop("lid"); world.shake(0.08);
         squash(world, wrap, 0.08, 0.3);
         await world.go("hero", 1.4, 0.4);
         await world.wait(0.3);

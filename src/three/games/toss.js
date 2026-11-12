@@ -69,6 +69,7 @@ export default {
         }
       }
       if (!running) return;
+      sfx.loop("sizzle", 0.8); // wok em fogo alto
       now += dt;
       // batida que passou sem toque
       BEATS.forEach((b, i) => {
@@ -77,7 +78,7 @@ export default {
         if (live) ctx.bad(wok.getWorldPosition(v3(0, 1.4, 0)), "Perdeu o tempo!");
       });
       // metrônomo: um tique em cada batida
-      while (tick < BEATS.length && now >= BEATS[tick]) { sfx.tick(); tick++; }
+      while (tick < BEATS.length && now >= BEATS[tick]) { sfx.tick(tick); tick++; }
       gauge();
       if (now >= LENGTH) finishSong();
     });
@@ -133,7 +134,7 @@ export default {
         world.dish.minced = null;
         gauge();
         for (const [i, p] of pieces.entries()) {
-          if (i % 4 === 0) { sfx.sizzle(0.2); world.fx.sizzle(wok.getWorldPosition(v3(0, 0.3, 0)), 5, 0.6); }
+          if (i % 4 === 0) { sfx.sear(); world.fx.sizzle(wok.getWorldPosition(v3(0, 0.3, 0)), 5, 0.6); }
           p.obj.visible = true;
           await world.wait(0.04);
         }

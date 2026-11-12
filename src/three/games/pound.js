@@ -33,7 +33,7 @@ export default {
       await world.tween(0.06, (k) => { tool.position.y = hoverY + (bottom - hoverY) * k; });
       n++;
       const k = n / taps;
-      sfx.thud();
+      sfx.pound();
       world.shake(0.04);
       solids.forEach((o, i) => {
         if (o.userData.melts) o.scale.copy(base[i]).multiplyScalar(Math.max(0.01, 1 - k));

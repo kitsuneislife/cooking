@@ -72,7 +72,7 @@ export default {
       goal = spot.x + (list.length > 1 ? 0 : d * 0.4);
       layers[i].userData.sprinkle(per, colors, size);
       world.fx.bits(v3(goal, hoverY - 0.35, spot.z), colors, 4, { size: 0.035, speed: 0.7, up: 0.2, floor: spot.y });
-      sfx.shake();
+      sfx.shake(spec.tool);
       ctx.progress(n / strokes);
       if (n < strokes) return;
       spots.forEach((p) => world.fx.sparkle(p.clone().add(v3(0, 0.4, 0)), 8));

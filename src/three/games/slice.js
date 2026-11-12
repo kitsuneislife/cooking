@@ -123,7 +123,7 @@ export default {
       const score = aim == null ? 1 : aimScore(c.at, c.guide, 0.12);
       scores.push(score);
       const at = v3(x, center.y + 0.5, center.z);
-      sfx.chop(c.perfect);
+      sfx.slice(spec.model ?? "beef", c.perfect);
       world.shake(0.06);
       world.fx.bits(at, BITS, c.perfect ? 10 : 6, { floor: top + 0.02, speed: 2.4, up: 2.6 });
       if (c.perfect) { world.fx.sparkle(at, 8); ctx.good(at, "Perfeito!"); } else ctx.good(at, "Corte!");

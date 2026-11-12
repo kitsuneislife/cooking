@@ -52,7 +52,7 @@ export default {
       pie.userData.top.add(mark);
       scores.push(score);
       const at = C.clone().add(v3(0, 0.7, 0));
-      sfx.chop(score > 0.85);
+      sfx.wheel(score > 0.85);
       world.shake(0.05);
       world.fx.bits(to, ["#e3a64e", "#fff1c8", "#d02a1c"], 6, { floor: C.y + 0.02, speed: 2, up: 2.2 });
       if (score > 0.85) { world.fx.sparkle(at, 8); ctx.good(at, "Perfeito!"); } else ctx.good(at, "Corte!");

@@ -52,7 +52,7 @@ export default {
       o.rotation.set(0, Math.random() * Math.PI * 2, 0);
       s.keep(o);
       if (spec.items[n] === "mozzarella") u.cheese.push(o);
-      sfx.plop();
+      sfx.plop("place");
       squash(world, o, 0.25, 0.3);
       const w = t.localToWorld(v3(l.x, Y + 0.6, l.z));
       if (live) score > 0.75 ? (world.fx.sparkle(w, 8), ctx.good(w, "No alvo!")) : score > 0.35 ? ctx.good(w, "Pertinho") : ctx.bad(w, "Longe do alvo");

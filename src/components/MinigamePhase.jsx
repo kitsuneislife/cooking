@@ -91,12 +91,14 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
       setView((v) => ({ ...v, stage: "live" }));
       live = true;
       inst.start();
-      let left = mg.seconds, shown = left, warned = false;
+      let left = mg.seconds, shown = left, warned = false, second = 0;
       offs.add(world.every((dt) => {
         if (!live) return;
         left -= dt;
         if (Math.abs(shown - left) >= 0.1) { shown = left; setHud((h) => ({ ...h, left: Math.max(0, left) })); }
         if (!warned && left <= 5) { warned = true; cb.current.say("Rápido, o tempo está acabando!", "sad"); }
+        // nos últimos 5 segundos o relógio aparece no som: um tique por segundo
+        if (left <= 5 && left > 0 && Math.ceil(left) !== second) { second = Math.ceil(left); sfx.tick(second); }
         if (left <= 0) settle({ timeout: true });
       }));
       const onKey = (down) => (e) => {
@@ -117,7 +119,7 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
       let score = res.score, spare = Math.max(0, Math.floor(left * (score ?? 0)));
       if (res.timeout) {
         cb.current.say("Deixa que eu ajudo!", "sad");
-        sfx.bad();
+        sfx.fail();
         rescuing = true;
         setView((v) => ({ ...v, stage: "rescue" }));
         await guard(inst.rescue());
@@ -126,7 +128,7 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
       const grade = stepGrade(score);
       setView((v) => ({ ...v, stage: "stamp" }));
       setStamp(grade);
-      sfx.stamp(grade.key !== "oops");
+      sfx.stamp(grade.key);
       cb.current.say(res.timeout ? "Terminei para você. Na próxima vai!" : grade.label, grade.key === "oops" ? "sad" : "happy");
       cb.current.onStep({ title: mg.title, score, spare });
       await guard(world.wait(1.2));

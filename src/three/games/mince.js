@@ -83,7 +83,7 @@ export default {
       knife.position.x = x;
       await world.tween(0.05, (k) => { knife.position.y = hoverY + (top + 0.02 - hoverY) * k; });
       chops++;
-      sfx.chop(chops % 7 === 0);
+      sfx.chop(it.id, chops % 7 === 0);
       world.shake(0.03);
       world.fx.bits(v3(x, top + 0.1, spot.z), it.colors, 4, { floor: top + 0.02, speed: 1.6, up: 2 });
       // o pedaço encolhe e o montinho cresce

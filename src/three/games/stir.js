@@ -53,6 +53,7 @@ export default {
     }
 
     s.every((dt, t) => {
+      sfx.loop("sizzle", 0.35 + 0.4 * Math.min(1, total / GOAL)); // o wok chia mais conforme o molho reduz
       if (live) { used += dt; idle += dt; }
       if (live && idle > 2.2) { idle = -2; ctx.say("Mexe, mexe! Em roda!"); }
       if (held && live) { // pelo teclado, a espátula roda sozinha pela borda
@@ -75,7 +76,7 @@ export default {
       glaze(k);
       ctx.progress(k);
       if (Math.floor((total - d) / Math.PI) !== Math.floor(total / Math.PI)) {
-        sfx.sizzle(0.12);
+        sfx.spatula();
         world.fx.sizzle(center.clone().add(v3(0, 0.3, 0)), 4, 0.7);
       }
       if (total >= GOAL) {
@@ -95,7 +96,7 @@ export default {
             world.scene.attach(g);
             hop(world, g, wok.localToWorld(local.clone()), { height: 1.5, dur: 0.5 }).then(() => {
               food.attach(g);
-              sfx.sizzle(0.15);
+              sfx.sear();
               world.fx.sizzle(g.getWorldPosition(v3(0, 0, 0)), 4, 0.3);
             });
             await world.wait(0.12);
@@ -129,7 +130,7 @@ export default {
           cup.children[1].visible = k < 0.7;
         });
         jet.visible = false;
-        sfx.sizzle(0.35);
+        sfx.sear("high");
         world.fx.steam(center.clone().add(v3(0, 0.6, 0)), 5, { size: 1.2 });
         bowl.userData.fill(0); // a tigela de molho da bancada ficou vazia
         await hop(world, cup, v3(center.x - 3, 3, center.z + 0.4), { height: 0.4, dur: 0.4 });

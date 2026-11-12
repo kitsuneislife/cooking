@@ -43,7 +43,7 @@ export default {
     const pivot = s.add(new THREE.Group());
 
     const scores = [];
-    let n = -1, level = 0, held = false, live = false, phase = "idle", bottle = null, home = null, wait = 0, rescuing = false;
+    let n = -1, level = 0, held = false, live = false, phase = "idle", bottle = null, home = null, rescuing = false;
     // a jarra esvazia na proporção do que os copos recebem
     let jarLeft = jar.userData.level ?? 0;
     const jarShare = jarLeft / (POURS.reduce((a, p) => a + (p.from === "blender" ? p.fill : 0), 0) || 1);
@@ -139,7 +139,7 @@ export default {
       bowl.add(island);
       world.dish.island = island;
       world.fx.steam(surfaceOf(bowl).add(v3(0, 0.2, 0)), 3, { color: "#ffffff", size: 0.6, rise: 0.5 });
-      sfx.plop();
+      sfx.plop("splat");
       squash(world, bowl, 0.06);
       ctx.progress(1);
       if (live) ctx.good(mouthOf(bowl).add(v3(0, 0.6, 0)), "Amido!");
@@ -155,7 +155,9 @@ export default {
       pivot.rotation.z += (want - pivot.rotation.z) * Math.min(1, dt * (held ? 3.2 : 8));
       const flow = Math.max(0, (pivot.rotation.z - POUR_AT) / (TILT - POUR_AT));
       jet.visible = flow > 0.02;
-      wait -= dt;
+      // o fio enche o copo (bebida) ou cai na tigela (molho); passou da faixa, transborda
+      sfx.loop(spec.into ? "fill" : "pot", jet.visible ? 0.4 + 0.6 * flow : 0);
+      if (level > b.hi && jet.visible) sfx.loop("overflow", flow);
       if (!jet.visible) return;
       const before = u.level ?? 0, add = b.fill / ((b.lo + b.hi) / 2) * RATE * flow * dt;
       level += RATE * flow * dt;
@@ -166,7 +168,6 @@ export default {
       const mouth = bottle.localToWorld(bottle.userData.mouth.clone());
       const below = v3(mouth.x - 0.12, surfaceOf(b.target).y, mouth.z);
       jet.userData.aim(mouth, below, 0.5 + flow * 0.8 + Math.sin(t * 30) * 0.05);
-      if (wait <= 0) { sfx.pour(); wait = 0.24; }
       if (Math.random() < flow * dt * 8) world.fx.bits(below, [b.color], 1, { size: 0.05, speed: 0.8, up: 1.2, floor: below.y });
       ctx.gauge({ kind: "band", level, lo: b.lo, hi: b.hi, label: b.name });
       if (level > b.hi + SLACK) { held = false; release(); } // transbordou: para sozinho
