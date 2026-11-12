@@ -77,6 +77,8 @@ Quadros tirados a cada minuto do mesmo vídeo, olhando só para luz, cor e acaba
 | Estrelas coloridas, corações e vapor redondo | `Particles` em `src/three/world.js` |
 | Guia no centro de cada etapa: anel girando para mexer, setas para o zigue-zague, chevrons no corte, ondas para tocar, anel enchendo para segurar | `src/components/Guide.jsx`, cada jogo chama `ctx.guide` |
 | Comida úmida e com cor de dar fome: carne selada dourada, picadinho brilhante | `searedBeef` em `src/three/kit.js`, `pile` em `mince.js` |
+| Transições sem corte seco: cartão e carimbo saem com um pulinho, íris de estrela em papel rosa de bolinhas entre lugares longe, giro final que nasce de onde a câmera está | `travelTo` em `MinigamePhase.jsx`, `.wipe` em `src/styles.css`, `orbit` em `world.js` |
+| Nada trava no meio de um movimento: texturas pintadas e shaders compilados antes, com a câmera parada ou a tela coberta | `paintAll` em `kit.js`, `warm` em `world.js` |
 
 ## Avisos
 

@@ -10,6 +10,8 @@ import Guide, { GUIDE_FOR } from "./Guide";
 const CANCEL = Symbol("cancel");
 const RESCUE_SCORE = 0.25; // etapa que o chef terminou: conta pouco, mas não zera
 const FAR = 14; // distância (no eixo da bancada) a partir da qual a câmera corta em vez de voar
+const IRIS = 0.55; // segundos da íris fechando (e abrindo); igual a `--iris-time` no CSS
+const LEAVE = 0.4; // segundos do cartão e do carimbo saindo; igual a `card-out` no CSS
 
 // Uma fase da partida: roda os minijogos 3D dela um depois do outro.
 // Cada etapa: câmera viaja → cartão com o gesto → "Já!" → jogo com tempo → carimbo da nota.
@@ -19,25 +21,34 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
   const [stamp, setStamp] = useState(null);
   const [wipe, setWipe] = useState(false);
   const cb = useRef(null);
+  const guide = useRef(null);
   cb.current = { good, bad, say, onStep, onDone };
 
-  const guide = useRef(null);
   useEffect(() => {
     let cancelled = false, inst = null, finished = true;
     const offs = new Set();
     const guard = (p) => p.then((v) => { if (cancelled) throw CANCEL; return v; });
 
-    // Leva a câmera até `shot` (nome ou enquadramento). Longe demais (feira, outra ponta
-    // da bancada), corta com uma cortina em vez de voar. Devolve `{ arrived }`: a promessa
-    // da chegada vai embrulhada para o `await` daqui não esperar a viagem inteira.
-    async function travelTo(shot, dur) {
-      const from = world.shot, to = typeof shot === "string" ? SHOTS[shot] : shot;
-      const far = from && Math.abs(from.look.x - to.look.x) > FAR;
-      if (far) { setWipe(true); await guard(world.wait(0.45)); }
-      world.shot = to; // só depois da espera: uma fase cancelada no meio não deixa a cortina presa
-      if (!far) return { arrived: world.go(to, dur) };
-      world.go(to, 0);
-      return { arrived: world.wait(0.15).then(() => setWipe(false)) };
+    // Leva a câmera até `shot` (nome ou enquadramento). Perto, voa. Longe demais (feira, outra
+    // ponta da bancada), fecha uma íris de estrela, troca o lugar com a tela coberta e abre de novo.
+    // `prepare` roda com a câmera parada (ou com a tela coberta) e a GPU aquece o que ele montou
+    // antes de qualquer movimento: o voo nunca trava compilando. Devolve `{ arrived }`, embrulhada
+    // para o `await` daqui não esperar a viagem inteira.
+    async function travelTo(shot, dur, prepare) {
+      const to = typeof shot === "string" ? SHOTS[shot] : shot;
+      const far = Math.abs((world.shot ?? SHOTS.wide).look.x - to.look.x) > FAR;
+      if (far) {
+        setWipe("close");
+        await guard(world.wait(IRIS));
+        world.shot = to; // só depois da espera: uma fase cancelada no meio não deixa a cortina presa
+        world.go(to, 0);
+      }
+      prepare?.();
+      await guard(world.warm());
+      if (!far) { world.shot = to; return { arrived: world.go(to, dur) }; }
+      await guard(world.wait(0.12)); // um respiro coberto: o primeiro quadro do lugar novo já desenhado
+      setWipe("open");
+      return { arrived: world.wait(IRIS).then(() => { if (!cancelled) setWipe(null); }) };
     }
 
     async function play(spec, i) {
@@ -45,13 +56,14 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
       const mg = { ...minigame(spec.game), ...spec };
       setView({ i, mg, spec, stage: "travel" });
       setHud({ progress: 0, gauge: null, list: null, left: mg.seconds, total: mg.seconds });
-      // guardado: no StrictMode a primeira montagem é cancelada aqui e não pode criar a cena
-      const { arrived: travel } = await guard(travelTo(mg.shot, world.shot ? 1.3 : 1.8));
 
       let settle;
       const result = new Promise((r) => { settle = r; });
       let live = false, rescuing = false;
       const at = (p) => world.toScreen(p);
+      // guia padrão: o gesto da etapa no meio do enquadramento; o minijogo pode trocar ou tirar (`guide: null`)
+      const look = (typeof mg.shot === "string" ? SHOTS[mg.shot] : mg.shot).look;
+      guide.current = mg.guide === null ? null : { kind: mg.guide ?? GUIDE_FOR[mg.gesture], at: look, r: 1.2, dir: new world.THREE.Vector3(1, 0, 0) };
       // o chef terminando não vale moeda nem bronca
       const ctx = {
         good: (p, text) => { if (!rescuing) cb.current.good(at(p), text); },
@@ -61,19 +73,19 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
         gauge: (g) => setHud((h) => ({ ...h, gauge: g })),
         list: (items) => setHud((h) => ({ ...h, list: items })),
         done: (score) => { if (live) settle({ score }); },
-      // guia padrão: o gesto da etapa no meio do enquadramento; o minijogo pode trocar ou tirar (`guide: null`)
-      const look = (typeof mg.shot === "string" ? SHOTS[mg.shot] : mg.shot).look;
-      guide.current = mg.guide === null ? null : { kind: mg.guide ?? GUIDE_FOR[mg.gesture], at: look, r: 1.2, dir: new world.THREE.Vector3(1, 0, 0) };
+        guide: (g) => { guide.current = g; },
       };
-      inst = mg.create(world, ctx, spec, game);
-      finished = false;
+      // guardado: no StrictMode a primeira montagem é cancelada antes e não chega a criar a cena
+      const { arrived: travel } = await guard(travelTo(mg.shot, world.shot ? 1.3 : 1.8, () => {
+        inst = mg.create(world, ctx, spec, game);
+        finished = false;
+      }));
       setView((v) => ({ ...v, stage: "card" }));
       await guard(Promise.all([travel, inst.intro(), world.wait(1.8)]));
 
       sfx.go();
       setView((v) => ({ ...v, stage: "go" }));
       await guard(world.wait(0.65));
-        guide: (g) => { guide.current = g; },
 
       // valendo: tempo correndo e teclado ligado
       setView((v) => ({ ...v, stage: "live" }));
@@ -117,9 +129,12 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
       sfx.stamp(grade.key !== "oops");
       cb.current.say(res.timeout ? "Terminei para você. Na próxima vai!" : grade.label, grade.key === "oops" ? "sad" : "happy");
       cb.current.onStep({ title: mg.title, score, spare });
-      await guard(world.wait(1.3));
+      await guard(world.wait(1.2));
+      // carimbo e cartão saem juntos, com o último gesto do minijogo, antes de a câmera andar
+      setStamp((s) => ({ ...s, out: true }));
+      setView((v) => ({ ...v, stage: "leave" }));
+      await guard(Promise.all([inst.outro?.(), world.wait(LEAVE)]));
       setStamp(null);
-      if (inst.outro) await guard(inst.outro());
       inst.finish();
       finished = true;
       // etapa que termina o prato: a câmera chega perto do que ficou pronto
@@ -184,9 +199,10 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
       {hud.gauge?.kind === "band" && <BandGauge {...hud.gauge} />}
       {hud.gauge?.kind === "beats" && <BeatsGauge {...hud.gauge} />}
 
+      <Guide world={world} guide={guide} show={stage === "card" || stage === "go" || stage === "live"} faded={stage === "live" && hud.progress > 0} />
       {stage === "go" && <p className="go-banner" aria-hidden="true">Já!</p>}
-      {stamp && <p className="stamp" data-grade={stamp.key} role="status">{stamp.label}</p>}
-      {wipe && <div className="wipe" aria-hidden="true" />}
+      {stamp && <p className="stamp" data-grade={stamp.key} data-out={stamp.out || undefined} role="status">{stamp.label}</p>}
+      {wipe && <div className="wipe" data-state={wipe} aria-hidden="true"><span className="wipe-heart" /></div>}
     </div>
   );
 }
@@ -199,7 +215,6 @@ function Clock({ left, total, low }) {
     </div>
   );
 }
-      <Guide world={world} guide={guide} show={stage === "card" || stage === "go" || stage === "live"} faded={stage === "live" && hud.progress > 0} />
 
 // Medidor de despejo: a faixa verde é a medida certa.
 function BandGauge({ level, lo, hi, label }) {

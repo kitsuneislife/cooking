@@ -59,6 +59,7 @@ function Match({ recipe, game, onReplay }) {
   const [steps, setSteps] = useState([]);
   const [chef, setChef] = useState({ mood: "idle", text: "", n: 0 });
   const [muted, setMuted] = useState(isMuted);
+  const [leaving, setLeaving] = useState(false);
   const comboRef = useRef(0);
 
   const PHASES = phasesOf(game);
@@ -160,7 +161,7 @@ function Match({ recipe, game, onReplay }) {
       )}
 
       {phase === "intro" && (
-        <div className="overlay overlay-scene">
+        <div className="overlay overlay-scene" data-leaving={leaving || undefined}>
           <section className="panel intro" aria-labelledby="phase-title">
             <h2 id="phase-title" tabIndex={-1} className="panel-title">Novo pedido!</h2>
             <img className="dish-photo" src={recipe.image} alt={`Foto do prato ${recipe.name}`} />
@@ -179,7 +180,12 @@ function Match({ recipe, game, onReplay }) {
             {failed ? (
               <StatusMessage status="error">Este aparelho não conseguiu abrir a cozinha 3D (WebGL). {failed.message}</StatusMessage>
             ) : world ? (
-              <button type="button" className="btn btn-big" onClick={() => { sfx.go(); go(PHASES[0]); }}>Começar!</button>
+              <button type="button" className="btn btn-big" disabled={leaving} onClick={() => {
+                sfx.go();
+                setLeaving(true);
+                // um relógio, não o fim da animação: sem animação (movimento reduzido) o evento nunca vem
+                setTimeout(() => go(PHASES[0]), 400);
+              }}>Começar!</button>
             ) : (
               <StatusMessage status="loading">Arrumando a cozinha…</StatusMessage>
             )}

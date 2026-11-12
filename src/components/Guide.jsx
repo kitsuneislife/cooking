@@ -23,7 +23,8 @@ export default function Guide({ world, guide, show, faded }) {
     return world.every(() => {
       const node = el.current, g = guide.current;
       if (!node) return;
-      const k = g && show ? read(g.kind) : null, p = k ? read(g.at) : null;
+      // fora de cena (`show` falso) o guia continua no lugar, só que apagado: some sem corte
+      const k = g ? read(g.kind) : null, p = k ? read(g.at) : null;
       if (k !== kind) { kind = k; node.dataset.kind = k ?? ""; }
       if (!p) { node.style.visibility = "hidden"; return; }
       node.style.visibility = "";
@@ -38,10 +39,10 @@ export default function Guide({ world, guide, show, faded }) {
       node.style.setProperty("--r", `${rpx}px`);
       node.style.setProperty("--a", `${a}rad`);
     });
-  }, [world, guide, show]);
+  }, [world, guide]);
 
   return (
-    <div ref={el} className="guide" data-kind="" data-faded={faded || undefined} aria-hidden="true">
+    <div ref={el} className="guide" data-kind="" data-out={!show || undefined} data-faded={faded || undefined} aria-hidden="true">
       <svg className="guide-ring" viewBox="-100 -100 200 200">
         <circle r="84" className="guide-ring-line" />
         <path className="guide-head" d="M84 34 L110 -2 L58 -2 Z" />

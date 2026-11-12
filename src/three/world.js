@@ -1,6 +1,6 @@
 // O palco 3D da partida: um renderizador só, a cozinha e a feira montadas uma vez,
 // câmera com planos de cinema, partículas e a entrada do ponteiro para os minijogos.
-import { THREE } from "./kit.js";
+import { THREE, paintAll } from "./kit.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
@@ -270,6 +270,19 @@ export async function createWorld(host) {
 
   const fx = new Particles(scene);
 
+  // Prepara na GPU tudo o que está na cena (shaders e texturas) antes de aparecer na tela:
+  // sem isso, o primeiro quadro de cada coisa nova trava compilando. Os shaders compilam em
+  // paralelo (KHR_parallel_shader_compile) enquanto a animação segue.
+  async function warm() {
+    const seen = new Set();
+    scene.traverse((o) => {
+      for (const m of o.material ? [].concat(o.material) : []) {
+        for (const t of Object.values(m)) if (t?.isTexture && !seen.has(t)) { seen.add(t); renderer.initTexture(t); }
+      }
+    });
+    await renderer.compileAsync(scene, camera);
+  }
+
   // ---- câmera: planos com travelling suave, respiração e tremor ----
   const rig = {
     pos: SHOTS.wide.pos.clone(), look: SHOTS.wide.look.clone(), fov: SHOTS.wide.fov,
@@ -286,10 +299,16 @@ export async function createWorld(host) {
       rig.move = { from: { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov }, to, t: 0, dur, arc, done };
     });
   }
-  // gira devagar em volta de um ponto (abertura e prato pronto)
+  // gira devagar em volta de um ponto (abertura e prato pronto); entra no giro a partir de onde
+  // a câmera está, sem pular: ângulo, raio, altura e olhar se acomodam em `BLEND` segundos
+  const BLEND = 1.8;
   function orbit(center, radius, height, speed = 0.12, fov = 34) {
     rig.move = null;
-    rig.orbit = { center: center.clone(), radius, height, speed, a: 0, fov };
+    const d = rig.pos.clone().sub(center);
+    rig.orbit = {
+      center: center.clone(), radius, height, speed, fov, k: calm() ? 1 : 0,
+      a: Math.atan2(d.x, d.z), r0: Math.hypot(d.x, d.z), h0: d.y, look0: rig.look.clone(),
+    };
   }
   const shake = (amount = 0.15) => { if (!calm()) rig.shake = Math.max(rig.shake, amount); };
 
@@ -325,9 +344,12 @@ export async function createWorld(host) {
       if (m.t >= 1) { rig.move = null; m.done(); }
     } else if (rig.orbit) {
       const o = rig.orbit;
-      o.a += dt * o.speed;
-      rig.pos.set(o.center.x + Math.sin(o.a) * o.radius, o.center.y + o.height, o.center.z + Math.cos(o.a) * o.radius);
-      rig.look.copy(o.center);
+      o.k = Math.min(1, o.k + dt / BLEND);
+      const e = ease.inOut(o.k);
+      o.a += dt * o.speed * e; // o giro ganha velocidade aos poucos
+      const r = o.r0 + (o.radius - o.r0) * e, h = o.h0 + (o.height - o.h0) * e;
+      rig.pos.set(o.center.x + Math.sin(o.a) * r, o.center.y + h, o.center.z + Math.cos(o.a) * r);
+      rig.look.lerpVectors(o.look0, o.center, e);
       rig.fov += (o.fov - rig.fov) * Math.min(1, dt * 2);
     }
     const sway = calm() ? 0 : 1; // respiração de câmera na mão
@@ -347,6 +369,8 @@ export async function createWorld(host) {
   // ---- laço ----
   const tickers = new Set();
   let raf = 0, last = performance.now(), time = 0;
+  // só no desenvolvimento: `?speed=4` acelera o relógio do jogo para revisar as etapas
+  const speed = import.meta.env.DEV ? Number(new URLSearchParams(location.search).get("speed")) || 1 : 1;
   const loop = (now) => {
     const dt = Math.min(0.05, (now - last) / 1000) * speed; last = now; time += dt;
     for (const f of [...tickers]) f(dt, time);
@@ -369,9 +393,11 @@ export async function createWorld(host) {
       if (t >= 1) { off(); done(); }
     });
   });
-  // só no desenvolvimento: `?speed=4` acelera o relógio do jogo para revisar as etapas
-  const speed = import.meta.env.DEV ? Number(new URLSearchParams(location.search).get("speed")) || 1 : 1;
   const wait = (s) => new Promise((done) => { let t = 0; const off = every((dt) => { t += dt; if (t >= s) { off(); done(); } }); });
+
+  // tudo pintado e compilado enquanto o pedido ainda está na tela: a partida já começa leve
+  paintAll();
+  await warm();
 
   // ---- ponteiro ----
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -391,7 +417,7 @@ export async function createWorld(host) {
 
   const world = {
     THREE, scene, camera, canvas, kitchen, market, fx,
-    input: null, go, orbit, shake, every, tween, wait, planeHit, pick, toScreen,
+    input: null, go, orbit, shake, every, tween, wait, warm, planeHit, pick, toScreen,
     dish: {}, // o que um minijogo deixa pronto para o próximo
     dispose() {
       cancelAnimationFrame(raf);

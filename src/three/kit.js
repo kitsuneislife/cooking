@@ -175,6 +175,8 @@ const TEX = {
 };
 const cache = {};
 export const tex = (k) => cache[k] ??= TEX[k]();
+// pinta todas de uma vez (na abertura), para nenhuma etapa parar no meio pintando textura
+export const paintAll = () => Object.keys(TEX).forEach(tex);
 
 export function labelTexture(text, band, ink) {
   return canvasTex(512, 256, (x) => {
