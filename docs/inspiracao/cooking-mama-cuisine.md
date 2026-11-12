@@ -45,6 +45,19 @@ Vale a mesma regra de sempre: levamos mecânica e sensação, nunca a Mama, o no
 - Acerto solta estrelinhas e corações em cima do alimento. Erro é só uma carinha triste, sem punição longa.
 - A mascote aparece grande entre as etapas, com poucas poses bem lidas: feliz, olhos de coração, surpresa.
 
+### Visual em detalhe (revisto em 12/11/2026)
+
+Quadros tirados a cada minuto do mesmo vídeo, olhando só para luz, cor e acabamento.
+
+- **Luz alta e macia.** O quadro inteiro é claro; a sombra é só um contato suave embaixo de cada peça. Nada fica preto: até o fundo da panela é cinza azulado.
+- **Tampo amarelo.** A comida quase sempre fica sobre réguas de madeira amarelo-mel, com veio leve. Por cima vai um jogo americano estampado (xadrez rosa, lilás com desenho branco) com costura na borda.
+- **Cozinha em tons pastel.** Parede verde-menta com listras claras, azulejo em quadrados de cores misturadas (rosa, menta, amarelo, lilás), armário rosa com puxador branco.
+- **Utensílio de brinquedo.** Panela de esmalte azul-piscina com alça azul, fogão branco com trempe colorida, batedeira amarela. Plástico liso, reflexo limpo do ambiente, borda arredondada.
+- **Comida com textura e brilho úmido.** A carne tem veio de gordura e um reflexo molhado; a massa frita tem degradê do claro ao dourado.
+- **Prato pronto em toalhinha de renda** branca, recortada na borda.
+- **Efeitos fofos e coloridos.** Estrelas de quatro pontas em amarelo, rosa e menta, coraçõezinhos, nuvens de vapor redondinhas, bolhas na água. Um brilho suave (bloom) só nos pontos mais claros.
+- **Borda lisa.** Nenhum serrilhado nem cintilação; tudo parece bem acabado.
+
 ## O que levamos
 
 | Ideia | Onde entrou |
@@ -58,6 +71,10 @@ Vale a mesma regra de sempre: levamos mecânica e sensação, nunca a Mama, o no
 | Cobrir uma superfície arrastando | molho da pizza e creme do tiramisù (`spread`) |
 | Soltar na hora certa | pôr no copo, no liquidificador e na tigela (`drop`) |
 | Prato pronto sobre uma toalha, com brilho | revelação no fim da fase de cozinhar |
+| Luz alta, sombra macia, borda sem serrilhado | luz e pós-processamento em `src/three/world.js` |
+| Tampo amarelo, parede menta, azulejo pastel, armário rosa | `buildKitchen` em `src/three/sets.js` |
+| Jogo americano estampado e toalhinha de renda | `placemat` e `doily` em `src/three/sets.js` |
+| Estrelas coloridas, corações e vapor redondo | `Particles` em `src/three/world.js` |
 
 ## Avisos
 
