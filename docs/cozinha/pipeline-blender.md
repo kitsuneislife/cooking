@@ -39,7 +39,7 @@ O MCP do Blender também funciona, mas pede o Blender aberto com o servidor liga
 "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b -P art/blender/build.py -- stirfry <pasta-das-previas>
 ```
 
-Saem `public/models/stirfry.glb` e, na pasta das prévias, `stirfry_high.png` (o modelo detalhado), `stirfry.png` (o que vai para o jogo), `stirfry.blend` e `stirfry.json` (triângulos e tamanho). A referência:
+Com `--high` no fim, sai só `stirfry_high.png`, sem bake nem `.glb`, em uns 5 segundos: é o rascunho para acertar forma e cor antes do build completo. Sem ele, saem `public/models/stirfry.glb` e, na pasta das prévias, `stirfry_high.png` (o modelo detalhado), `stirfry.png` (o que vai para o jogo), `stirfry.blend` e `stirfry.json` (triângulos e tamanho). A referência:
 
 ```bash
 "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b -P art/blender/ref.py -- "C:/Users/kitsu/Documents/cook-soundtrack/models/extracted/Meat and Vegetable Stir-Fry" ref.png

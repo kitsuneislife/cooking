@@ -1,5 +1,5 @@
 # Monta um modelo, assa o detalhe no low poly, exporta o .glb do jogo e renderiza a prévia.
-# Uso: blender -b -P art/blender/build.py -- <modelo> <pasta das prévias>
+# Uso: blender -b -P art/blender/build.py -- <modelo> <pasta das prévias> [--high]
 # Saídas: public/models/<modelo>.glb, <pasta>/<modelo>_high.png, <modelo>.png e <modelo>.json
 import importlib
 import json
@@ -13,7 +13,9 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 import lib  # noqa: E402
 
-name, outdir = sys.argv[sys.argv.index("--") + 1:][:2]
+args = sys.argv[sys.argv.index("--") + 1:]
+name, outdir = args[:2]
+draft = "--high" in args[2:]  # rascunho: só a prévia do high, sem bake nem .glb (segundos, não minutos)
 os.makedirs(outdir, exist_ok=True)
 lib.reset()
 mod = importlib.import_module(f"models.{name}")
@@ -23,6 +25,9 @@ high = [o for p in spec for o in p["high"]]
 lib.studio(**getattr(mod, "VIEW", {}))  # VIEW no modelo troca o ângulo da câmera
 lib.render(os.path.join(outdir, f"{name}_high.png"))
 high_tris = lib.stats(high)
+if draft:
+    print("RESULT", json.dumps({"model": name, "high_tris": high_tris, "draft": True}))
+    sys.exit(0)
 
 lows, moves = [], []
 for p in spec:
