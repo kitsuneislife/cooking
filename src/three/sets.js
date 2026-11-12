@@ -162,14 +162,16 @@ function hangingSet() { // barra de utensílios pendurados
   };
   const ladle = new THREE.Group();
   const lh = mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.6, 8), metal({ color: "#e6ebf0" })); lh.position.y = -0.95;
-  const cup = mesh(new THREE.SphereGeometry(0.28, 20, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), metal({ color: "#e6ebf0" })); cup.position.y = -1.75;
+  const cup = mesh(new THREE.SphereGeometry(0.28, 20, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), metal({ color: "#e6ebf0" })); cup.position.set(-0.26, -1.75, 0); // o cabo encosta na borda
   ladle.add(lh, cup);
   hang(ladle, -2.2);
-  const w = build.whisk(); w.rotation.z = Math.PI; w.position.y = -1.05; const wg = new THREE.Group(); wg.add(w); hang(wg, -1.2);
-  const sp = build.spoon(); sp.rotation.z = Math.PI; sp.position.y = -0.2; const sg = new THREE.Group(); sg.add(sp); hang(sg, -0.4);
-  const pan = build.pan(); pan.scale.setScalar(0.62); pan.rotation.set(Math.PI / 2, 0, -Math.PI / 2); pan.position.set(0, -1.9, -0.25);
+  // tudo pendurado pela ponta do cabo, a parte de trabalho para baixo
+  const w = build.whisk(); w.position.y = -1.15; const wg = new THREE.Group(); wg.add(w); hang(wg, -1.2);
+  const sp = build.spoon(); sp.position.y = -1.7; const sg = new THREE.Group(); sg.add(sp); hang(sg, -0.4);
+  // panela de frente para a câmera, cabo para cima até o gancho
+  const pan = build.pan(); pan.scale.setScalar(0.62); pan.rotation.set(0, Math.PI / 2, Math.PI / 2); pan.position.set(0, -1.85, -0.3);
   const pg = new THREE.Group(); pg.add(pan); hang(pg, 1.2);
-  const sm = build.pan(); sm.scale.setScalar(0.48); sm.rotation.set(Math.PI / 2, 0, -Math.PI / 2); sm.position.set(0, -1.5, -0.2);
+  const sm = build.pan(); sm.scale.setScalar(0.48); sm.rotation.set(0, Math.PI / 2, Math.PI / 2); sm.position.set(0, -1.45, -0.3);
   sm.children[0].material = glossy({ color: "#ef6b4a" });
   const sg2 = new THREE.Group(); sg2.add(sm); hang(sg2, 2.4);
   return g;

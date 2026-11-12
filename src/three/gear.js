@@ -292,8 +292,8 @@ export function barSpoon() { // colher bailarina; a ponta fica na origem
   const g = new THREE.Group(), steel = metal({ color: "#e6ebf0", roughness: 0.18 });
   const stem = mesh(new THREE.CylinderGeometry(0.025, 0.025, 2.4, 8), steel);
   stem.position.y = 1.3;
-  const head = mesh(new THREE.SphereGeometry(0.13, 16, 10).scale(1, 0.35, 1.4), steel);
-  head.position.y = 0.06;
+  const head = mesh(new THREE.SphereGeometry(0.13, 16, 10).scale(1, 1.4, 0.35), steel); // concha no plano da haste
+  head.position.y = 0.18;
   const cap = mesh(new THREE.SphereGeometry(0.07, 12, 8), glossy({ color: "#e5484d" }));
   cap.position.y = 2.52;
   g.add(stem, head, cap);

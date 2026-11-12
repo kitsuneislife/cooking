@@ -114,7 +114,7 @@ export default {
       ctx.gauge(null);
       spoonObj = s.add(build.spoon());
       const heap = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 10), new THREE.MeshStandardMaterial({ color: "#fffdf6", roughness: 1 }));
-      heap.scale.set(1, 0.6, 1.3); heap.position.y = 0.06;
+      heap.scale.set(1, 1.3, 0.6); heap.position.z = 0.06; // na face da concha
       spoonObj.add(heap);
       spoonObj.userData.heap = heap;
       spoonObj.scale.setScalar(1.3);

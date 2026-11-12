@@ -360,9 +360,10 @@ export const build = {
     inside.receiveShadow = true;
     g.add(inside);
     const neck = mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.3, 20), metal({ color: "#c9d1dc" }));
-    neck.rotation.z = Math.PI / 2 - 0.14; neck.position.set(1.3, 0.4, 0);
+    // rotação negativa: o eixo y deita para +x subindo, e o cabo encosta no pescoço
+    neck.rotation.z = -Math.PI / 2 + 0.14; neck.position.set(1.3, 0.4, 0);
     const handle = mesh(new THREE.CapsuleGeometry(0.13, 1.25, 8, 20), woodMat());
-    handle.rotation.z = Math.PI / 2 - 0.14; handle.position.set(2.05, 0.5, 0);
+    handle.rotation.z = -Math.PI / 2 + 0.14; handle.position.set(2.05, 0.5, 0);
     g.add(neck, handle);
     return g;
   },
@@ -486,10 +487,11 @@ export const build = {
 
   spoon() {
     const wood = woodMat(), spoon = new THREE.Group();
+    // concha no centro (origem), alongada ao longo do cabo e achatada em z
     const handle = mesh(new THREE.CapsuleGeometry(0.05, 1.3, 6, 12), wood);
-    handle.position.y = 0.75;
+    handle.position.y = 0.9;
     const head = mesh(new THREE.SphereGeometry(0.2, 24, 12), wood);
-    head.scale.set(1, 0.3, 1.35);
+    head.scale.set(1, 1.35, 0.3);
     spoon.add(handle, head);
     return spoon;
   },
@@ -601,9 +603,9 @@ export const build = {
     g.userData.sauce = sauce;
     g.add(sauce);
     const neck = mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.4, 16), metal({ color: "#c9d1dc" }));
-    neck.rotation.z = Math.PI / 2 - 0.16; neck.position.set(1.62, 0.76, 0);
+    neck.rotation.z = -Math.PI / 2 + 0.16; neck.position.set(1.62, 0.76, 0);
     const handle = mesh(new THREE.CapsuleGeometry(0.12, 1.2, 8, 20), woodMat());
-    handle.rotation.z = Math.PI / 2 - 0.16; handle.position.set(2.42, 0.89, 0);
+    handle.rotation.z = -Math.PI / 2 + 0.16; handle.position.set(2.42, 0.89, 0);
     const helper = mesh(new THREE.TorusGeometry(0.2, 0.04, 10, 24, Math.PI).rotateZ(Math.PI / 2).rotateX(Math.PI / 2).translate(-1.48, 0.74, 0), iron);
     g.add(neck, handle, helper);
     if (filled) {
@@ -637,9 +639,9 @@ export const build = {
     head.computeVertexNormals();
     g.add(mesh(head, metal({ color: "#e6ebf0", roughness: 0.22 })));
     const neck = mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.7, 10), metal({ color: "#c9d1dc" }));
-    neck.position.set(0, 0.95, 0.12); neck.rotation.x = -0.3;
+    neck.position.set(0, 0.95, 0.12); neck.rotation.x = 0.3; // inclina para +z subindo, como as posições
     const handle = mesh(new THREE.CapsuleGeometry(0.08, 0.9, 6, 14), woodMat());
-    handle.position.set(0, 1.7, 0.38); handle.rotation.x = -0.3;
+    handle.position.set(0, 1.7, 0.38); handle.rotation.x = 0.3;
     g.add(neck, handle);
     return g;
   },
