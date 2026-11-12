@@ -104,7 +104,7 @@ No Cookstar a forma de controle não muda no meio do jogo: ou é tudo por movime
 | Erro não trava: o chef conserta, a nota cai | `Chef` + `ResultPhase` |
 | Elogio ou bronca do chef a cada etapa | `Chef` |
 | Nota final pela média das etapas, até 3 estrelas | `ResultPhase`, `StarRating` |
-| Câmera de cima, utensílio grande, cores saturadas | `src/art/` |
+| Câmera de cima, utensílio grande, cores saturadas | `SHOTS` e `buildKitchen` em `src/three/` |
 | Som de cozinha forte e vibração (`navigator.vibrate`) no celular | `sfx` |
 
 Falta descobrir, porque nenhuma fonte pública traz: os limites exatos de nota por etapa, o tamanho das janelas de tempo e o nome oficial das barras de interface. Se precisarmos, o caminho é assistir a gameplay em vídeo e anotar como inferência.

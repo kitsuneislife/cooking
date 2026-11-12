@@ -45,8 +45,8 @@ export const games = {
       { text: "Servir sobre o arroz", station: "Servir", add: ["rice", "stirfry"] },
     ],
     phases: {
-      prep: { name: "Preparo", art: "board", hint: "Hora de preparar: fatiar, picar e fazer o molho." },
-      cook: { name: "Fogão", art: "stove", hint: "Fogo alto! Agora é no wok." },
+      prep: { name: "Preparo", hint: "Hora de preparar: fatiar, picar e fazer o molho." },
+      cook: { name: "Fogão", hint: "Fogo alto! Agora é no wok." },
     },
     play: {
       market: [{ game: "shop" }],
@@ -96,8 +96,8 @@ export const games = {
       { text: "Fatiar e servir", station: "Tábua", add: ["pizza"] },
     ],
     phases: {
-      prep: { name: "Bancada", art: "board", hint: "Mão na massa! Abrir, cobrir e temperar." },
-      cook: { name: "Forno", art: "stove", hint: "Forno bem quente e olho no ponto!" },
+      prep: { name: "Bancada", hint: "Mão na massa! Abrir, cobrir e temperar." },
+      cook: { name: "Forno", hint: "Forno bem quente e olho no ponto!" },
     },
     play: {
       market: [{ game: "shop" }],
@@ -146,8 +146,8 @@ export const games = {
       { text: "Servir sobre o arroz", station: "Servir", add: ["rice", "mix"] },
     ],
     phases: {
-      prep: { name: "Tábua", art: "board", hint: "Na tábua: picar a salsa e temperar o frango." },
-      cook: { name: "Grelha", art: "stove", hint: "Brasa acesa! Grelhar, misturar e servir." },
+      prep: { name: "Tábua", hint: "Na tábua: picar a salsa e temperar o frango." },
+      cook: { name: "Grelha", hint: "Brasa acesa! Grelhar, misturar e servir." },
     },
     play: {
       market: [{ game: "shop" }],
@@ -204,8 +204,8 @@ export const games = {
       { text: "Tomar bem gelado", station: "Servir", add: [] },
     ],
     phases: {
-      prep: { name: "Liquidificador", art: "mixingBowl", hint: "Tudo no liquidificador, e bate até ficar cremoso!" },
-      cook: { name: "Servir", art: "sauce", hint: "Agora é servir nos copos, sem derramar." },
+      prep: { name: "Liquidificador", hint: "Tudo no liquidificador, e bate até ficar cremoso!" },
+      cook: { name: "Servir", hint: "Agora é servir nos copos, sem derramar." },
     },
     play: {
       market: [{ game: "shop" }],
@@ -260,8 +260,8 @@ export const games = {
       { text: "Servir gelado", station: "Servir", add: [] },
     ],
     phases: {
-      prep: { name: "Tigela", art: "mixingBowl", hint: "Primeiro o creme: bater, juntar e incorporar." },
-      cook: { name: "Montagem", art: "board", hint: "Agora as camadas, e depois geladeira!" },
+      prep: { name: "Tigela", hint: "Primeiro o creme: bater, juntar e incorporar." },
+      cook: { name: "Montagem", hint: "Agora as camadas, e depois geladeira!" },
     },
     play: {
       market: [{ game: "shop" }],
@@ -309,8 +309,8 @@ export const games = {
       { text: "Servir na hora", station: "Bar", add: ["caipirinha"] },
     ],
     phases: {
-      prep: { name: "Socar", art: "mixingBowl", hint: "No bar: limão, açúcar e socador!" },
-      cook: { name: "Servir", art: "sauce", hint: "Gelo, cachaça e uma boa mexida." },
+      prep: { name: "Socar", hint: "No bar: limão, açúcar e socador!" },
+      cook: { name: "Servir", hint: "Gelo, cachaça e uma boa mexida." },
     },
     play: {
       market: [{ game: "shop" }],
