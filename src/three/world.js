@@ -348,7 +348,7 @@ export async function createWorld(host) {
   const tickers = new Set();
   let raf = 0, last = performance.now(), time = 0;
   const loop = (now) => {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
+    const dt = Math.min(0.05, (now - last) / 1000) * speed; last = now; time += dt;
     for (const f of [...tickers]) f(dt, time);
     for (const st of Object.values(kitchen.stations)) st.userData.tick?.(time); // chamas, brasas, lâminas
     market.tick(time);
@@ -369,6 +369,8 @@ export async function createWorld(host) {
       if (t >= 1) { off(); done(); }
     });
   });
+  // só no desenvolvimento: `?speed=4` acelera o relógio do jogo para revisar as etapas
+  const speed = import.meta.env.DEV ? Number(new URLSearchParams(location.search).get("speed")) || 1 : 1;
   const wait = (s) => new Promise((done) => { let t = 0; const off = every((dt) => { t += dt; if (t >= s) { off(); done(); } }); });
 
   // ---- ponteiro ----
