@@ -10,6 +10,7 @@ export const MODELS = [
   "stand", "crate", "stalls", // feira
   "tableware", "utensils", // louça, panelas e utensílios das estações
   "packs", // embalagens da despensa (o rótulo é pintado em foods.js)
+  "bottles", // vidros, garrafas, potinho de tempero, saleiro e pimenteiro
 ];
 const loaded = {};
 

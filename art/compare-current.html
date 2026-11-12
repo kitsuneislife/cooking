@@ -9,9 +9,10 @@ import { servingPlate, castAll } from "/src/three/kit.js";
 import { limeWedge, chicken, piece, ladyfinger } from "/src/three/foods.js";
 import { broccoli, mango, lime, stirfry, tub, carton, sack, tin } from "/src/three/archive/procedural.js";
 import { glassDish } from "/src/three/gear.js";
+import { BOTTLES, saltPepper } from "/src/three/archive/bottles.js";
 
 const item = new URLSearchParams(location.search).get("item");
-const r = new THREE.WebGLRenderer({ antialias: true });
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); // a foto sai mesmo com o pane escondido
 r.setSize(innerWidth, innerHeight);
 r.toneMapping = THREE.NeutralToneMapping; r.toneMappingExposure = 0.98;
 document.body.appendChild(r.domElement);
@@ -25,6 +26,10 @@ const fill = new THREE.DirectionalLight("#ffe3ee", 0.7); fill.position.set(6, 4,
 
 const g = new THREE.Group();
 const make = {
+  bottles: () => { // um de cada formato da leva 6, lado a lado
+    ["soy", "oyster", "honey", "cardamom"].forEach((k, i) => { const b = BOTTLES[k](); b.position.x = i * 1.25 - 1.9; g.add(b); });
+    const s = saltPepper(); s.position.x = 3.2; g.add(s);
+  },
   broccoli: () => g.add(broccoli()),
   mango: () => g.add(mango()),
   lime: () => { const a = lime(); a.position.x = -0.6; const b = limeWedge(); b.position.x = 0.6; g.add(a, b); },

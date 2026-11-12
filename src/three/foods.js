@@ -1,7 +1,7 @@
 // Despensa: os ingredientes de todas as receitas e o que cada um vira quando cai num
 // copo, vai para a tábua ou é despejado. Mesmo estilo do kit: formas cheinhas, sem contorno.
 import {
-  THREE, RoundedBoxGeometry, mergeGeometries, build, bottle, labelTexture, mesh, food, glossy, metal,
+  THREE, RoundedBoxGeometry, mergeGeometries, build, bottle, saltPepper, labelTexture, mesh, food, glossy,
   paint, canvasTex, tex, rgb, mix, fbm, sstep, seeded, V2, castAll, hash, colorize, normals, limb,
 } from "./kit.js";
 import { model } from "./models.js";
@@ -157,14 +157,6 @@ const tub = (text, band, lid) => pack("tub", text, () => labelTexture(text, band
 const carton = (text, band) => pack("carton", text, () => packTex(text, "#fffaf0", band), { carton_roof: band }); // caixinha com telhadinho
 const sack = (text, band) => pack("sack", text, () => packTex(text, "#fff6e6", band)); // saco de papel kraft
 const tin = (text, band, body) => pack("tin", text, () => labelTexture(text, band, band), { tin: body }); // lata de tampa de alavanca
-function shaker(body, band) { // saleiro de cerâmica com tampa furadinha
-  const g = new THREE.Group();
-  g.add(mesh(new THREE.LatheGeometry([V2(0, 0), V2(0.22, 0), V2(0.25, 0.04), V2(0.2, 0.5), V2(0.24, 0.62)], 28), glossy({ color: body })));
-  const stripe = mesh(new THREE.CylinderGeometry(0.228, 0.24, 0.1, 28, 1, true), glossy({ color: band }));
-  stripe.position.y = 0.2;
-  g.add(stripe, mesh(new THREE.LatheGeometry([V2(0.24, 0.62), V2(0.23, 0.74), V2(0.13, 0.83), V2(0, 0.84)], 28), metal({ color: "#e6ebf0", roughness: 0.25 })));
-  return g;
-}
 
 /* ---------- Ingredientes ---------- */
 // Manga (inteira e a banda em cubinhos) e limão (inteiro e a metade) vêm do Blender, por
@@ -459,12 +451,6 @@ export function mozzaSlice() { // com material próprio: ela derrete no forno
   g.userData.mat = m.material;
   return g;
 }
-function saltPepper() {
-  const g = new THREE.Group(), salt = shaker("#fffaf0", "#2a8199"), pepper = shaker("#4a3a32", "#e5484d");
-  salt.position.x = -0.32; pepper.position.x = 0.32;
-  g.add(salt, pepper);
-  return g;
-}
 function cheddar() {
   const tri = new THREE.Shape([V2(0, 0), V2(1.2, 0), V2(0, 0.7)]);
   const m = mesh(new THREE.ExtrudeGeometry(tri, { depth: 0.5, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 4 }), food({ color: "#ffab1f", roughness: 0.4, clearcoat: 0.6 }));
@@ -474,12 +460,12 @@ function cheddar() {
 }
 
 const BOTTLES = {
-  oliveOil: () => bottle({ r: 0.36, shoulder: 1.15, neckR: 0.1, neckTop: 1.95, glass: "#9aa83a", amber: "#c2b52a", cap: "#2a1a10", text: "AZEITE", band: "#4a6a1a", ink: "#3a4a1a" }),
-  cachaca: () => bottle({ r: 0.4, shoulder: 1.05, neckR: 0.12, neckTop: 1.85, glass: "#e6f4e0", amber: "#f6f2cc", cap: "#2a8199", text: "CACHAÇA", band: "#2f7a44", ink: "#2f5a3a" }),
-  honey: () => bottle({ r: 0.46, shoulder: 0.72, neckR: 0.3, neckTop: 1.08, glass: "#f0b040", amber: "#e89a10", cap: "#ffd23f", text: "MEL", band: "#b86a10", ink: "#7a4a10" }),
-  ketchup: () => bottle({ r: 0.38, shoulder: 0.95, neckR: 0.14, neckTop: 1.6, glass: "#c8201a", cap: "#fffaf0", text: "KETCHUP", band: "#7a1410", ink: "#7a1410" }),
-  tomato: () => bottle({ r: 0.5, shoulder: 0.78, neckR: 0.36, neckTop: 1.12, glass: "#f0705a", amber: "#d02a1c", cap: "#d9b46a", text: "MOLHO", band: "#2f7a44", ink: "#7a2a1a" }),
-  cardamom: () => bottle({ r: 0.32, shoulder: 0.6, neckR: 0.22, neckTop: 0.92, glass: "#dff0cc", amber: "#93b060", cap: "#3a7a4a", text: "CARDAMOMO", band: "#3a7a4a", ink: "#3a5a2a" }),
+  oliveOil: () => bottle({ glass: "#c8dc8a", fill: "#c2b52a", cap: "#2a1a10", text: "AZEITE", band: "#4a6a1a", ink: "#3a4a1a" }),
+  cachaca: () => bottle({ size: 0.97, glass: "#e6f4e0", fill: "#f6f2cc", cap: "#2a8199", text: "CACHAÇA", band: "#2f7a44", ink: "#2f5a3a" }),
+  honey: () => bottle({ shape: "jar", size: 0.92, fill: "#e89a10", cap: "#ffd23f", text: "MEL", band: "#b86a10", ink: "#7a4a10" }),
+  ketchup: () => bottle({ size: 0.88, fill: "#c8201a", cap: "#fffaf0", text: "KETCHUP", band: "#7a1410", ink: "#7a1410" }),
+  tomato: () => bottle({ shape: "jar", fill: "#d02a1c", cap: "#d9b46a", text: "MOLHO", band: "#2f7a44", ink: "#7a2a1a" }),
+  cardamom: () => bottle({ shape: "spice", fill: "#93b060", cap: "#3a7a4a", text: "CARDAMOMO", band: "#3a7a4a", ink: "#3a5a2a" }),
 };
 
 /* ---------- A despensa ----------
