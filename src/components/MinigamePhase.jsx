@@ -43,7 +43,8 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
       const mg = { ...minigame(spec.game), ...spec };
       setView({ i, mg, spec, stage: "travel" });
       setHud({ progress: 0, gauge: null, list: null, left: mg.seconds, total: mg.seconds });
-      const { arrived: travel } = await travelTo(mg.shot, world.shot ? 1.3 : 1.8);
+      // guardado: no StrictMode a primeira montagem é cancelada aqui e não pode criar a cena
+      const { arrived: travel } = await guard(travelTo(mg.shot, world.shot ? 1.3 : 1.8));
 
       let settle;
       const result = new Promise((r) => { settle = r; });
