@@ -465,3 +465,48 @@ def shift(objs, x):
     for o in objs:
         o.matrix_basis = Matrix.Translation(lib.T(x, 0, 0)) @ o.matrix_basis
     return objs
+
+
+# ---------- embalagens: o formato vem daqui, o rótulo é pintado no jogo ----------
+
+def _sheet(name, at, nu, nv):
+    """Folha em grade com UV inteira (0 a 1): at(u, v) dá o ponto. u corre da esquerda para a
+    direita de quem olha a face e v de baixo para cima, então a normal sai para fora."""
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    vs = [[bm.verts.new(at(i / nu, j / nv)) for j in range(nv + 1)] for i in range(nu + 1)]
+    for i in range(nu):
+        for j in range(nv):
+            f = bm.faces.new((vs[i][j], vs[i + 1][j], vs[i + 1][j + 1], vs[i][j + 1]))
+            for loop, (a, b) in zip(f.loops, ((i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1))):
+                loop[uv].uv = (a / nu, b / nv)
+    return lib.assign(lib.from_bmesh(name, bm), M("label", lambda: lib.mat("rotulo", "#f6f1e6", rough=0.6)))
+
+
+def label_band(name, r_at, z0, z1, arc=3.4, seg=24, off=0.004):
+    """Rótulo que dá a volta num frasco, de frente para a câmera (-Y): faixa de `arc` radianos
+    entre as alturas z0 e z1, `off` acima da parede de raio r_at(z). O jogo põe a textura."""
+    def at(u, v):
+        a, z = -math.pi / 2 + (u - 0.5) * arc, z0 + (z1 - z0) * v
+        r = r_at(z) + off
+        return (r * math.cos(a), r * math.sin(a), z)
+    return _sheet(name, at, seg, 1)
+
+
+def label_panel(name, w, h, center, face="front", target=None, off=0.005, seg=10, turn=0.0):
+    """Rótulo plano de w por h: de frente (-Y) ou deitado em cima (+Z, o texto lido de quem está
+    na frente), girado `turn` em volta do eixo (os quatro lados de uma caixa). Com `target`, a
+    folha se assenta na superfície amassada (saco, embrulho)."""
+    cx, cy, cz = center
+    if face == "front":
+        at = lambda u, v: (cx + (u - 0.5) * w, cy, cz + (v - 0.5) * h)  # noqa: E731
+    else:
+        at = lambda u, v: (cx + (u - 0.5) * w, cy + (v - 0.5) * h, cz)  # noqa: E731
+    o = _sheet(name, at, seg, seg)
+    if turn:
+        o.data.transform(Matrix.Rotation(turn, 4, "Z"))
+    if target:
+        sw = o.modifiers.new("assenta", "SHRINKWRAP")
+        sw.target, sw.wrap_mode, sw.offset = target, "OUTSIDE_SURFACE", off
+        lib.apply_all(o)
+    return o

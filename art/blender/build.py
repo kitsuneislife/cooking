@@ -30,9 +30,18 @@ if draft:
     sys.exit(0)
 
 lows, moves = [], []
+# o rótulo encosta no frasco e assaria uma faixa escura nele: o que vai como está fica fora do bake
+kept = [o for p in spec if p.get("keep") for o in p["high"]]
+for o in kept:
+    o.hide_render = True
 for p in spec:
-    if p.get("keep"):  # cor lisa, exporta como está
+    if p.get("keep"):  # cor lisa ou rótulo, exporta como está
         lows += p["high"]
+        if "origin" in p:  # a malha leva a posição, para o "origin" lá embaixo valer igual ao low
+            for o in p["high"]:
+                o.data.transform(o.matrix_basis)
+                o.matrix_basis = Matrix()
+                moves.append((o, p["origin"]))
         continue
     # "low" pronto (placa com UV que repete no jogo) ou o casco simplificado do high
     # "shell": só essas peças formam o casco; o resto (filete, pintinha) vai só para a textura
@@ -54,6 +63,8 @@ for p in spec:
     low.name = p["name"]
     if "origin" in p:
         moves.append((low, p["origin"]))
+for o in kept:
+    o.hide_render = False
 lib.render(os.path.join(outdir, f"{name}.png"))
 if len(spec) > 1:  # muitas peças: a prévia geral fica pequena, então tira uma foto de perto de cada
     view = getattr(mod, "VIEW", {})
