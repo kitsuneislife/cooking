@@ -128,3 +128,9 @@ Lições da leva 7 (embalagens):
 34. **Peça que o jogo tinge sai quase branca.** Tampa, telhado e lata são assados num degradê claro (`tintable`); o jogo multiplica pela cor do ingrediente. Assar já colorido deixaria todo leite azul.
 35. **`fill` abaixo de 1 corta peça comprida.** O `lib.frame` aproxima a câmera pela metade da diagonal vezes `fill`, então a fila de embalagens e o tablete de manteiga saíram cortados na prévia. Para a foto da comparação, abrir o `.blend` e enquadrar de novo com `fill` de 1,2 a 1,5.
 36. **Aba de embrulho recua pelo chanfro.** A ponta dobrada da manteiga, do tamanho da face, saía pela quina arredondada do bloco. Recolher a aba pela largura do chanfro.
+
+Lições da leva 6 (vidros e garrafas):
+
+37. **Friso de torno só aparece onde há vértice.** Na primeira tentativa, a faixa dos frisos das tampas caía entre dois anéis do perfil e saiu lisa. A faixa (`parts.ridged`, de `z0` a `z1`) precisa cobrir as alturas dos anéis da parede da tampa, e o friso precisa de profundidade de uns 4% do raio (0,016) para sobreviver ao assado.
+38. **Letra em relevo fina e espaçada.** Com `bold` alto, as letras do PIMENTA engordavam e grudavam umas nas outras. `bold` 0,004, `space_character` 1,15 e a palavra comprida menor que a curta (0,085 contra 0,14) deixam as duas legíveis no tamanho do jogo (`parts.lettering`).
+39. **Rampa da peça tingida não termina em branco puro.** Como na lição 34, a tampa sai assada quase branca e o jogo multiplica a cor por cima. Mas a rampa do saleiro que terminava em branco puro sumia no realce; terminar num tom claro (o `light` de `bottles.shaker`) segura a cor.

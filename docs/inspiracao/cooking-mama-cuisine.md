@@ -105,6 +105,17 @@ Os modelos extraídos são só pratos prontos, sem embalagem. A referência aqui
 
 O que levamos: kraft em degradê com vincos e dobra na boca, papel encerado na caixinha, plástico brilhante no pote, metal claro nas bordas enroladas da lata. O formato vem do Blender e o rótulo continua em código, porque o texto e a cor mudam por ingrediente. O modelo está em `art/blender/models/packs.py`.
 
+### Vidros, garrafas e saleiros de perto (revisto em 12/11/2026, para a leva 6)
+
+Os modelos extraídos da referência têm um vidro de conserva (o do suco de cenoura e o da mousse de chocolate). O vidro dele sai preto quando renderizado, porque o arquivo não traz o material de vidro; dele só dá para tirar o formato. O resto vem de quadros do vídeo de gameplay e é inferência.
+
+- **Saleiro e pimenteiro de porcelana** (quadro perto dos 15:32, inferência). Corpo branco brilhante, tampa em cúpula de cor viva (azul-céu, vermelho, marrom), furinhos escuros no topo e a palavra escrita no corpo na cor da tampa.
+- **Garrafinhas de vidro claro** (mesmo quadro, inferência). O vidro quase não aparece: o que se vê é a cor do que está dentro e um reflexo forte na borda.
+- **Garrafa sendo despejada** (quadro perto dos 25:00, inferência). Pequena, de cor única, sem rótulo detalhado.
+- **Vidro de conserva** (modelo extraído). Boca larga, tampa de rosca com frisos e ombro curto.
+
+O que levamos: o vidro é só reflexo e deixa ver o líquido; a tampa de cor com frisos de verdade; o saleiro e o pimenteiro de porcelana branca, com tampa em cúpula colorida, furinhos e a palavra (SAL, PIMENTA) na cor da tampa; um potinho de tempero de tampa furada para os temperos em pó. O rótulo de papel continua nosso, em código. O modelo está em `art/blender/models/bottles.py`.
+
 ## O que levamos
 
 | Ideia | Onde entrou |

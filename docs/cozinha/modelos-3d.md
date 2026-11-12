@@ -276,6 +276,18 @@ Leva 5, `utensils.glb` (14.960 triângulos no jogo, 599 KB):
 
 `butter.glb` (432 triângulos, 42 KB): tablete em papel dourado com as pontas dobradas e um rótulo no topo. Pronto e **fora do jogo**, porque nenhuma receita jogável usa manteiga ainda.
 
+**Leva 6 (12/11/2026): vidros e garrafas.** Direto no jogo, a pedido do usuário. A referência está em [../inspiracao/cooking-mama-cuisine.md](../inspiracao/cooking-mama-cuisine.md) ("Vidros, garrafas e saleiros de perto"). Um `.glb` só, `bottles.glb` (7.696 triângulos no jogo, 250 KB), com quatro formatos de frasco e o saleiro e o pimenteiro. Cada frasco vem em três peças (vidro, líquido e tampa); o rótulo continua em código.
+
+| Peça | No jogo (triângulos) | Textura |
+|---|---|---|
+| Garrafa alta de gargalo fino (vidro, líquido, tampa) | 1.024 + 320 + 352 | tampa 256 px |
+| Garrafa bojuda (vidro, líquido, tampa) | 1.024 + 320 + 352 | tampa 256 px |
+| Vidro de boca larga (vidro, recheio, tampa) | 576 + 256 + 416 | tampa 256 px |
+| Potinho de tempero (vidro, pó, tampa furada) | 448 + 256 + 352 | tampa 256 px |
+| Saleiro e pimenteiro | 1.000 cada | 512 px cada |
+
+O potinho de tempero é novo: o cardamomo era uma garrafa e agora é ele, e os 17 temperos em pó das receitas novas já têm onde entrar.
+
 ### Troca no jogo
 
 A regra: depois que o usuário aprova uma leva, o modelo procedural sai do caminho do jogo e vai para `src/three/archive/procedural.js` (arquivado, não apagado; a página `art/compare-current.html` usa o arquivo para as próximas comparações), e o jogo passa a carregar o `.glb`. Cada troca também é uma chance de deixar o jogo mais leve, medida antes e depois.
@@ -381,6 +393,26 @@ Lições da troca:
 14. **Material tingido se faz uma vez por ingrediente.** Cada caixote da feira tem três cópias, e clonar o material em cada uma triplicaria materiais e texturas de rótulo. Os materiais ficam guardados por ingrediente (`once`) e as cópias só apontam para eles.
 15. **Item pequeno e repetido fica perto do procedural.** Na feira cada embalagem aparece em trio e pequena; o primeiro orçamento deixou o quadro 16% mais pesado sem diferença visível. Cortar pote, lata e saco até perto do antigo resolveu.
 16. **Janela minimizada para o jogo.** Com o app minimizado, nem a captura de tela nem a partida andam. Para fotografar fora do jogo, o Edge sem janela (`msedge --headless=new --screenshot`) renderiza as páginas de `art/`.
+
+Como ficou a leva 6 (feita ao mesmo tempo que a 7, em outra branch):
+
+- A garrafa de torno, o saleiro antigo e os frascos de cada ingrediente foram para `src/three/archive/bottles.js`, com a textura dos frisos da tampa, que só eles usavam.
+- Em `kit.js`, `bottle({ shape, size, glass, fill, cap, text, band, ink })` monta o frasco com as peças do `.glb`. O formato (`tall`, `round`, `jar`, `spice`) escolhe as peças; a cor do líquido, a cor da tampa e o rótulo mudam por ingrediente. A tampa vem assada quase branca, com os frisos no relevo, e a cor do ingrediente multiplica por cima. Materiais e geometria do rótulo são divididos entre os frascos iguais.
+- `userData.mouth` continua dizendo por onde o líquido sai, então o minijogo de despejar não mudou. O chacoalhar usa o potinho de tempero (cardamomo) e o saleiro (pizza) de ponta-cabeça, como antes.
+- O saleiro e o pimenteiro vêm prontos do Blender (`saltPepper` em `kit.js`); o `shaker` de `foods.js` saiu.
+
+| Plano de câmera | Chamadas de desenho (antes, depois) | Triângulos (antes, depois) |
+|---|---|---|
+| Tigela (`bowl`, com shoyu, ostra e gergelim) | 176, 179 | 117.133, 119.821 (+2%) |
+| Cozinha inteira (`wide`) | 343, 345 | 177.803, 180.411 (+1%) |
+| Liquidificador (`bar`) | 66, 66 | 43.589, 43.589 |
+| Feira (`market`, sem receita) | 73, 73 | 60.066, 60.066 |
+
+Os planos com garrafas ficaram um pouco mais pesados, de propósito: o líquido virou peça própria (antes o vidro escuro fingia o líquido) e a tampa ganhou frisos de verdade. Em troca, cada garrafa antes criava a sua geometria e os seus materiais, e agora todas as cópias dividem os mesmos. Medido como na leva 5, antes da leva 7 entrar na main; vale a comparação da mesma linha.
+
+Lições da troca:
+
+17. **Vidro transparente branco por cima de líquido escuro vira cinza.** O shoyu ficou cinza no jogo com o vidro em 15% de branco: depois da correção de gama, 15% de luz por cima de quase preto já parece cinza médio. Com a cor de base do vidro preta (`color: "#000"`, a cor do vidro só no `specularColor`), o vidro só soma o reflexo e o líquido aparece com a cor dele.
 
 ## Para a próxima etapa
 
