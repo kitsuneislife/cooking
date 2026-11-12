@@ -510,3 +510,53 @@ def label_panel(name, w, h, center, face="front", target=None, off=0.005, seg=10
         sw.target, sw.wrap_mode, sw.offset = target, "OUTSIDE_SURFACE", off
         lib.apply_all(o)
     return o
+
+
+# ---------- vidros, garrafas e saleiros (leva 6) ----------
+
+def radius_at(profile):
+    """Raio de um perfil de torno [(raio, altura), ...] numa altura qualquer, interpolando."""
+    def r(z):
+        for (r0, z0), (r1, z1) in zip(profile, profile[1:]):
+            if z0 <= z <= z1 and z1 > z0:
+                return r0 + (r1 - r0) * (z - z0) / (z1 - z0)
+        return profile[-1][0]
+    return r
+
+
+def ridged(name, profile, ridges, depth, z0, z1, seg=None):
+    """Tampa de rosca ou serrilhado: torno com `ridges` frisos verticais de `depth` entre as
+    alturas z0 e z1. Só serve ao high: o low é o torno liso e os frisos vão para o normal map."""
+    o = lib.lathe(name, profile, seg or ridges * 4)
+    for v in o.data.vertices:
+        r = math.hypot(v.co.x, v.co.y)
+        if r > 1e-4 and z0 <= v.co.z <= z1:
+            k = 1 - depth / r * (0.5 - 0.5 * math.cos(ridges * math.atan2(v.co.y, v.co.x)))
+            v.co.x, v.co.y = v.co.x * k, v.co.y * k
+    o.data.update()
+    return o
+
+
+def lettering(name, text, profile, z, size, m, bold=0.004):
+    """Letras pintadas na louça (SAL, PIMENTA): o texto deitado no plano vira uma película
+    enrolada no corpo de torno, 3 mm por fora, de frente para a câmera do jogo. Só vai para a
+    textura. A fonte é a Bfont do próprio Blender (livre), engrossada por `bold`."""
+    import bpy
+    cu = bpy.data.curves.new(name, "FONT")
+    cu.body, cu.align_x, cu.align_y, cu.size, cu.offset = text, "CENTER", "CENTER", size, bold
+    cu.space_character = 1.15  # engrossada, a letra encosta na vizinha
+    o = lib.link(bpy.data.objects.new(name, cu))
+    bpy.context.view_layer.update()
+    me = bpy.data.meshes.new_from_object(o.evaluated_get(bpy.context.evaluated_depsgraph_get()))
+    bpy.data.objects.remove(o)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bmesh.ops.triangulate(bm, faces=bm.faces)
+    bmesh.ops.subdivide_edges(bm, edges=bm.edges, cuts=2, use_grid_fill=True)  # para curvar sem afundar
+    rad = radius_at(profile)
+    for v in bm.verts:
+        h = z + v.co.y
+        r = rad(h) + 0.003
+        a = -math.pi / 2 + v.co.x / r  # -Y no Blender é a frente (+z do jogo), lida da esquerda para a direita
+        v.co = Vector((r * math.cos(a), r * math.sin(a), h))
+    return lib.assign(lib.from_bmesh(name, bm, smooth=False), m)
