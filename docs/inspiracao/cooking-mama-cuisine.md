@@ -82,6 +82,18 @@ Quadros do mesmo vídeo, olhando só para o que fica atrás da comida. Também �
 
 Os modelos que saíram daqui (bancada, parede, prateleiras, janela, coifa, luminárias, miudezas e a banca da feira) estão em `art/blender/models/`. O que é da feira está em [feira.md](feira.md).
 
+### Louça e utensílios de perto (revisto em 12/11/2026, para as levas 4 e 5)
+
+Quadros do mesmo vídeo e os modelos extraídos da referência, olhando só para panela, tigela, prato e utensílio. O que vem do vídeo é inferência.
+
+- **Panela de esmalte turquesa.** Por fora uma cor só, cheia e brilhante; aro de inox claro na boca; alça de argola do lado oposto ao cabo. Por dentro cinza-azulado com pintinhas claras, nunca preto.
+- **Tigela branca, dentro azulado.** A tigela de misturar é clara, com o fundo de dentro puxando para o azul; a borda é grossa e enrolada, como louça de verdade.
+- **Prato branco com aba de cor.** Aba azul ou anil com filete; o centro é liso para a comida.
+- **Utensílio de brinquedo.** Tudo grosso e de canto redondo: cabo gordo de cor viva (vermelho, menta), inox claro e liso, madeira clara com veio discreto. Nada fino a ponto de sumir na tela.
+- **A tábua da referência é de plástico branco.** A nossa continua de madeira, porque a madeira clara é parte da cara da nossa cozinha.
+
+O que levamos: esmalte de cor cheia com a borda clareando, inox claro, cabos vermelhos com rebites dourados, bolinhas e filetes pintados (só na textura, sem custar triângulo). Os modelos estão em `art/blender/models/tableware.py` e `utensils.py`.
+
 ## O que levamos
 
 | Ideia | Onde entrou |

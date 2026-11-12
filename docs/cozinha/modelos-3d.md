@@ -229,6 +229,37 @@ Na comparação, o brócolis atual do jogo já era bom de silhueta; o ganho do n
 | Caixote | 1.500 | 1.500 | 86 KB |
 | Barracas vizinhas e árvores | 50.700 | 12.000 | 917 KB |
 
+**Levas 4 e 5 (12/11/2026): louça, panelas e utensílios das estações.** O usuário pediu as duas de uma vez, já direto no jogo. A referência está em [../inspiracao/cooking-mama-cuisine.md](../inspiracao/cooking-mama-cuisine.md) ("Louça e utensílios de perto"). Cada `.glb` traz as peças soltas, cada uma com o nome que o jogo procura, no referencial do procedural que ela troca.
+
+Leva 4, `tableware.glb` (24.068 triângulos no jogo, 1.230 KB):
+
+| Peça | No jogo (triângulos) |
+|---|---|
+| Prato de servir com filete dourado | 2.496 |
+| Tábua de corte com alça | 1.732 |
+| Tigela de misturar azul de pintas | 2.304 |
+| Wok esmaltado com cabo de madeira | 3.416 |
+| Panelinhas (menta e coral) | 1.600 cada |
+| Tigela de arroz e o arroz | 1.728 + 1.056 |
+| Tigela de molho | 1.536 |
+| Pote de amido | 3.000 |
+| Cúpula e puxador | 3.000 + 600 |
+
+Leva 5, `utensils.glb` (14.960 triângulos no jogo, 599 KB):
+
+| Peça | No jogo (triângulos) |
+|---|---|
+| Faca (lâmina e cabo) | 2.400 |
+| Fouet (arame e cabo) | 2.512 |
+| Espátula (cabeça e cabo) | 1.000 |
+| Colher | 1.200 |
+| Rolo de massa | 1.600 |
+| Peneira (aro e cabo; a tela continua em código) | 1.612 |
+| Socador | 768 |
+| Colher bailarina e tampinha | 1.800 |
+| Cortador de pizza (disco, garfo e cabo) | 936 |
+| Concha pendurada | 832 |
+
 ### Troca no jogo
 
 A regra: depois que o usuário aprova uma leva, o modelo procedural sai do caminho do jogo e vai para `src/three/archive/procedural.js` (arquivado, não apagado; a página `art/compare-current.html` usa o arquivo para as próximas comparações), e o jogo passa a carregar o `.glb`. Cada troca também é uma chance de deixar o jogo mais leve, medida antes e depois.
@@ -281,6 +312,31 @@ Lições da troca:
 5. **Não juntar o que a câmera de perto corta.** Com os 12 módulos da bancada numa malha só, o plano do liquidificador desenhava a bancada inteira e foi de 111 mil para 269 mil triângulos. Separados, dividindo geometria e material, cada plano desenha só os módulos que vê.
 6. **Uma textura que repete precisa de `RepeatWrapping` em todos os mapas.** Cor, relevo e rugosidade do `.glb` têm cada um o seu `repeat`; mudar só o da cor deixa o brilho de um azulejo esticado na parede inteira.
 7. **Cada malha na tela é desenhada umas 4 vezes** (sombra e passadas do pós-processamento). Por isso o módulo da bancada, que aparece de perto em quase todo plano, caiu de 4.000 para 2.000 triângulos. Para achar o culpado, esconder um nó de cada vez e contar o quadro de novo.
+
+Como ficaram as levas 4 e 5:
+
+- Os procedurais da louça e dos utensílios foram copiados para `src/three/archive/station.js`, com as três texturas pintadas que só eles usavam (madeira da tábua, metal escovado, tigela de arroz).
+- `models.js` ganhou `part(nome, peça)`, que devolve uma malha só do `.glb`. Em `kit.js` cada construtor virou um grupo com as peças (`ware("wok")`, `tool("knife_blade")`), e o que muda no minijogo continua em código: o líquido da tigela, o molho e o recheio do wok, o arroz que some, a dobradiça da cúpula, a tela da peneira.
+- Em `gear.js`, rolo, peneira, socador, colher bailarina e cortador de pizza vêm do `utensils.glb`; o disco do cortador é achado pelo nome e continua girando. Na cozinha, a concha pendurada e a panelinha coral também.
+- A tigela de arroz perdeu os hashis (ninguém usava) e o Empratar esconde o arroz por `userData.rice`, não pela ordem dos filhos.
+
+| Plano de câmera | Chamadas de desenho (antes, depois) | Triângulos (antes, depois) |
+|---|---|---|
+| Cozinha inteira (`wide`) | 512, 424 (−17%) | 358.706, 315.634 (−12%) |
+| Tábua (`board`) | 244, 230 (−6%) | 158.964, 152.644 (−4%) |
+| Tigela (`bowl`) | 308, 268 (−13%) | 235.114, 224.162 (−5%) |
+| Wok (`wok`) | 438, 370 (−16%) | 257.744, 228.848 (−11%) |
+| Prato (`plate`) | 370, 310 (−16%) | 236.294, 210.246 (−11%) |
+
+Medido do mesmo jeito da leva 3, só que no mesmo dia, com o "antes" tirado do código da leva 3 guardado num stash. Os números de "antes" não batem com os "depois" da leva 3 porque a cena mudou entre uma leva e outra; vale a comparação da mesma linha.
+
+Lições da troca:
+
+8. **Uma peça por nó deixa a troca simples.** Com `part(nome, peça)`, cada construtor monta o grupo com as peças que precisa, e a mesma louça serve a vários minijogos sem cópia de geometria.
+9. **Não depender da ordem dos filhos.** O Empratar escondia o arroz por `children[1]`; com a tigela nova a ordem mudou. Guardar a referência em `userData` (`rice.userData.rice`) aguenta a próxima troca. A poça do molho continua em `children[1]` e ficou assim de propósito.
+10. **Textura que só o procedural usa vai junto para o arquivo.** O `paintAll` pinta todas as texturas do kit na abertura; deixar as três da louça antiga lá era trabalho perdido em todo carregamento.
+11. **Pane escondido: medir com `world.snapshot`.** Sem `requestAnimationFrame`, embrulhar `drawElements` e `drawArrays` em volta de um `snapshot(plano)` conta o quadro inteiro, sombra e pós-processamento incluídos.
+12. **Conferir no jogo, não só no estúdio.** No estúdio a tigela nova parecia azul e a tábua parecia lisa; no jogo a tigela saiu branca e o veio da tábua virou listras. Os dois só apareceram na foto do plano de câmera.
 
 ## Para a próxima etapa
 

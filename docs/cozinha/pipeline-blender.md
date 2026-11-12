@@ -106,3 +106,16 @@ Lições da leva 3 (cenário):
 18. **Casco simplificado longe do detalhe assa buraco.** Nas barracas do fundo, o low de 12 mil triângulos ficou afastado das peças, e com extrusão de 0,03 o raio não alcançava: o balcão saiu com uma mancha marrom e as copas com pintas escuras. Peça de fundo simplificada usa extrusão de 0,2.
 19. **Veio forte em área grande vira mancha.** Os degraus da banca pareciam cortiça; o degradê da madeira encurtou para tons vizinhos.
 20. **Fundo pequeno na tela não precisa de detalhe.** As prateleiras com 9.000 triângulos cada deixaram o quadro mais pesado que o cenário antigo; com 5.000 a diferença não aparece.
+
+Lições das levas 4 e 5 (louça e utensílios):
+
+21. **Metal assa preto.** A cor de um material metálico sai preta no bake. O high de metal é pintado como não-metal (`parts.steel()`, um degradê claro) e o low ganha `"metal": 1` com `"roughness": False` e um `"rough"` fixo: o glTF lê o metal do canal azul do mapa de rugosidade, então peça de metal não leva esse mapa.
+22. **Superfície aberta de torno inverte a normal.** Fora, borda e dentro da tigela como malhas separadas recalculam a normal cada uma para um lado, e o fundo de dentro assou preto. `lib.solid` junta as partes, solda e recalcula como um sólido fechado. Perfil de torno sempre fecha (começa e termina no eixo ou emenda com a peça vizinha).
+23. **Voxel esfarela grão.** O monte de arroz em voxel virou farelo. Para miudeza sobre uma forma lisa, o casco é feito à parte (`"shell"`, um domo na altura média dos grãos) e os grãos só vão para a textura. O `build.py` esconde do bake o casco que não está no high.
+24. **Filete e bolinha não custam triângulo.** Os filetes dourados do prato, as faixas da tigela de molho e as pintas ficam fora do `"shell"`: o casco é só o corpo, e o detalhe vai para a textura.
+25. **A oclusão padrão escurece a tigela inteira.** O alcance padrão do AO (10) é maior que a tigela, e o dentro saiu cinza. Louça funda usa `"ao": 0.4`; utensílio pequeno, 0,3.
+26. **Peça que gira assa longe das vizinhas.** O disco do cortador de pizza encostava no garfo, e a oclusão manchou um lado. Afastar no Blender (`parts.shift`) e trazer de volta pelo `"origin"`.
+27. **Com muitas peças, a prévia geral não serve.** O `build.py` agora tira uma foto de perto de cada peça (`<modelo>_<peça>.png`). O estúdio não tem reflexo, então metal parece cinza fosco na prévia: metal se julga no jogo.
+28. **Cada peça no referencial do procedural que troca.** Escrever o modelo na posição local do objeto antigo (ponta da colher na origem, fio da faca em y = 0) deixa os minijogos sem mudança nenhuma. `parts.xform` posiciona como o three.js (posição e rotação XYZ do jogo).
+29. **Veio de madeira largo vira listra de longe.** Na tábua, o ruído de veio com `scale` 1,2 parecia madeira na foto de perto e listras onduladas no plano do jogo. Com `scale` 4 e as três cores da rampa bem próximas, o veio fica calmo nas duas distâncias.
+30. **Pinta clara em fundo claro some.** A tigela de misturar com fundo creme e pintas azuis lia como branca no jogo. Inverter (fundo azul, pintas creme) devolveu a cor que o jogador já conhecia.
