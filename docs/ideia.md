@@ -37,6 +37,8 @@ Como as 50 receitas são fixas, preparamos à mão uma camada de dados do jogo, 
 - [cozinha/estacoes.md](cozinha/estacoes.md): as 10 estações da cozinha e os tipos de corte.
 - [cozinha/preparo.md](cozinha/preparo.md): os 268 passos das receitas, resumidos em português e ligados a uma estação.
 - [cozinha/volta-ao-mundo.md](cozinha/volta-ao-mundo.md): a rota de 20 paradas, as regras de progresso e as imagens que faltam criar.
+- [cozinha/modelos-3d.md](cozinha/modelos-3d.md): cruzamento dos 152 pratos 3D do `cook-soundtrack` com as 50 receitas, ingredientes em comum e modelos sem receita.
+- [cozinha/menus.md](cozinha/menus.md): 14 pratos completos (entrada, principal, acompanhamento, sobremesa e bebida) montados com os modelos.
 
 O app continua buscando as receitas na API com `fetch`. A camada local só acrescenta o que a API não tem: tradução, categoria, estação e país. A cópia em `docs/api` não é usada pelo app.
 

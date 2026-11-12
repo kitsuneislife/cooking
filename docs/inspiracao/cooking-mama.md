@@ -85,6 +85,7 @@ No Cookstar a forma de controle não muda no meio do jogo: ou é tudo por movime
 - A mascote reage o tempo todo: sorri, comemora, faz fogo nos olhos e se fantasia para torcer. (Wikipedia; Pure Nintendo)
 - O som de cozinha é caprichado, como o chiado do hambúrguer e o corte crocante da faca. (Gamecola)
 - O Cookstar vibra o controle a cada corte. (Pure Nintendo)
+- A comida é o centro: modelo detalhado, textura com cara de foto, brilho de molhado e enfeite no prato. Os pratos 3D do *Cuisine!* servem de alvo de qualidade, e as lições estão em [../cozinha/modelos-3d.md](../cozinha/modelos-3d.md#os-modelos-como-inspiração-visual).
 
 ## Críticas que valem como aviso
 
