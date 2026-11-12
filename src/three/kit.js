@@ -30,6 +30,31 @@ export const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) 
 export const sstep = (e0, e1, x) => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
 // Gerador pseudoaleatório com semente: o mesmo modelo sai sempre igual.
 export const seeded = (seed) => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+// Ruído celular: distância ao centro de célula mais próximo (0 no centro). Vira bolhas e botõezinhos.
+export function worley(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y);
+  let d = 9;
+  for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) {
+    const cx = xi + i + hash(xi + i, yi + j), cy = yi + j + hash(yi + j + 71, xi + i + 13);
+    d = Math.min(d, Math.hypot(x - cx, y - cy));
+  }
+  return d;
+}
+// Cor por vértice a partir da posição: degradê e sombra pintados na malha, `fn(cor, x, y, z, i)`.
+export function colorize(geo, fn) {
+  const p = geo.attributes.position, col = new Float32Array(p.count * 3), c = new THREE.Color();
+  for (let i = 0; i < p.count; i++) { fn(c, p.getX(i), p.getY(i), p.getZ(i), i); col.set([c.r, c.g, c.b], i * 3); }
+  geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  return geo;
+}
+export const normals = (geo) => { geo.computeVertexNormals(); return geo; };
+// Cilindro de `a` até `b` (talos, cabinhos).
+export function limb(a, b, r0, r1, seg = 10) {
+  const dir = new THREE.Vector3().subVectors(b, a), len = dir.length();
+  const geo = new THREE.CylinderGeometry(r1, r0, len, seg, 3).translate(0, len / 2, 0);
+  geo.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize()));
+  return geo.translate(a.x, a.y, a.z);
+}
 
 export function paint(size, px, { srgb = true, repeat = 1 } = {}) {
   const c = document.createElement("canvas"); c.width = c.height = size;
