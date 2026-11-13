@@ -414,6 +414,35 @@ Lições da troca:
 
 17. **Vidro transparente branco por cima de líquido escuro vira cinza.** O shoyu ficou cinza no jogo com o vidro em 15% de branco: depois da correção de gama, 15% de luz por cima de quase preto já parece cinza médio. Com a cor de base do vidro preta (`color: "#000"`, a cor do vidro só no `specularColor`), o vidro só soma o reflexo e o líquido aparece com a cor dele.
 
+### Desempenho: rumo aos 60 fps (13/11/2026)
+
+Pedido: o jogo parecia travado; a meta é 60 fps cravados. Medido no Mac de casa (Intel Iris Xe, ANGLE sobre Metal), tela de 1280×720, abertura da receita 8 com a câmera girando. Esse é o pior caso que temos; numa placa dedicada sobra folga.
+
+| Medida | Antes | Depois |
+|---|---|---|
+| Malhas visíveis na cena | 552 | 191 |
+| Chamadas de desenho por quadro (cena + sombra) | 264 a 460 | 125 + 65 |
+| JS do `render` (mediana, p90) | ~10 ms | 3,7 ms, 8,4 ms [measured] |
+| Quadro com a cena inteira, resolução cheia (1×) | ~49 ms (~20 fps) | 24 a 30 ms [measured] |
+| Quadro em meia resolução (0,5×), pipeline cheio | não existia | 13 a 15 ms [measured] |
+
+O que mudou:
+
+- **Resolução que se ajusta sozinha** (`world.js`, `adapt`). Começa em até 1,5× e desce 0,15 a cada 8 quadros lentos (>20 ms); sobe depois de 4 s seguidos de folga, e se subir e cair de novo em menos de 3 s, aquele valor vira teto. O valor fica salvo em `localStorage` (`cozinhe.renderRatio`) e não mexe enquanto `warm()` compila shaders.
+- **Pós-processamento mais barato.** A correção de cor saiu de um passe próprio e foi colada no fim do shader do `OutputPass` (um passe de tela cheia a menos); o bloom roda em ¼ da resolução.
+- **Sombra** de 2048 para 1024, com `radius` 4,5 e 8 amostras: a borda continua macia e o mapa custa ¼.
+- **Grelha:** 260 carvões e 15 varetas viraram `InstancedMesh` (9 chamadas em vez de 275).
+- **Fogão:** as 32 chamas viraram duas malhas instanciadas; os botões dividem geometria e material.
+- **`mergeStatic(root, skip)`** em `kit.js` junta numa malha só as malhas paradas que dividem material e sombra. Cada estação diz o que se mexe em `userData.moving` (porta do forno e da geladeira, botão do forno, chamas e botão do fogão); o que se mexe é fundido por dentro, à parte. A decoração parada da cozinha (bancada, parede, janelas, luminárias, coifa, prateleiras) também é fundida. As outras estações e os itens à espera ficam como estão, porque os minijogos mexem neles.
+
+Lições:
+
+18. **No ANGLE/Metal o que pesa é a chamada de desenho, não o triângulo.** Escondendo só as malhas da cozinha o quadro caiu de 24 para 9 ms, mesmo com material básico em tudo. Cada chamada custa uns 50 µs fixos. Peça repetida vira `InstancedMesh`; peça parada com o mesmo material vira uma malha só (`mergeStatic`).
+19. **O cronômetro da GPU (`EXT_disjoint_timer_query`) mente aqui.** Ele mostrava 8 ms de cena enquanto o quadro levava 25. Para medir de verdade: desenhar N quadros seguidos e esperar com um `readPixels` no fim (vazão), ou ler o intervalo do `requestAnimationFrame` com o painel visível.
+20. **Esconder um grupo que tem luz dentro recompila tudo.** Mudar o número de luzes visíveis troca o shader de todos os materiais (~64 programas, 10 s aqui). Para testar, esconder só as malhas.
+21. **Luz custa por pixel.** As 7 luzes além do sol e do céu somam ~9 ms em resolução cheia [measured, com ruído]. Nenhuma sozinha pesa muito; não cortamos nenhuma para não mudar o visual. Se precisar de mais folga, o próximo corte é ligar as luzes da feira só na feira (e compilar os dois jeitos no `warm`).
+22. **Painel escondido mente.** Com o painel do navegador oculto o `requestAnimationFrame` para e qualquer número de fps sai errado; a vazão com `readPixels` continua valendo.
+
 ## Para a próxima etapa
 
 - Modelo vira recompensa da tela de resultado, no lugar (ou ao lado) da foto da API. Os formatos disponíveis são `.fbx` e `.obj` com texturas. Para a web, o caminho simples é converter para `.glb`.
