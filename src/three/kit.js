@@ -206,6 +206,41 @@ export const searedMat = () => food({ map: tex("searedBeef"), bumpMap: tex("sear
 // Sombra em todos os pedaços (menos os marcados, como chamas).
 export const castAll = (o) => o.traverse((c) => { if (c.isMesh && !c.userData.noShadow) c.castShadow = true; });
 
+// Junta numa malha só as malhas paradas de `root` que dividem material e sombra. Cada malha
+// custa uma chamada de desenho (duas, com a sombra), e é esse custo fixo, não o de pixel,
+// que segura o quadro no ANGLE/Metal. `skip`: nós que se mexem, somem ou que o jogo usa
+// depois; ficam como estão, com tudo o que tiverem dentro.
+export function mergeStatic(root, skip = []) {
+  root.updateMatrixWorld(true);
+  const inv = root.matrixWorld.clone().invert(), skipSet = new Set(skip), buckets = new Map();
+  const sig = (g) => Object.entries(g.attributes).map(([n, a]) => `${n}:${a.itemSize}:${a.normalized}:${a.array.constructor.name}`).sort().join();
+  const walk = (o) => {
+    for (const c of o.children) {
+      if (skipSet.has(c) || !c.visible) continue;
+      walk(c);
+      if (!c.isMesh || c.isInstancedMesh || c.isSkinnedMesh || c.children.length || Array.isArray(c.material)
+        || c.geometry.morphAttributes.position || c.userData.tick) continue;
+      const m = new THREE.Matrix4().multiplyMatrices(inv, c.matrixWorld);
+      const key = [c.material.uuid, c.castShadow, c.receiveShadow, c.renderOrder, !!c.userData.noShadow,
+        !!c.geometry.index, m.determinant() < 0, sig(c.geometry)].join("|");
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push([c, m]);
+    }
+  };
+  walk(root);
+  for (const list of buckets.values()) {
+    if (list.length < 2) continue;
+    const geo = mergeGeometries(list.map(([c, m]) => c.geometry.clone().applyMatrix4(m)));
+    if (!geo) continue;
+    const [first] = list[0], merged = new THREE.Mesh(geo, first.material);
+    Object.assign(merged, { castShadow: first.castShadow, receiveShadow: first.receiveShadow, renderOrder: first.renderOrder });
+    merged.userData.noShadow = first.userData.noShadow;
+    for (const [c] of list) c.removeFromParent();
+    root.add(merged);
+  }
+  return root;
+}
+
 /* ---------- Peças reaproveitadas ---------- */
 export function egg() {
   const g = new THREE.Group();
@@ -543,23 +578,23 @@ export const build = {
     const flameGeo = new THREE.LatheGeometry([V2(0, 0), V2(0.05, 0.03), V2(0.06, 0.1), V2(0.035, 0.2), V2(0, 0.28)], 12);
     const blue = new THREE.MeshBasicMaterial({ color: new THREE.Color("#4aa6ff").multiplyScalar(1.6), transparent: true, opacity: 0.85, depthWrite: false });
     const yellow = new THREE.MeshBasicMaterial({ color: new THREE.Color("#ffd34a").multiplyScalar(1.8) });
-    const flames = [];
-    for (let i = 0; i < 16; i++) {
-      const a = i / 16 * Math.PI * 2, f = new THREE.Group();
-      const outer = mesh(flameGeo, blue), core = mesh(flameGeo, yellow);
-      core.scale.setScalar(0.45);
-      outer.userData.noShadow = core.userData.noShadow = true;
-      f.add(outer, core);
-      f.position.set(Math.cos(a) * 0.43, 0.64, -0.12 + Math.sin(a) * 0.43);
-      f.rotation.set(Math.sin(a) * 0.35, 0, -Math.cos(a) * 0.35);
-      flames.push(f); g.add(f);
-    }
-    const knobs = [];
+    // as 16 chamas viram duas malhas instanciadas (casca azul e miolo amarelo): 2 desenhos, não 32
+    const N = 16, outer = new THREE.InstancedMesh(flameGeo, blue, N), core = new THREE.InstancedMesh(flameGeo, yellow, N);
+    outer.userData.noShadow = core.userData.noShadow = true;
+    outer.frustumCulled = core.frustumCulled = false; // a caixa da geometria base não cobre o anel
+    const base = Array.from({ length: N }, (_, i) => {
+      const a = i / N * Math.PI * 2;
+      return { p: new THREE.Vector3(Math.cos(a) * 0.43, 0.64, -0.12 + Math.sin(a) * 0.43), q: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.sin(a) * 0.35, 0, -Math.cos(a) * 0.35)) };
+    });
+    const fm = new THREE.Matrix4(), cm = new THREE.Matrix4(), sc = new THREE.Vector3(), half = new THREE.Matrix4().makeScale(0.45, 0.45, 0.45);
+    g.add(outer, core);
+    const knobs = [], knobMat = glossy({ color: "#f483a6", roughness: 0.25 }), markMat = glossy({ color: "#fffaf5" });
+    const knobGeo = new THREE.CylinderGeometry(0.13, 0.14, 0.12, 24), markGeo = new RoundedBoxGeometry(0.035, 0.14, 0.03, 2, 0.012);
     for (const x of [-1.05, -0.35, 0.35, 1.05]) { // botões na frente
       const knob = new THREE.Group();
-      const k = mesh(new THREE.CylinderGeometry(0.13, 0.14, 0.12, 24), glossy({ color: "#f483a6", roughness: 0.25 }));
+      const k = mesh(knobGeo, knobMat);
       k.rotation.x = Math.PI / 2;
-      const mark = mesh(new RoundedBoxGeometry(0.035, 0.14, 0.03, 2, 0.012), glossy({ color: "#fffaf5" }));
+      const mark = mesh(markGeo, markMat);
       mark.position.set(0, 0.04, 0.07);
       knob.add(k, mark);
       knob.position.set(x, 0.28, 1.34);
@@ -567,12 +602,20 @@ export const build = {
     }
     g.userData.heat = 1; // 0 = apagado, 1 = normal, 2 = labareda
     g.userData.top = 0.9; // altura da trempe, onde a panela apoia
-    g.userData.tick = (t) => flames.forEach((f, i) => {
+    g.userData.tick = (t) => {
       const h = g.userData.heat;
-      f.visible = h > 0.05;
-      f.scale.set(0.7 + h * 0.3, (0.6 + h * 0.5) * (1 + 0.2 * Math.sin(t * 13 + i * 2.1)), 0.7 + h * 0.3);
+      outer.visible = core.visible = h > 0.05;
       knobs[1].rotation.z = -h * 1.2;
-    });
+      if (!outer.visible) return;
+      for (let i = 0; i < N; i++) {
+        sc.set(0.7 + h * 0.3, (0.6 + h * 0.5) * (1 + 0.2 * Math.sin(t * 13 + i * 2.1)), 0.7 + h * 0.3);
+        fm.compose(base[i].p, base[i].q, sc);
+        outer.setMatrixAt(i, fm); core.setMatrixAt(i, cm.multiplyMatrices(fm, half));
+      }
+      outer.instanceMatrix.needsUpdate = core.instanceMatrix.needsUpdate = true;
+    };
+    g.userData.moving = [outer, core, knobs[1]];
+    g.userData.tick(0);
     return g;
   },
 

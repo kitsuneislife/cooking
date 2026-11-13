@@ -5,7 +5,7 @@
 // models.js); a versão antiga, toda em código, está em archive/sets.js.
 import {
   THREE, RoundedBoxGeometry, build, mesh, food, glossy, metal, woodMat, canvasTex, paint, tex,
-  mix, fbm, hash, sstep, seeded, V2, servingPlate, castAll,
+  mix, fbm, hash, sstep, seeded, V2, servingPlate, castAll, mergeStatic,
 } from "./kit.js";
 import { oven, grill, blender, fridge, pastrySlab } from "./gear.js";
 import { model, part } from "./models.js";
@@ -266,6 +266,15 @@ export function buildKitchen() {
   castAll(k);
   // paredes, tampo e janela só recebem sombra
   for (const o of [...counter, floor, tiles, paintWall, lowWall, lace, ...mats, ...skies]) o.castShadow = false;
+  // menos chamadas de desenho: as estações que dizem o que se mexe (userData.moving) e a
+  // decoração parada viram uma malha por material; o resto das estações e os itens à espera
+  // ficam como estão, porque os minijogos mexem neles
+  for (const st of Object.values(stations)) {
+    if (!st.userData.moving) continue;
+    for (const m of st.userData.moving) mergeStatic(m);
+    mergeStatic(st, st.userData.moving);
+  }
+  mergeStatic(k, [...Object.values(stations), ...Object.values(props)]);
   return { group: k, stations, props };
 }
 

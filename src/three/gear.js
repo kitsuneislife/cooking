@@ -181,6 +181,7 @@ export function oven() {
 
   let shown = -1;
   Object.assign(g.userData, {
+    moving: [door, knob], // a porta abre e o botão gira; o resto vira uma malha por material
     slot: new THREE.Vector3(0, rackY + 0.03, 0), // onde a assadeira apoia
     mouth: new THREE.Vector3(0, rackY + 0.03, D / 2 + 1.75), // na bancada, em frente à porta
     open(k) { door.rotation.x = k * 1.5; },
@@ -230,29 +231,47 @@ export function grill() {
   const bed = mesh(new THREE.PlaneGeometry(W - 0.3, D - 0.3).rotateX(-Math.PI / 2), bedMat);
   bed.position.y = 0.66;
   g.add(bed);
-  // brasas: carvões redondinhos e cinzentos, bem juntos; só alguns têm o miolo aceso
-  const rand = seeded(11), hot = [], coalGeo = new THREE.IcosahedronGeometry(0.13, 1);
-  const coalMat = [new THREE.MeshStandardMaterial({ color: "#2e2a2e", roughness: 0.95 }), new THREE.MeshStandardMaterial({ color: "#3a3236", roughness: 0.95 })];
+  // brasas: carvões redondinhos e cinzentos, bem juntos; só alguns têm o miolo aceso.
+  // São instâncias: 260 carvões em 9 chamadas de desenho em vez de 260. Os apagados dividem
+  // uma malha (o tom vem por instância); os acesos pulsam em PHASES turmas fora de compasso,
+  // uma malha por turma e por cor de miolo, porque o brilho é do material e não da instância.
+  const rand = seeded(11), coalGeo = new THREE.IcosahedronGeometry(0.13, 1), PHASES = 4;
+  const dark = [C("#2e2a2e"), C("#3a3236")], cold = [], lit = new Map(), o = new THREE.Object3D();
   for (let i = 0; i < 260; i++) { // em grade com sacudida: cobre o leito por igual, sem buracos nem montinhos
-    const lit = i % 5 === 0;
-    const mat = lit ? new THREE.MeshStandardMaterial({ color: "#4a2a20", roughness: 0.9, emissive: i % 10 ? "#ff5a14" : "#ffa030", emissiveIntensity: 1 }) : coalMat[i % 2];
-    const c = mesh(coalGeo, mat);
     const col = i % 20, row = Math.floor(i / 20);
-    c.position.set(-W / 2 + 0.35 + (col + rand() * 0.6) * (W - 0.7) / 20, 0.66 + rand() * 0.03, -D / 2 + 0.3 + (row + rand() * 0.6) * (D - 0.6) / 13);
-    c.rotation.set(rand() * 3, rand() * 3, rand() * 3); c.scale.setScalar(0.55 + rand() * 0.35); c.scale.y *= 0.6;
-    c.userData.noShadow = true;
-    if (lit) hot.push({ mat, phase: rand() * 6 });
-    g.add(c);
+    o.position.set(-W / 2 + 0.35 + (col + rand() * 0.6) * (W - 0.7) / 20, 0.66 + rand() * 0.03, -D / 2 + 0.3 + (row + rand() * 0.6) * (D - 0.6) / 13);
+    o.rotation.set(rand() * 3, rand() * 3, rand() * 3); o.scale.setScalar(0.55 + rand() * 0.35); o.scale.y *= 0.6;
+    o.updateMatrix();
+    if (i % 5) { cold.push([o.matrix.clone(), dark[i % 2]]); continue; }
+    const key = `${i % 10 ? "#ff5a14" : "#ffa030"} ${Math.floor(rand() * PHASES)}`;
+    if (!lit.has(key)) lit.set(key, []);
+    lit.get(key).push(o.matrix.clone());
   }
-  for (let i = 0; i < 15; i++) { // grade
-    const bar = mesh(new THREE.CylinderGeometry(0.03, 0.03, D - 0.16, 8).rotateX(Math.PI / 2), iron);
-    bar.position.set(-W / 2 + 0.2 + i * (W - 0.4) / 14, top - 0.03, 0);
-    g.add(bar);
+  const coals = new THREE.InstancedMesh(coalGeo, new THREE.MeshStandardMaterial({ roughness: 0.95 }), cold.length);
+  cold.forEach(([m, c], i) => { coals.setMatrixAt(i, m); coals.setColorAt(i, c); });
+  coals.userData.noShadow = true;
+  g.add(coals);
+  const hot = [...lit].map(([key, ms]) => {
+    const [emissive, k] = key.split(" ");
+    const mat = new THREE.MeshStandardMaterial({ color: "#4a2a20", roughness: 0.9, emissive, emissiveIntensity: 1 });
+    const im = new THREE.InstancedMesh(coalGeo, mat, ms.length);
+    ms.forEach((m, i) => im.setMatrixAt(i, m));
+    im.userData.noShadow = true;
+    g.add(im);
+    return { mat, phase: (Number(k) + 0.5) * 6 / PHASES };
+  });
+  // grade: 15 varetas iguais, uma chamada só
+  const bars = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.03, 0.03, D - 0.16, 8).rotateX(Math.PI / 2), iron, 15);
+  for (let i = 0; i < 15; i++) {
+    o.position.set(-W / 2 + 0.2 + i * (W - 0.4) / 14, top - 0.03, 0); o.rotation.set(0, 0, 0); o.scale.setScalar(1);
+    o.updateMatrix(); bars.setMatrixAt(i, o.matrix);
   }
+  g.add(bars);
   for (const z of [-1, 1]) g.add(box(W - 0.1, 0.07, 0.07, iron, 0, top - 0.03, z * (D / 2 - 0.06), 0.02));
   g.userData.top = top; // onde a comida encosta
   g.userData.floor = () => top;
   g.userData.heat = 1;
+  g.userData.moving = []; // nada se mexe: as brasas já são instâncias e só o material pulsa
   g.userData.tick = (t) => { // some apagam e reacendem; o leito respira junto
     const h = g.userData.heat;
     hot.forEach(({ mat, phase }) => { mat.emissiveIntensity = h * (0.5 + 0.45 * Math.sin(t * 2.3 + phase)); });
@@ -297,6 +316,7 @@ export function fridge() {
   door.add(handle, badge);
   g.add(door);
   Object.assign(g.userData, {
+    moving: [door], // a porta de cima abre
     slot: new THREE.Vector3(0, shelfY + 0.04, 0.4),
     mouth: new THREE.Vector3(0, shelfY + 0.6, front + 2.2),
     open(k) { door.rotation.y = -k * 1.75; },
