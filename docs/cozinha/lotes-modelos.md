@@ -33,6 +33,8 @@ A lista de origem, com construtores e o que fica em código, é o [inventário](
 
 ### Leva 6: vidros e garrafas
 
+**Feita em 12/11/2026, já no jogo** (`bottles.glb`). Nada ficou fora: o potinho de tempero entrou como o frasco do cardamomo. Detalhes e números em [modelos-3d.md](modelos-3d.md).
+
 Vidro colorido, líquido por dentro e rótulo. O rótulo continua em código (`labelTexture`), porque o texto e a cor mudam por ingrediente; o modelo é só o formato.
 
 | Modelo | Tipo | Serve a |

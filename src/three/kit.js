@@ -157,7 +157,6 @@ const TEX = {
       return mix(c, lo, (fbm(u * 30, v * 30, 2) - 0.5) * 0.5);
     });
   },
-  ridges: () => paint(64, (u) => { const g = 128 + 127 * Math.sin(u * Math.PI * 2 * 24); return [g, g, g]; }, { srgb: false }),
   shiitake: () => { // chapéu marrom com rachaduras claras
     const lo = rgb("#5a3218"), hi = rgb("#8a5530"), crack = rgb("#e8d2b0");
     return paint(256, (u, v) => {
@@ -248,31 +247,45 @@ export function beefStrip(mat, seared = true) {
   return s;
 }
 
-// Garrafa de vidro com rótulo de papel e tampa frisada.
-export function bottle({ r, shoulder, neckR, neckTop, glass, amber, cap, text, band, ink }) {
-  const g = new THREE.Group();
-  const prof = [V2(0, 0), V2(r - 0.06, 0), V2(r, 0.06), V2(r, shoulder), V2(r * 0.9, shoulder + 0.14),
-    V2(neckR + 0.08, shoulder + 0.34), V2(neckR, shoulder + 0.46), V2(neckR, neckTop)];
-  const glassMat = amber
-    ? new THREE.MeshPhysicalMaterial({ color: glass, roughness: 0.05, clearcoat: 1, transparent: true, opacity: 0.38, depthWrite: false, side: THREE.DoubleSide })
-    : glossy({ color: glass, roughness: 0.08, clearcoatRoughness: 0.05 });
-  g.add(mesh(new THREE.LatheGeometry(prof, 48), glassMat));
-  if (amber) { // óleo dourado por dentro do vidro
-    const level = shoulder + 0.05;
-    const oil = [V2(0, 0.03), V2(r - 0.08, 0.03), V2(r - 0.04, 0.08), V2(r - 0.04, level), V2(0, level)];
-    g.add(mesh(new THREE.LatheGeometry(oil, 48), glossy({ color: amber, roughness: 0.1, emissive: amber, emissiveIntensity: 0.18 })));
-  }
-  const arc = 3.4, h = shoulder * 0.7;
-  const label = mesh(new THREE.CylinderGeometry(r + 0.006, r + 0.006, h, 40, 1, true, -arc / 2, arc),
-    new THREE.MeshStandardMaterial({ map: labelTexture(text, band, ink), roughness: 0.6 }));
-  label.position.y = shoulder * 0.5 + 0.03;
+// Vidros e garrafas vêm do Blender (bottles.glb, um formato por peça, base na origem; o
+// procedural antigo está em archive/bottles.js). O vidro, o conteúdo e a cor da tampa mudam
+// por ingrediente, e o rótulo continua aqui: `r` e `label` são o raio e a faixa reta do corpo
+// em art/blender/models/bottles.py, `mouth` é o topo da tampa, por onde o líquido sai.
+const SHAPES = {
+  tall: { r: 0.4, label: [0.2, 0.86], mouth: 1.93, fill: "tall_liquid" }, // gargalo fino
+  round: { r: 0.55, label: [0.18, 0.62], mouth: 1.456, fill: "round_liquid" }, // bojuda
+  jar: { r: 0.52, label: [0.2, 0.7], mouth: 1.15, fill: "jar_fill" }, // boca larga
+  spice: { r: 0.28, label: [0.12, 0.52], mouth: 0.955, fill: "spice_fill", powder: true }, // potinho
+};
+// Material e geometria divididos entre as garrafas iguais (a feira e a bancada repetem).
+const shared = {};
+const once = (key, make) => shared[key] ??= make();
+export function bottle({ shape = "tall", size = 1, glass = "#eef6f2", fill, cap, text, band, ink }) {
+  const s = SHAPES[shape], g = new THREE.Group();
+  const piece = (name, mat) => { const m = part("bottles", name); m.material = mat(m.material); g.add(m); return m; };
+  piece(`${shape}_glass`, () => once(`glass${glass}`, () => new THREE.MeshPhysicalMaterial({
+    // base preta: o vidro só soma reflexo; branco por cima de líquido escuro vira cinza
+    color: "#000000", specularColor: glass, roughness: 0.05, transparent: true, opacity: 0.2, depthWrite: false })));
+  piece(s.fill, () => once(`fill${fill}${shape}`, () => s.powder
+    ? food({ color: fill, roughness: 0.85, clearcoat: 0 })
+    : food({ color: fill, roughness: 0.3, clearcoat: 0.3, emissive: fill, emissiveIntensity: 0.12 })));
+  // a tampa vem assada quase branca, com os frisos no relevo: a cor multiplica por cima
+  piece(`${shape}_cap`, (baked) => once(`cap${shape}${cap}`, () => { const m = baked.clone(); m.color.set(cap); return m; }));
+  const [y0, y1] = s.label, h = y1 - y0, r = s.r + 0.006, arc = Math.min(3.4, 2 * h / r); // rótulo 2:1, como a textura
+  const label = mesh(once(`label${shape}`, () => new THREE.CylinderGeometry(r, r, h, 32, 1, true, -arc / 2, arc)),
+    once(`label${text}`, () => new THREE.MeshStandardMaterial({ map: labelTexture(text, band, ink), roughness: 0.6 })));
+  label.position.y = (y0 + y1) / 2;
   g.add(label);
-  const cr = neckR + 0.045;
-  const capGeo = new THREE.LatheGeometry([V2(cr - 0.01, -0.01), V2(cr, 0), V2(cr, 0.26), V2(cr - 0.03, 0.3), V2(0, 0.3)], 40);
-  const c = mesh(capGeo, glossy({ color: cap, bumpMap: tex("ridges"), bumpScale: 1.5 }));
-  c.position.y = neckTop - 0.16;
-  g.add(c);
-  g.userData.mouth = new THREE.Vector3(0, neckTop, 0); // por onde o líquido sai
+  g.scale.setScalar(size);
+  g.userData.mouth = new THREE.Vector3(0, s.mouth, 0); // por onde o líquido sai
+  return g;
+}
+
+// Saleiro e pimenteiro de porcelana, lado a lado, já pintados no Blender.
+export function saltPepper() {
+  const g = new THREE.Group(), salt = part("bottles", "shaker_salt"), pepper = part("bottles", "shaker_pepper");
+  salt.position.x = -0.3; pepper.position.x = 0.3; pepper.rotation.y = -0.25; salt.rotation.y = 0.25;
+  g.add(salt, pepper);
   return g;
 }
 
@@ -335,10 +348,10 @@ export const build = {
     return g;
   },
 
-  soy: () => bottle({ r: 0.42, shoulder: 1.0, neckR: 0.13, neckTop: 1.78, glass: "#2a160b", cap: "#d8392b", text: "SHOYU", band: "#c8352a", ink: "#5a2a1a" }),
-  oyster: () => bottle({ r: 0.54, shoulder: 0.82, neckR: 0.2, neckTop: 1.42, glass: "#4a2a12", cap: "#2f7a44", text: "OSTRA", band: "#2f5f8a", ink: "#2f3f5a" }),
-  sesame: () => bottle({ r: 0.34, shoulder: 1.08, neckR: 0.1, neckTop: 1.85, glass: "#e8b060", amber: "#e09a2a", cap: "#d4a73a", text: "GERGELIM", band: "#7a2a1a", ink: "#7a4a1a" }),
-  teriyaki: () => bottle({ r: 0.4, shoulder: 1.1, neckR: 0.12, neckTop: 1.8, glass: "#1e1410", cap: "#f2c14a", text: "TERIYAKI", band: "#5a3a9a", ink: "#3a2a5a" }),
+  soy: () => bottle({ fill: "#3a1608", cap: "#d8392b", text: "SHOYU", band: "#c8352a", ink: "#5a2a1a" }),
+  oyster: () => bottle({ shape: "round", size: 1.05, fill: "#4a2410", cap: "#2f7a44", text: "OSTRA", band: "#2f5f8a", ink: "#2f3f5a" }),
+  sesame: () => bottle({ size: 0.95, glass: "#f6e2b8", fill: "#e09a2a", cap: "#d4a73a", text: "GERGELIM", band: "#7a2a1a", ink: "#7a4a1a" }),
+  teriyaki: () => bottle({ fill: "#2a160c", cap: "#f2c14a", text: "TERIYAKI", band: "#5a3a9a", ink: "#3a2a5a" }),
 
   garlic() {
     const g = new THREE.Group();

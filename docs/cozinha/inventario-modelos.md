@@ -8,8 +8,8 @@ Levantado em 12/11/2026, depois das levas 1 a 5. As receitas jogáveis hoje são
 
 | Grupo | Quantos | Onde está |
 |---|---:|---|
-| Já no Blender (`.glb` no jogo) | 19 arquivos (mais a manteiga, pronta e fora do jogo) | `public/models/`, carregados por `src/three/models.js` |
-| Procedural que vai para o Blender | 22 ingredientes, 2 formatos de embalagem, 10 estações | `src/three/foods.js`, `kit.js`, `gear.js`, `sets.js` |
+| Já no Blender (`.glb` no jogo) | 20 arquivos (mais a manteiga, pronta e fora do jogo) | `public/models/`, carregados por `src/three/models.js` |
+| Procedural que vai para o Blender | 22 ingredientes, 10 estações (as embalagens já saíram todas) | `src/three/foods.js`, `kit.js`, `gear.js`, `sets.js` |
 | Procedural que fica em código | as peças que mudam durante o minijogo | mesmos arquivos |
 | Ainda não existe | 112 ingredientes, 1 utensílio, 44 pratos prontos | só nas receitas da API |
 
@@ -29,6 +29,7 @@ Dos 154 ingredientes base das receitas, 42 já têm modelo no jogo (no Blender o
 | `stand`, `crate`, `stalls` | feira: banca, caixote, barracas do fundo | 3 |
 | `tableware` | prato, tábua, tigela azul, wok, panelinhas, tigela de arroz, tigela de molho, pote de amido, cúpula | 4 |
 | `utensils` | faca, fouet, espátula, colher, rolo, aro da peneira, socador, colher bailarina, cortador de pizza, concha | 5 |
+| `bottles` | garrafa alta, garrafa bojuda, vidro de boca larga, potinho de tempero, saleiro e pimenteiro (vidro, líquido e tampa; o rótulo continua em código) | 6 |
 | `packs` | pote com tampa de alumínio, caixinha com telhadinho, saco de papel kraft, lata (o rótulo e a cor continuam em código) | 7 |
 | `butter` | tablete de manteiga embrulhado; pronto, mas **fora do jogo** até a receita com manteiga entrar | 7 |
 
@@ -49,7 +50,7 @@ A lista sai de `PANTRY`, em `src/three/foods.js`. Cada linha é o modelo que apa
 | Camarão | `build.shrimp` | 4 | Hoje só aparece como opção errada na feira. |
 | Tofu | `build.tofu` | 1 | Idem. |
 | Tomate (inteiro e metade) | `tomato` (`foods.js`) | 11 | Leva 1, ainda em código. Mais usado entre os frescos. |
-| Molho de tomate (vidro + tomate) | `tomatoSauce`, `BOTTLES.tomato` | 2 | O vidro sai do modelo de garrafa genérica (ver abaixo). |
+| Molho de tomate (vidro + tomate) | `tomatoSauce`, `BOTTLES.tomato` | 2 | O vidro já vem do `bottles.glb` (leva 6); o tomate ao lado continua em código. |
 | Manjericão (maço) | `basil` | 7 | Leva 1, ainda em código. A folha solta da pizza continua em código. |
 | Coentro (maço) | `cilantro` | 8 | Hoje é um monte de bolinhas; pede folha de verdade. |
 | Cebola roxa | `redOnion` | 7 | O mesmo modelo, com outra cor, serve à cebola comum (10 receitas). |
@@ -71,12 +72,7 @@ A lista sai de `PANTRY`, em `src/three/foods.js`. Cada linha é o modelo que apa
 
 Metade da despensa é embalagem com rótulo. Hoje cada uma é gerada por uma função de código (`bottle`, `tub`, `carton`, `sack`, `tin`, `packTex`). A proposta é modelar **cada formato uma vez** no Blender e manter o rótulo em código (`labelTexture`), porque o texto e a cor mudam por ingrediente. Assim boa parte dos 112 ingredientes que ainda não existem (seção 4) também saem quase de graça.
 
-| Formato | Usado hoje por | Construtor |
-|---|---|---|
-| Garrafa (vários perfis) | shoyu, molho de ostra, óleo de gergelim, teriyaki, azeite, cachaça, mel, ketchup, molho de tomate, cardamomo | `bottle` (`kit.js`), `BOTTLES` (`foods.js`) |
-| Saleiro e pimenteiro | sal e pimenta | `saltPepper`, `shaker` |
-
-Pote, caixinha, saco e lata saíram desta tabela na leva 7 e estão em `packs.glb` (seção 1). O amido, que era uma caixa só da feira, passou a usar na feira o mesmo pote da bancada (`build.cornstarch`, do `tableware.glb`); a caixa foi para o arquivo.
+Não sobrou nenhuma. A garrafa (em vários formatos) e o saleiro saíram na leva 6 e estão em `bottles.glb`. Pote, caixinha, saco e lata saíram na leva 7 e estão em `packs.glb` (seção 1). O amido, que era uma caixa só da feira, passou a usar na feira o mesmo pote da bancada (`build.cornstarch`, do `tableware.glb`); a caixa foi para o arquivo.
 
 ### Estações e aparelhos
 
