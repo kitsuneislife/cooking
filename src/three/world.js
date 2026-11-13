@@ -6,7 +6,6 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { buildKitchen, buildMarket, STATION_X } from "./sets.js";
 import { loadModels, loadedModels } from "./models.js";
 
@@ -197,29 +196,29 @@ class Particles {
 
 // Acabamento de cor, depois do tom: um pouco mais de saturação, sombras puxadas para o rosa
 // e um vinheta bem leve que segura o olho no meio, como nos jogos de cozinha de referência.
-const GRADE = {
-  uniforms: { tDiffuse: { value: null } },
-  vertexShader: "varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
-  fragmentShader: `
-    uniform sampler2D tDiffuse; varying vec2 vUv;
-    void main() {
-      vec4 c = texture2D(tDiffuse, vUv);
-      float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
-      c.rgb = mix(vec3(l), c.rgb, 1.12);
-      c.rgb += vec3(0.02, 0.0, 0.015) * (1.0 - l) * (1.0 - l);
-      vec2 d = vUv - 0.5;
-      c.rgb *= 1.0 - dot(d, d) * 0.28;
-      gl_FragColor = vec4(clamp(c.rgb, 0.0, 1.0), c.a);
-    }`,
-};
+// Entra no fim do OutputPass, depois do tone mapping e do sRGB: um passe de tela cheia a menos.
+const GRADE = `
+    float l = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+    gl_FragColor.rgb = mix(vec3(l), gl_FragColor.rgb, 1.12);
+    gl_FragColor.rgb += vec3(0.02, 0.0, 0.015) * (1.0 - l) * (1.0 - l);
+    vec2 d = vUv - 0.5;
+    gl_FragColor.rgb = clamp(gl_FragColor.rgb * (1.0 - dot(d, d) * 0.28), 0.0, 1.0);
+  }`;
 
 /* ---------- Mundo ---------- */
 export async function createWorld(host) {
   const fonts = document.fonts.load('400 60px "Lilita One"').catch(() => { /* rótulos caem na fonte do sistema */ });
   await Promise.all([fonts, loadModels()]); // a cena usa os dois na montagem
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  // sem MSAA na tela: tudo passa pelo alvo do pós-processamento, que já tem o seu
+  const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+  const maxRatio = Math.min(devicePixelRatio, 1.5);
+  // começa na densidade que deu 60 fps na última partida (veja `adapt`)
+  const RATIO_KEY = "cozinhe.renderRatio";
+  let savedRatio = NaN;
+  try { savedRatio = Number(localStorage.getItem(RATIO_KEY)); } catch { /* sem armazenamento: começa no máximo */ }
+  const startRatio = savedRatio >= 0.5 && savedRatio < maxRatio ? savedRatio : maxRatio;
+  renderer.setPixelRatio(startRatio);
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 0.98;
   renderer.shadowMap.enabled = true;
@@ -241,11 +240,13 @@ export async function createWorld(host) {
   scene.add(new THREE.HemisphereLight("#fffaf4", "#ffd3dc", 1.0));
   const sun = new THREE.DirectionalLight("#fff3e2", 1.8);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  // VSM borra o mapa inteiro a cada quadro: 1024 e 8 amostras custam um quarto de 2048 e 16,
+  // e o raio cai junto para a penumbra ficar do mesmo tamanho na mesa
+  sun.shadow.mapSize.set(1024, 1024);
   sun.shadow.bias = -0.0006;
   sun.shadow.normalBias = 0.03;
-  sun.shadow.radius = 9;
-  sun.shadow.blurSamples = 16;
+  sun.shadow.radius = 4.5;
+  sun.shadow.blurSamples = 8;
   sun.shadow.intensity = 0.7; // a sombra é só um contato, não um buraco escuro
   Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 });
   scene.add(sun, sun.target);
@@ -267,8 +268,9 @@ export async function createWorld(host) {
   // só o que passa do branco (faíscas, chamas, brilhos, reflexos) floresce; o resto fica nítido
   const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.22, 0.3, 2.2);
   composer.addPass(bloom);
-  composer.addPass(new OutputPass());
-  composer.addPass(new ShaderPass(GRADE));
+  const output = new OutputPass();
+  output.material.fragmentShader = output.material.fragmentShader.replace(/}\s*$/, GRADE);
+  composer.addPass(output);
 
   const fx = new Particles(scene);
 
@@ -276,6 +278,10 @@ export async function createWorld(host) {
   // sem isso, o primeiro quadro de cada coisa nova trava compilando. Os shaders compilam em
   // paralelo (KHR_parallel_shader_compile) enquanto a animação segue.
   async function warm() {
+    quality.hold++;
+    try { await compileAll(); } finally { quality.hold--; quality.slow = 0; quality.fast = 0; }
+  }
+  async function compileAll() {
     const seen = new Set(), models = loadedModels(); // os pratos prontos só entram na cena no fim
     for (const root of [scene, ...models]) root.traverse((o) => {
       for (const m of o.material ? [].concat(o.material) : []) {
@@ -319,9 +325,33 @@ export async function createWorld(host) {
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
-    bloom.resolution.set(w / 2, h / 2);
+    bloom.resolution.set(w / 4, h / 4); // o brilho é borrado de qualquer jeito
     camera.aspect = w / h;
   }
+  // Resolução dinâmica: 60 fps vem antes da nitidez. Quadros lentos seguidos baixam a
+  // densidade de pixels um degrau; muito tempo folgado sobe de volta. Se a subida logo
+  // volta a pesar, aquele degrau vira o teto e a imagem para de oscilar.
+  // Compilação de shader (`warm`) trava quadros sem dizer nada sobre a GPU: ali não se mede.
+  const quality = { ratio: startRatio, ceil: maxRatio, slow: 0, fast: 0, raisedAt: -Infinity, hold: 0 };
+  function adapt(ms, now) {
+    if (ms > 250 || document.hidden || quality.hold) return; // aba voltando do fundo, não é peso
+    quality.slow = ms > 20 ? quality.slow + 1 : Math.max(0, quality.slow - 0.25);
+    quality.fast = ms < 17.5 ? quality.fast + 1 : 0;
+    let next = quality.ratio;
+    if (quality.slow >= 8 && quality.ratio > 0.5) {
+      next = Math.max(0.5, quality.ratio - 0.15);
+      if (now - quality.raisedAt < 3000) quality.ceil = next;
+    } else if (quality.fast >= 240 && quality.ratio < quality.ceil) {
+      next = Math.min(quality.ceil, quality.ratio + 0.15);
+      quality.raisedAt = now;
+    } else return;
+    quality.ratio = next; quality.slow = 0; quality.fast = 0;
+    renderer.setPixelRatio(next);
+    composer.setPixelRatio(next);
+    resize();
+    try { localStorage.setItem(RATIO_KEY, String(next)); } catch { /* só não lembra na próxima */ }
+  }
+
   const ro = new ResizeObserver(resize);
   ro.observe(host);
   resize();
@@ -374,6 +404,7 @@ export async function createWorld(host) {
   // só no desenvolvimento: `?speed=4` acelera o relógio do jogo para revisar as etapas
   const speed = import.meta.env.DEV ? Number(new URLSearchParams(location.search).get("speed")) || 1 : 1;
   const loop = (now) => {
+    adapt(now - last, now);
     const dt = Math.min(0.05, (now - last) / 1000) * speed; last = now; time += dt;
     for (const f of [...tickers]) f(dt, time);
     for (const st of Object.values(kitchen.stations)) st.userData.tick?.(time); // chamas, brasas, lâminas
@@ -458,5 +489,6 @@ export async function createWorld(host) {
     pointercancel: (e) => world.input?.up?.(e),
   };
   for (const [t, f] of Object.entries(handlers)) canvas.addEventListener(t, f);
+  if (import.meta.env.DEV) window.__world = Object.assign(world, { renderer, composer, quality }); // medir no console
   return world;
 }
