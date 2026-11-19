@@ -301,13 +301,20 @@ main.main-game { max-width: none; padding: 0; display: block; }
   display: grid; align-content: start; gap: 14px; border-radius: 0 18px 18px 0;
   background: repeating-linear-gradient(#0000 0 27px, #e3f3fa 27px 29px) 0 10px, #fff;
 }
-/* espiral: argolas rosa presas nas duas páginas */
+/* espiral: argolas de arame rosa que passam por furos nas duas páginas.
+   O desenho (furo, arame, brilho) é um SVG repetido na vertical; ele vaza um pouco
+   sobre as folhas para os furos ficarem no papel. */
 .rings {
-  background:
-    radial-gradient(ellipse 15px 7px at 50% 50%, #0000 52%, #ff8db5 58% 80%, #c2386f 84%, #0000 90%) 0 6px / 100% 34px repeat-y,
-    linear-gradient(90deg, #fffaf4, #e9dfd4 45%, #e2ebf0 55%, #fff);
+  position: relative; z-index: 1;
+  background: linear-gradient(90deg, #f3e9de, #d9cfc4 35%, #c9d6dd 65%, #eef5f8);
+  box-shadow: inset 6px 0 8px -6px #5a3a2a40, inset -6px 0 8px -6px #2a4a5a40;
 }
-.doily-big { width: clamp(150px, 31vh, 280px); }
+.rings::before {
+  content: ""; position: absolute; inset: 0 -14px; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='58' height='36' viewBox='0 0 58 36'%3E%3Cg fill='%235a3a2a'%3E%3Cellipse cx='8' cy='22' rx='4.2' ry='3.6' opacity='.55'/%3E%3Cellipse cx='50' cy='22' rx='4.2' ry='3.6' opacity='.55'/%3E%3C/g%3E%3Cpath d='M8 23C7 9 51 9 50 23' fill='none' stroke='%237d1c40' stroke-width='6.5' stroke-linecap='round'/%3E%3Cpath d='M8 23C7 9 51 9 50 23' fill='none' stroke='%23ff7aa8' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M14 15C22 10 36 10 44 15' fill='none' stroke='%23ffd3e2' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center 8px / 58px 36px repeat-y;
+  filter: drop-shadow(0 2px 1px #7d1c4040);
+}
+.doily-big { width: clamp(190px, 40vh, 340px); }
 .score-line { display: flex; align-items: center; gap: 6px; margin: -4px 0 0; font-weight: 500; color: var(--ink-soft); }
 .score-line b { font-family: var(--display); font-weight: 400; font-size: 1.25rem; color: var(--ink); }
 /* estrelas da nota da API, preenchidas até a fração certa */
@@ -352,10 +359,11 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .cut, .station { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 99px; font-size: .75em; font-weight: 600; vertical-align: 1px; }
 .cut { background: #fff0b3; color: #8a5a00; }
 .station { background: #d9f3ea; color: #1f6e55; }
-.steps { display: grid; gap: 8px; counter-reset: step; }
-.steps li { position: relative; padding-left: 36px; counter-increment: step; }
+/* cada passo tem pelo menos a altura da bolinha do número, então as bolinhas nunca encostam */
+.steps { display: grid; gap: 10px; counter-reset: step; }
+.steps li { position: relative; min-height: 28px; padding: 3px 0 0 38px; counter-increment: step; }
 .steps li::before {
-  content: counter(step); position: absolute; left: 0; top: -1px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  content: counter(step); position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
   font-family: var(--display); color: #fff; background: linear-gradient(#ff9cc0, var(--pink)); border: 2.5px solid #fff; box-shadow: 0 2px 0 var(--pink-dark);
 }
 .not-found { justify-self: center; display: grid; justify-items: center; gap: 8px; padding-top: 40px; }
