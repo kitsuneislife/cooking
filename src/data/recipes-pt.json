@@ -1,0 +1,1037 @@
+{
+ "1": {
+  "name": "Pizza margherita clássica",
+  "ingredients": [
+   "Massa de pizza",
+   "Molho de tomate",
+   "Muçarela fresca",
+   "Folhas de manjericão fresco",
+   "Azeite",
+   "Sal e pimenta a gosto"
+  ],
+  "instructions": [
+   "Preaqueça o forno a 245 °C.",
+   "Abra a massa da pizza e espalhe o molho de tomate por igual.",
+   "Cubra com fatias de muçarela fresca e folhas de manjericão.",
+   "Regue com azeite e tempere com sal e pimenta.",
+   "Asse no forno preaquecido por 12 a 15 minutos, até a borda dourar.",
+   "Fatie e sirva quente."
+  ]
+ },
+ "2": {
+  "name": "Legumes salteados vegetarianos",
+  "ingredients": [
+   "Tofu em cubos",
+   "Floretes de brócolis",
+   "Cenoura fatiada",
+   "Pimentão fatiado",
+   "Shoyu",
+   "Gengibre picado",
+   "Alho picado",
+   "Óleo de gergelim",
+   "Arroz cozido para servir"
+  ],
+  "instructions": [
+   "Aqueça o óleo de gergelim na wok em fogo médio-alto.",
+   "Junte o gengibre e o alho picados e refogue até soltar o aroma.",
+   "Adicione o tofu em cubos e salteie até dourar.",
+   "Junte o brócolis, a cenoura e o pimentão. Cozinhe até os legumes ficarem macios, mas ainda crocantes.",
+   "Despeje o shoyu sobre o refogado e misture bem.",
+   "Sirva sobre o arroz cozido."
+  ]
+ },
+ "3": {
+  "name": "Cookies com gotas de chocolate",
+  "ingredients": [
+   "Farinha de trigo",
+   "Manteiga amolecida",
+   "Açúcar mascavo",
+   "Açúcar refinado",
+   "Ovos",
+   "Extrato de baunilha",
+   "Bicarbonato de sódio",
+   "Sal",
+   "Gotas de chocolate"
+  ],
+  "instructions": [
+   "Preaqueça o forno a 175 °C.",
+   "Numa tigela, bata a manteiga amolecida com o açúcar mascavo e o refinado até virar um creme.",
+   "Junte os ovos um de cada vez e depois misture o extrato de baunilha.",
+   "Misture a farinha, o bicarbonato e o sal. Acrescente aos poucos aos ingredientes úmidos.",
+   "Incorpore as gotas de chocolate.",
+   "Coloque colheradas de massa em assadeiras sem untar.",
+   "Asse por 10 a 12 minutos, até as bordas dourarem.",
+   "Deixe os cookies esfriarem alguns minutos na assadeira antes de passar para uma grade."
+  ]
+ },
+ "4": {
+  "name": "Macarrão Alfredo com frango",
+  "ingredients": [
+   "Fettuccine",
+   "Peito de frango fatiado",
+   "Creme de leite fresco",
+   "Parmesão ralado",
+   "Alho picado",
+   "Manteiga",
+   "Sal e pimenta a gosto",
+   "Salsinha fresca para decorar"
+  ],
+  "instructions": [
+   "Cozinhe o fettuccine conforme a embalagem.",
+   "Numa frigideira, doure o frango fatiado na manteiga até cozinhar por completo.",
+   "Junte o alho picado e cozinhe até soltar o aroma.",
+   "Despeje o creme de leite e o parmesão ralado. Mexa até o queijo derreter.",
+   "Tempere com sal e pimenta a gosto.",
+   "Misture o molho Alfredo com o macarrão cozido.",
+   "Decore com salsinha fresca antes de servir."
+  ]
+ },
+ "5": {
+  "name": "Frango com salsa de manga",
+  "ingredients": [
+   "Sobrecoxas de frango",
+   "Manga em cubos",
+   "Cebola roxa bem picada",
+   "Coentro picado",
+   "Suco de limão",
+   "Jalapeño picado",
+   "Sal e pimenta a gosto",
+   "Arroz cozido para servir"
+  ],
+  "instructions": [
+   "Tempere as sobrecoxas com sal e pimenta.",
+   "Grelhe ou asse o frango até cozinhar por completo.",
+   "Numa tigela, misture a manga, a cebola roxa, o coentro, o jalapeño e o suco de limão.",
+   "Corte o frango cozido em cubos e misture com a salsa de manga.",
+   "Sirva sobre o arroz cozido."
+  ]
+ },
+ "6": {
+  "name": "Salada de quinoa com abacate",
+  "ingredients": [
+   "Quinoa cozida",
+   "Abacate em cubos",
+   "Tomates-cereja cortados ao meio",
+   "Pepino em cubos",
+   "Pimentão vermelho em cubos",
+   "Queijo feta esfarelado",
+   "Vinagrete de limão",
+   "Sal e pimenta a gosto"
+  ],
+  "instructions": [
+   "Numa tigela grande, junte a quinoa, o abacate, os tomates-cereja, o pepino, o pimentão vermelho e o feta.",
+   "Regue com o vinagrete de limão e misture.",
+   "Tempere com sal e pimenta a gosto.",
+   "Leve à geladeira antes de servir."
+  ]
+ },
+ "7": {
+  "name": "Bruschetta de tomate e manjericão",
+  "ingredients": [
+   "Baguete fatiada",
+   "Tomates em cubos",
+   "Manjericão fresco picado",
+   "Dentes de alho picados",
+   "Redução de balsâmico",
+   "Azeite",
+   "Sal e pimenta a gosto"
+  ],
+  "instructions": [
+   "Preaqueça o forno a 190 °C.",
+   "Coloque as fatias de baguete numa assadeira e toste no forno até dourar.",
+   "Numa tigela, misture os tomates, o manjericão, o alho e um fio de azeite.",
+   "Tempere com sal e pimenta a gosto.",
+   "Cubra cada fatia tostada com a mistura de tomate e manjericão.",
+   "Regue com a redução de balsâmico antes de servir."
+  ]
+ },
+ "8": {
+  "name": "Carne com brócolis no wok",
+  "ingredients": [
+   "Contrafilé em fatias finas",
+   "Floretes de brócolis",
+   "Shoyu",
+   "Molho de ostra",
+   "Óleo de gergelim",
+   "Alho picado",
+   "Gengibre picado",
+   "Amido de milho",
+   "Arroz branco cozido para servir"
+  ],
+  "instructions": [
+   "Numa tigela, misture o shoyu, o molho de ostra, o óleo de gergelim e o amido de milho para fazer o molho.",
+   "Na wok, salteie a carne em fatias finas até dourar. Retire da wok.",
+   "Na mesma wok, salteie o brócolis, o alho e o gengibre.",
+   "Volte a carne para a wok e despeje o molho por cima.",
+   "Mexa até tudo ficar envolvido e bem quente.",
+   "Sirva sobre o arroz branco."
+  ]
+ },
+ "9": {
+  "name": "Salada caprese",
+  "ingredients": [
+   "Tomates fatiados",
+   "Muçarela fresca fatiada",
+   "Folhas de manjericão fresco",
+   "Redução de balsâmico",
+   "Azeite extravirgem",
+   "Sal e pimenta a gosto"
+  ],
+  "instructions": [
+   "Arrume fatias de tomate e de muçarela, alternadas, numa travessa.",
+   "Encaixe as folhas de manjericão entre as fatias.",
+   "Regue com a redução de balsâmico e o azeite extravirgem.",
+   "Tempere com sal e pimenta a gosto.",
+   "Sirva na hora, como uma salada refrescante."
+  ]
+ },
+ "10": {
+  "name": "Macarrão com camarão ao alho",
+  "ingredients": [
+   "Linguine",
+   "Camarão limpo e sem tripa",
+   "Alho picado",
+   "Vinho branco",
+   "Suco de limão",
+   "Pimenta calabresa em flocos",
+   "Salsinha fresca picada",
+   "Sal e pimenta a gosto"
+  ],
+  "instructions": [
+   "Cozinhe o linguine conforme a embalagem.",
+   "Numa frigideira, refogue o alho no azeite até soltar o aroma.",
+   "Junte o camarão e cozinhe até ficar rosado e opaco.",
+   "Despeje o vinho branco e o suco de limão. Deixe ferver baixo até o molho engrossar um pouco.",
+   "Tempere com a pimenta calabresa, sal e pimenta.",
+   "Envolva o linguine cozido no molho de camarão.",
+   "Decore com salsinha picada antes de servir."
+  ]
+ },
+ "11": {
+  "name": "Biryani de frango",
+  "ingredients": [
+   "Arroz basmati",
+   "Frango em pedaços",
+   "Cebolas em fatias finas",
+   "Tomates picados",
+   "Iogurte",
+   "Pasta de gengibre e alho",
+   "Masala para biryani",
+   "Pimentas verdes fatiadas",
+   "Folhas de coentro fresco",
+   "Folhas de hortelã",
+   "Ghee",
+   "Sal a gosto"
+  ],
+  "instructions": [
+   "Marine o frango com iogurte, pasta de gengibre e alho, masala para biryani e sal.",
+   "Numa panela, refogue as cebolas fatiadas até dourar. Reserve metade.",
+   "Faça camadas de frango marinado, tomate picado, metade da cebola frita e arroz na panela.",
+   "Cubra com ghee, pimentas verdes, coentro, hortelã e o resto da cebola frita.",
+   "Tampe e cozinhe em fogo baixo até o arroz ficar bem cozido e perfumado.",
+   "Sirva quente, decorado com mais coentro e hortelã."
+  ]
+ },
+ "12": {
+  "name": "Frango karahi",
+  "ingredients": [
+   "Frango em pedaços",
+   "Tomates picados",
+   "Pimentas verdes fatiadas",
+   "Gengibre em tiras finas",
+   "Alho picado",
+   "Coentro em pó",
+   "Cominho em pó",
+   "Pimenta vermelha em pó",
+   "Garam masala",
+   "Óleo de cozinha",
+   "Folhas de coentro fresco",
+   "Sal a gosto"
+  ],
+  "instructions": [
+   "Na wok (karahi), aqueça o óleo e doure o alho picado.",
+   "Junte o frango e cozinhe até dourar de todos os lados.",
+   "Adicione o tomate, as pimentas verdes, o gengibre e os temperos. Cozinhe até o tomate amolecer.",
+   "Tampe e deixe ferver baixo até o frango ficar macio e o óleo se separar do masala.",
+   "Decore com coentro fresco e sirva quente com naan ou arroz."
+  ]
+ },
+ "13": {
+  "name": "Aloo keema (carne moída com batata)",
+  "ingredients": [
+   "Carne moída",
+   "Batatas descascadas em cubos",
+   "Cebolas bem picadas",
+   "Tomates picados",
+   "Pasta de gengibre e alho",
+   "Cominho em pó",
+   "Coentro em pó",
+   "Cúrcuma em pó",
+   "Pimenta vermelha em pó",
+   "Óleo de cozinha",
+   "Folhas de coentro fresco",
+   "Sal a gosto"
+  ],
+  "instructions": [
+   "Numa panela, aqueça o óleo e doure a cebola picada.",
+   "Junte a pasta de gengibre e alho e refogue até soltar o aroma.",
+   "Adicione a carne moída e cozinhe até dourar. Escorra o excesso de óleo, se precisar.",
+   "Junte as batatas, o tomate e os temperos. Misture bem.",
+   "Tampe e deixe ferver baixo até as batatas ficarem macias e o masala bem cozido.",
+   "Decore com coentro fresco e sirva quente com naan ou arroz."
+  ]
+ },
+ "14": {
+  "name": "Kebab chapli",
+  "ingredients": [
+   "Carne moída",
+   "Cebolas bem picadas",
+   "Tomates bem picados",
+   "Pimentas verdes picadas",
+   "Folhas de coentro picadas",
+   "Sementes de romã",
+   "Pasta de gengibre e alho",
+   "Cominho em pó",
+   "Coentro em pó",
+   "Pimenta vermelha em pó",
+   "Ovo",
+   "Óleo de cozinha",
+   "Sal a gosto"
+  ],
+  "instructions": [
+   "Numa tigela grande, misture a carne moída, a cebola, o tomate, as pimentas verdes, o coentro e as sementes de romã.",
+   "Junte a pasta de gengibre e alho, o cominho, o coentro em pó, a pimenta vermelha e o sal. Misture bem.",
+   "Acrescente um ovo para dar liga e modele kebabs redondos e achatados.",
+   "Aqueça o óleo numa frigideira e frite os kebabs em pouco óleo até dourar dos dois lados.",
+   "Sirva quente com naan ou chutney de hortelã."
+  ]
+ },
+ "15": {
+  "name": "Saag (espinafre) com makki di roti",
+  "ingredients": [
+   "Folhas de mostarda lavadas e picadas",
+   "Espinafre lavado e picado",
+   "Fubá (makki ka atta)",
+   "Cebolas bem picadas",
+   "Pimentas verdes picadas",
+   "Gengibre ralado",
+   "Ghee",
+   "Sal a gosto"
+  ],
+  "instructions": [
+   "Cozinhe as folhas de mostarda e o espinafre até ficarem macios. Escorra e bata até virar uma pasta grossa.",
+   "Numa panela, refogue a cebola, as pimentas verdes e o gengibre no ghee até dourar.",
+   "Junte a pasta de folhas e cozinhe até engrossar.",
+   "Enquanto isso, sove o fubá com água até formar uma massa. Abra em rotis (pães achatados).",
+   "Asse os rotis numa chapa até dourar.",
+   "Sirva o saag quente com o makki di roti e uma colherada de ghee."
+  ]
+ },
+ "16": {
+  "name": "Lámen japonês",
+  "ingredients": [
+   "Macarrão para lámen",
+   "Caldo de frango",
+   "Shoyu",
+   "Mirin",
+   "Óleo de gergelim",
+   "Cogumelos shiitake fatiados",
+   "Bok choy picado",
+   "Cebolinha fatiada",
+   "Ovos cozidos com gema mole",
+   "Fatias de frango grelhado",
+   "Alga nori"
+  ],
+  "instructions": [
+   "Cozinhe o macarrão conforme a embalagem e reserve.",
+   "Numa panela, junte o caldo de frango, o shoyu, o mirin e o óleo de gergelim. Deixe levantar fervura baixa.",
+   "Adicione o shiitake e o bok choy. Cozinhe até os legumes ficarem macios.",
+   "Divida o macarrão nas tigelas e despeje o caldo quente por cima.",
+   "Cubra com cebolinha, ovos, fatias de frango grelhado e nori.",
+   "Sirva quente e aproveite um lámen japonês de verdade!"
+  ]
+ },
+ "17": {
+  "name": "Tagine marroquino de grão-de-bico",
+  "ingredients": [
+   "Grão-de-bico cozido",
+   "Tomates picados",
+   "Cenouras em cubos",
+   "Cebolas bem picadas",
+   "Alho picado",
+   "Cominho",
+   "Coentro",
+   "Canela",
+   "Páprica",
+   "Caldo de legumes",
+   "Azeitonas",
+   "Coentro fresco picado"
+  ],
+  "instructions": [
+   "Num tagine ou panela grande, refogue a cebola e o alho até amolecerem.",
+   "Junte a cenoura, o tomate e o grão-de-bico cozido.",
+   "Tempere com cominho, coentro, canela e páprica. Mexa para envolver.",
+   "Despeje o caldo de legumes e deixe levantar fervura baixa. Cozinhe até a cenoura ficar macia.",
+   "Misture as azeitonas e decore com coentro fresco antes de servir.",
+   "Sirva este prato marroquino saboroso com cuscuz ou pão de casca crocante."
+  ]
+ },
+ "18": {
+  "name": "Bibimbap coreano",
+  "ingredients": [
+   "Arroz branco cozido",
+   "Bulgogi de carne (fatias marinadas e grelhadas)",
+   "Cenoura em tiras finas, salteada",
+   "Espinafre escaldado e temperado",
+   "Abobrinha fatiada e grelhada",
+   "Broto de feijão escaldado",
+   "Ovo frito",
+   "Gochujang (pasta coreana de pimenta vermelha)",
+   "Óleo de gergelim",
+   "Gergelim torrado"
+  ],
+  "instructions": [
+   "Coloque o arroz branco cozido numa tigela.",
+   "Cubra com o bulgogi, a cenoura salteada, o espinafre temperado, a abobrinha grelhada e o broto de feijão.",
+   "Ponha um ovo frito por cima e regue com gochujang e óleo de gergelim.",
+   "Polvilhe gergelim torrado antes de servir.",
+   "Misture tudo antes de saborear este bibimbap coreano delicioso!",
+   "Fique à vontade para incluir outros legumes ou proteínas."
+  ]
+ },
+ "19": {
+  "name": "Moussaka grega",
+  "ingredients": [
+   "Berinjelas fatiadas",
+   "Carne moída de cordeiro ou de boi",
+   "Cebolas bem picadas",
+   "Alho picado",
+   "Tomates amassados",
+   "Vinho tinto",
+   "Canela",
+   "Pimenta-da-jamaica",
+   "Noz-moscada",
+   "Azeite",
+   "Leite",
+   "Farinha de trigo",
+   "Parmesão",
+   "Gemas"
+  ],
+  "instructions": [
+   "Preaqueça o forno a 190 °C.",
+   "Doure as fatias de berinjela no azeite. Reserve.",
+   "Na mesma panela, refogue a cebola e o alho até amolecerem.",
+   "Junte a carne moída e doure. Misture o tomate, o vinho tinto e os temperos.",
+   "Em outra panela, faça o bechamel: derreta a manteiga, misture a farinha batendo, junte o leite e cozinhe até engrossar.",
+   "Tire do fogo e misture o parmesão e as gemas.",
+   "Numa travessa, faça camadas de berinjela e carne. Cubra com o bechamel.",
+   "Asse por 40 a 45 minutos, até dourar. Deixe amornar antes de cortar.",
+   "Sirva as fatias de moussaka mornas e aproveite este clássico grego!"
+  ]
+ },
+ "20": {
+  "name": "Frango na manteiga (murgh makhani)",
+  "ingredients": [
+   "Sobrecoxas de frango sem osso e sem pele",
+   "Iogurte",
+   "Pasta de gengibre e alho",
+   "Garam masala",
+   "Pimenta vermelha caxemira em pó",
+   "Purê de tomate",
+   "Manteiga",
+   "Creme de leite fresco",
+   "Kasuri methi (folhas secas de feno-grego)",
+   "Açúcar",
+   "Sal a gosto"
+  ],
+  "instructions": [
+   "Marine as sobrecoxas numa mistura de iogurte, pasta de gengibre e alho, garam masala e pimenta caxemira.",
+   "Numa panela, derreta a manteiga e doure o frango marinado.",
+   "Junte o purê de tomate e cozinhe até o óleo se separar. Misture o creme de leite.",
+   "Polvilhe o kasuri methi, o açúcar e o sal. Deixe ferver baixo até o frango cozinhar por completo.",
+   "Sirva este frango cremoso na manteiga com arroz ou naan, como no Paquistão e na Índia."
+  ]
+ },
+ "21": {
+  "name": "Curry verde tailandês",
+  "ingredients": [
+   "Sobrecoxas de frango sem osso e sem pele",
+   "Pasta de curry verde",
+   "Leite de coco",
+   "Molho de peixe",
+   "Açúcar",
+   "Berinjela fatiada",
+   "Pimentão fatiado",
+   "Folhas de manjericão",
+   "Arroz jasmim para servir"
+  ],
+  "instructions": [
+   "Numa panela, cozinhe a pasta de curry verde no leite de coco em fogo baixo.",
+   "Junte o frango, o molho de peixe e o açúcar. Cozinhe até o frango ficar macio.",
+   "Misture a berinjela e o pimentão. Deixe ferver baixo até os legumes cozinharem.",
+   "Decore com folhas de manjericão fresco.",
+   "Sirva quente com arroz jasmim e aproveite este clássico tailandês!"
+  ]
+ },
+ "22": {
+  "name": "Lassi de manga",
+  "ingredients": [
+   "Manga madura descascada em cubos",
+   "Iogurte",
+   "Leite",
+   "Mel",
+   "Cardamomo em pó",
+   "Cubos de gelo"
+  ],
+  "instructions": [
+   "No liquidificador, junte a manga, o iogurte, o leite, o mel e o cardamomo.",
+   "Bata até ficar liso e cremoso.",
+   "Adicione o gelo e bata de novo até o lassi gelar.",
+   "Despeje nos copos e polvilhe um pouco de cardamomo.",
+   "Aproveite este lassi de manga refrescante!"
+  ]
+ },
+ "23": {
+  "name": "Tiramisù italiano",
+  "ingredients": [
+   "Café espresso passado e frio",
+   "Biscoitos champanhe",
+   "Queijo mascarpone",
+   "Creme de leite fresco",
+   "Açúcar",
+   "Cacau em pó"
+  ],
+  "instructions": [
+   "Numa tigela, bata o creme de leite até formar picos firmes.",
+   "Em outra tigela, misture o mascarpone com o açúcar até ficar liso.",
+   "Incorpore delicadamente o creme batido à mistura de mascarpone.",
+   "Molhe os biscoitos champanhe no espresso e arrume em camadas numa travessa.",
+   "Espalhe uma camada do creme de mascarpone sobre os biscoitos.",
+   "Repita as camadas e termine polvilhando cacau em pó.",
+   "Leve à geladeira por algumas horas antes de servir.",
+   "Delicie-se com este clássico tiramisù italiano!"
+  ]
+ },
+ "24": {
+  "name": "Kebab turco",
+  "ingredients": [
+   "Carne moída de cordeiro ou de boi",
+   "Cebolas raladas",
+   "Alho picado",
+   "Salsinha bem picada",
+   "Cominho",
+   "Coentro",
+   "Pimenta calabresa em flocos",
+   "Sal e pimenta a gosto",
+   "Pão sírio para servir",
+   "Molho de tahine"
+  ],
+  "instructions": [
+   "Numa tigela, misture a carne moída, a cebola ralada, o alho, a salsinha e os temperos.",
+   "Modele a mistura em formato de kebab e grelhe até cozinhar por completo.",
+   "Sirva os kebabs sobre o pão sírio com um fio de molho de tahine.",
+   "Aproveite estes kebabs turcos saborosos com seus acompanhamentos preferidos."
+  ]
+ },
+ "25": {
+  "name": "Vitamina de mirtilo e banana",
+  "ingredients": [
+   "Mirtilos frescos ou congelados",
+   "Banana descascada e fatiada",
+   "Iogurte grego",
+   "Leite de amêndoas",
+   "Mel",
+   "Sementes de chia (opcional)"
+  ],
+  "instructions": [
+   "No liquidificador, junte os mirtilos, a banana, o iogurte grego, o leite de amêndoas e o mel.",
+   "Bata até ficar liso e cremoso.",
+   "Acrescente a chia para deixar mais nutritivo e bata rapidamente.",
+   "Despeje num copo e aproveite esta vitamina nutritiva de mirtilo e banana!"
+  ]
+ },
+ "26": {
+  "name": "Milho de rua mexicano (elote)",
+  "ingredients": [
+   "Espigas de milho",
+   "Maionese",
+   "Queijo cotija esfarelado",
+   "Pimenta em pó",
+   "Gomos de limão"
+  ],
+  "instructions": [
+   "Grelhe ou asse as espigas até os grãos ficarem tostados.",
+   "Pincele cada espiga com maionese e polvilhe o cotija e a pimenta em pó.",
+   "Sirva com gomos de limão para espremer por cima.",
+   "Aproveite este milho de rua mexicano delicioso e cheio de sabor!"
+  ]
+ },
+ "27": {
+  "name": "Borscht russo",
+  "ingredients": [
+   "Beterrabas descascadas e raladas",
+   "Repolho ralado",
+   "Batatas em cubos",
+   "Cebolas bem picadas",
+   "Cenouras raladas",
+   "Extrato de tomate",
+   "Caldo de carne ou de legumes",
+   "Alho picado",
+   "Folhas de louro",
+   "Creme azedo para servir"
+  ],
+  "instructions": [
+   "Numa panela, refogue a cebola e o alho até amolecerem.",
+   "Junte a beterraba, o repolho, a batata, a cenoura e o extrato de tomate.",
+   "Despeje o caldo e adicione o louro. Deixe ferver baixo até os legumes ficarem macios.",
+   "Sirva quente com uma colherada de creme azedo por cima.",
+   "Aproveite o sabor reconfortante do borscht russo!"
+  ]
+ },
+ "28": {
+  "name": "Masala dosa do sul da Índia",
+  "ingredients": [
+   "Massa de dosa (arroz e urad dal fermentados)",
+   "Batatas cozidas e amassadas",
+   "Cebolas bem picadas",
+   "Sementes de mostarda",
+   "Sementes de cominho",
+   "Folhas de curry",
+   "Cúrcuma em pó",
+   "Pimentas verdes picadas",
+   "Ghee",
+   "Chutney de coco para servir"
+  ],
+  "instructions": [
+   "Numa panela, aqueça o ghee e junte as sementes de mostarda, de cominho e as folhas de curry.",
+   "Adicione a cebola, as pimentas verdes e a cúrcuma. Refogue até a cebola dourar.",
+   "Misture as batatas amassadas. Cozinhe até ficar tudo bem misturado e temperado.",
+   "Espalhe a massa de dosa numa chapa quente para fazer panquecas finas.",
+   "Coloque uma colherada da mistura de batata no meio, dobre e sirva quente.",
+   "Acompanhe com chutney de coco para uma refeição deliciosa do sul da Índia."
+  ]
+ },
+ "29": {
+  "name": "Wrap libanês de falafel",
+  "ingredients": [
+   "Bolinhos de falafel",
+   "Tortilhas integrais ou comuns",
+   "Tomates em cubos",
+   "Pepinos fatiados",
+   "Cebolas roxas em fatias finas",
+   "Alface picada",
+   "Molho de tahine",
+   "Salsinha fresca picada"
+  ],
+  "instructions": [
+   "Aqueça os falafels conforme a embalagem.",
+   "Coloque uma boa porção de falafel no meio de cada tortilha.",
+   "Cubra com tomate, pepino, cebola roxa, alface e salsinha.",
+   "Regue com o molho de tahine e enrole bem firme.",
+   "Aproveite este wrap libanês de falafel com ingredientes frescos e saborosos!"
+  ]
+ },
+ "30": {
+  "name": "Caipirinha brasileira",
+  "ingredients": [
+   "Cachaça",
+   "Limão cortado em gomos",
+   "Açúcar",
+   "Cubos de gelo"
+  ],
+  "instructions": [
+   "Num copo, amasse os gomos de limão com o açúcar para soltar o suco.",
+   "Encha o copo com gelo.",
+   "Despeje a cachaça sobre o gelo e mexa bem.",
+   "Beba e aproveite o sabor refrescante da caipirinha brasileira!",
+   "Ajuste o açúcar e o limão ao seu gosto."
+  ]
+ },
+ "31": {
+  "name": "Patatas bravas espanholas",
+  "ingredients": [
+   "Batatas em cubos",
+   "Azeite",
+   "Alho picado",
+   "Páprica defumada",
+   "Molho de tomate",
+   "Maionese",
+   "Molho de pimenta",
+   "Salsinha fresca picada"
+  ],
+  "instructions": [
+   "Preaqueça o forno a 220 °C.",
+   "Misture as batatas com azeite, alho e páprica defumada. Asse até ficarem crocantes.",
+   "Numa panelinha, aqueça o molho de tomate, a maionese e o molho de pimenta. Mexa até esquentar.",
+   "Regue as batatas assadas com o molho e decore com salsinha fresca.",
+   "Sirva estas patatas bravas espanholas como uma entrada deliciosa."
+  ]
+ },
+ "32": {
+  "name": "Rolinhos primavera vietnamitas",
+  "ingredients": [
+   "Folhas de papel de arroz",
+   "Camarão cozido e fatiado",
+   "Bifum (macarrão de arroz) cozido",
+   "Folhas de alface",
+   "Cenouras em tiras finas",
+   "Pepino em tiras finas",
+   "Folhas de hortelã fresca",
+   "Molho de amendoim para mergulhar"
+  ],
+  "instructions": [
+   "Mergulhe as folhas de papel de arroz em água morna para amolecer.",
+   "Estique uma folha numa superfície lisa e recheie com camarão, bifum, alface, cenoura, pepino e hortelã.",
+   "Dobre as laterais da folha e enrole bem firme para fechar.",
+   "Sirva estes rolinhos primavera vietnamitas com molho de amendoim.",
+   "Aproveite estes rolinhos leves e refrescantes como entrada ou lanche."
+  ]
+ },
+ "33": {
+  "name": "Salada mediterrânea de quinoa",
+  "ingredients": [
+   "Quinoa cozida",
+   "Tomates-cereja cortados ao meio",
+   "Pepino em cubos",
+   "Azeitonas kalamata fatiadas",
+   "Cebola roxa bem picada",
+   "Queijo feta esfarelado",
+   "Salsinha fresca picada",
+   "Vinagrete de limão"
+  ],
+  "instructions": [
+   "Numa tigela grande, junte a quinoa, os tomates-cereja, o pepino, as azeitonas, a cebola roxa, o feta e a salsinha.",
+   "Regue com o vinagrete de limão e misture.",
+   "Leve à geladeira antes de servir. Esta salada mediterrânea de quinoa é um acompanhamento refrescante."
+  ]
+ },
+ "34": {
+  "name": "Sorvete japonês de matchá",
+  "ingredients": [
+   "Creme de leite fresco",
+   "Leite integral",
+   "Açúcar",
+   "Chá verde matchá em pó",
+   "Gemas"
+  ],
+  "instructions": [
+   "Numa panela, aqueça o creme de leite, o leite e o açúcar até começar a sair vapor.",
+   "Junte o matchá batendo até misturar por completo.",
+   "Em outra tigela, bata as gemas. Despeje aos poucos a mistura quente sobre as gemas, sem parar de bater.",
+   "Volte tudo para a panela e aqueça até engrossar, sem deixar ferver.",
+   "Coe a mistura e deixe esfriar. Bata numa sorveteira conforme as instruções do fabricante.",
+   "Congele até firmar. Delicie-se com a cremosidade do sorvete japonês de matchá!"
+  ]
+ },
+ "35": {
+  "name": "Brigadeiro de chocolate",
+  "ingredients": [
+   "Leite condensado",
+   "Cacau em pó",
+   "Manteiga sem sal",
+   "Granulado de chocolate"
+  ],
+  "instructions": [
+   "Numa panela, junte o leite condensado, o cacau e a manteiga.",
+   "Cozinhe em fogo médio, mexendo sempre, até a massa engrossar e desgrudar do fundo da panela.",
+   "Deixe a massa esfriar. Unte as mãos com manteiga e enrole bolinhas.",
+   "Passe os brigadeiros no granulado.",
+   "Estes brigadeiros de chocolate são um docinho irresistível!"
+  ]
+ },
+ "36": {
+  "name": "Enchiladas mexicanas de frango",
+  "ingredients": [
+   "Peito de frango cozido e desfiado",
+   "Tortilhas de milho",
+   "Molho para enchilada",
+   "Feijão-preto escorrido e lavado",
+   "Milho em grãos",
+   "Mistura de queijos mexicanos ralados",
+   "Coentro fresco picado",
+   "Creme azedo para servir"
+  ],
+  "instructions": [
+   "Preaqueça o forno a 190 °C.",
+   "Numa tigela, misture o frango desfiado com o feijão-preto, o milho e o coentro.",
+   "Recheie cada tortilha com a mistura de frango e enrole bem firme.",
+   "Coloque as enchiladas numa travessa, cubra com o molho e polvilhe o queijo ralado.",
+   "Asse até o queijo derreter e borbulhar.",
+   "Sirva quente com uma colherada de creme azedo. Aproveite estas enchiladas mexicanas de frango!"
+  ]
+ },
+ "37": {
+  "name": "Curry tailandês de camarão com coco",
+  "ingredients": [
+   "Camarão limpo e sem tripa",
+   "Leite de coco",
+   "Pasta de curry vermelho",
+   "Molho de peixe",
+   "Açúcar",
+   "Pimentão fatiado",
+   "Abobrinha fatiada",
+   "Folhas de manjericão fresco",
+   "Arroz jasmim para servir"
+  ],
+  "instructions": [
+   "Numa panela, cozinhe o leite de coco com a pasta de curry vermelho, o molho de peixe e o açúcar em fogo baixo.",
+   "Junte o pimentão e a abobrinha. Cozinhe até os legumes ficarem macios.",
+   "Adicione o camarão e cozinhe até ficar rosado e opaco.",
+   "Misture as folhas de manjericão.",
+   "Sirva este curry tailandês de camarão com coco sobre arroz jasmim."
+  ]
+ },
+ "38": {
+  "name": "Spanakopita grega",
+  "ingredients": [
+   "Massa filo",
+   "Espinafre picado e cozido",
+   "Queijo feta esfarelado",
+   "Cebolas bem picadas",
+   "Ovos",
+   "Azeite",
+   "Endro picado",
+   "Sal e pimenta a gosto"
+  ],
+  "instructions": [
+   "Preaqueça o forno a 190 °C.",
+   "Numa tigela, misture o espinafre com o feta, a cebola, os ovos batidos, o azeite, o endro, o sal e a pimenta.",
+   "Forre uma travessa com folhas de massa filo, pincelando azeite em cada camada.",
+   "Espalhe a mistura de espinafre e feta sobre a massa.",
+   "Cubra com mais folhas de filo, pincelando azeite em cada uma.",
+   "Asse até dourar. Corte e sirva esta deliciosa spanakopita grega!"
+  ]
+ },
+ "39": {
+  "name": "Salada marroquina de cuscuz",
+  "ingredients": [
+   "Cuscuz marroquino cozido",
+   "Grão-de-bico cozido",
+   "Tomates-cereja cortados ao meio",
+   "Pepino em cubos",
+   "Cebola roxa bem picada",
+   "Folhas de hortelã fresca picadas",
+   "Queijo feta esfarelado",
+   "Vinagrete de limão"
+  ],
+  "instructions": [
+   "Numa tigela grande, junte o cuscuz, o grão-de-bico, os tomates-cereja, o pepino, a cebola roxa, a hortelã e o feta.",
+   "Regue com o vinagrete de limão e misture.",
+   "Leve à geladeira antes de servir. Esta salada marroquina de cuscuz é um acompanhamento refrescante."
+  ]
+ },
+ "40": {
+  "name": "Mojito clássico",
+  "ingredients": [
+   "Folhas de hortelã fresca",
+   "Limão cortado em gomos",
+   "Açúcar",
+   "Rum branco",
+   "Água com gás",
+   "Cubos de gelo"
+  ],
+  "instructions": [
+   "Num copo, amasse a hortelã com o açúcar e os gomos de limão para soltar os sabores.",
+   "Junte o rum branco e mexa bem.",
+   "Encha o copo com gelo e complete com água com gás.",
+   "Mexa devagar e decore com um raminho de hortelã.",
+   "Beba e aproveite o sabor clássico e refrescante do mojito!"
+  ]
+ },
+ "41": {
+  "name": "Bruschetta caprese",
+  "ingredients": [
+   "Baguete fatiada",
+   "Tomates em cubos",
+   "Muçarela fresca fatiada",
+   "Folhas de manjericão fresco",
+   "Redução de balsâmico",
+   "Azeite",
+   "Alho picado",
+   "Sal e pimenta a gosto"
+  ],
+  "instructions": [
+   "Ligue o gratinador do forno.",
+   "Coloque as fatias de baguete numa assadeira e toste sob o gratinador até dourar.",
+   "Numa tigela, junte o tomate, a muçarela, o alho e o manjericão picado.",
+   "Regue com azeite e redução de balsâmico e tempere com sal e pimenta.",
+   "Distribua a mistura de tomate e muçarela sobre as fatias tostadas.",
+   "Sirva estas bruschettas caprese como uma entrada rápida e gostosa."
+  ]
+ },
+ "42": {
+  "name": "Frango teriyaki salteado",
+  "ingredients": [
+   "Peito de frango em fatias finas",
+   "Floretes de brócolis",
+   "Pimentão fatiado",
+   "Cenouras em tiras finas",
+   "Shoyu",
+   "Molho teriyaki",
+   "Óleo de gergelim",
+   "Alho picado",
+   "Gengibre ralado",
+   "Arroz cozido para servir"
+  ],
+  "instructions": [
+   "Na wok ou frigideira, aqueça o óleo de gergelim e refogue o alho e o gengibre até soltar o aroma.",
+   "Junte o frango fatiado e cozinhe até dourar.",
+   "Misture o brócolis, o pimentão e a cenoura. Cozinhe até os legumes ficarem macios, mas ainda crocantes.",
+   "Despeje o shoyu e o molho teriyaki sobre o refogado. Misture bem.",
+   "Sirva este frango teriyaki rápido sobre o arroz cozido."
+  ]
+ },
+ "43": {
+  "name": "Salsa de manga e abacate",
+  "ingredients": [
+   "Manga em cubos",
+   "Abacate em cubos",
+   "Cebola roxa bem picada",
+   "Coentro picado",
+   "Suco de limão",
+   "Sal e pimenta a gosto",
+   "Tortilhas chips para servir"
+  ],
+  "instructions": [
+   "Numa tigela, junte a manga, o abacate, a cebola roxa e o coentro.",
+   "Regue com suco de limão e tempere com sal e pimenta. Misture com cuidado.",
+   "Sirva esta salsa refrescante de manga e abacate com tortilhas chips, como um petisco rápido."
+  ]
+ },
+ "44": {
+  "name": "Camarão com aspargos salteados",
+  "ingredients": [
+   "Camarão limpo e sem tripa",
+   "Aspargos aparados e cortados em pedaços",
+   "Shoyu",
+   "Óleo de gergelim",
+   "Alho picado",
+   "Gengibre ralado",
+   "Pimenta calabresa em flocos",
+   "Cebolinha fatiada",
+   "Macarrão ou arroz cozido para servir"
+  ],
+  "instructions": [
+   "Na wok ou frigideira, aqueça o óleo de gergelim e refogue o alho, o gengibre e a pimenta calabresa até soltar o aroma.",
+   "Junte o camarão e cozinhe até ficar rosado e opaco.",
+   "Misture os aspargos e cozinhe até ficarem macios, mas ainda crocantes.",
+   "Despeje o shoyu sobre o refogado e misture bem.",
+   "Sirva este camarão com aspargos sobre macarrão ou arroz cozido."
+  ]
+ },
+ "45": {
+  "name": "Pizza margherita italiana",
+  "ingredients": [
+   "Massa de pizza",
+   "Tomates em fatias finas",
+   "Muçarela fresca fatiada",
+   "Folhas de manjericão fresco",
+   "Azeite",
+   "Alho picado",
+   "Sal e pimenta a gosto"
+  ],
+  "instructions": [
+   "Preaqueça o forno na temperatura mais alta possível.",
+   "Abra a massa numa superfície enfarinhada e passe para uma pedra de pizza ou assadeira.",
+   "Pincele a massa com azeite e espalhe o alho picado por cima.",
+   "Distribua as fatias de tomate e de muçarela sobre a massa.",
+   "Asse até a borda dourar e o queijo derreter e borbulhar.",
+   "Cubra com folhas de manjericão e tempere com sal e pimenta. Fatie e sirva esta clássica pizza margherita."
+  ]
+ },
+ "46": {
+  "name": "Macarrão ao pesto com tomate-cereja",
+  "ingredients": [
+   "Penne",
+   "Molho pesto de manjericão",
+   "Tomates-cereja cortados ao meio",
+   "Parmesão ralado",
+   "Sal e pimenta-do-reino a gosto"
+  ],
+  "instructions": [
+   "Cozinhe o penne conforme a embalagem. Escorra e reserve.",
+   "Numa frigideira, aqueça o pesto. Junte o macarrão e misture para envolver por igual.",
+   "Adicione os tomates-cereja e cozinhe até amolecerem um pouco.",
+   "Tempere com sal e pimenta-do-reino. Decore com parmesão ralado.",
+   "Sirva este macarrão ao pesto com tomate-cereja, rápido e cheio de sabor."
+  ]
+ },
+ "47": {
+  "name": "Espetinhos havaianos de frango",
+  "ingredients": [
+   "Peito de frango em pedaços",
+   "Pedaços de abacaxi",
+   "Pimentão fatiado",
+   "Cebola roxa em gomos",
+   "Shoyu",
+   "Suco de abacaxi",
+   "Ketchup",
+   "Açúcar mascavo",
+   "Alho picado",
+   "Espetos de madeira molhados em água"
+  ],
+  "instructions": [
+   "Preaqueça a grelha ou a frigideira de grelhar.",
+   "Numa tigela, bata o shoyu, o suco de abacaxi, o ketchup, o açúcar mascavo e o alho para fazer a marinada.",
+   "Espete o frango, o abacaxi, o pimentão e a cebola roxa nos espetos de madeira molhados.",
+   "Pincele os espetinhos com a marinada e grelhe até o frango cozinhar por completo.",
+   "Sirva estes espetinhos havaianos de frango com arroz ou como uma entrada gostosa."
+  ]
+ },
+ "48": {
+  "name": "Uramaki de pepino e abacate",
+  "ingredients": [
+   "Arroz para sushi temperado",
+   "Folhas de nori",
+   "Pepino em tiras finas",
+   "Abacate fatiado",
+   "Shoyu para molhar",
+   "Gengibre em conserva e wasabi para servir"
+  ],
+  "instructions": [
+   "Coloque uma folha de nori sobre a esteira de bambu.",
+   "Espalhe o arroz temperado por igual sobre o nori, deixando uma pequena borda livre em cima.",
+   "Arrume o pepino e o abacate ao longo da borda de baixo do arroz.",
+   "Enrole o nori bem firme a partir de baixo, usando a esteira para modelar o rolo.",
+   "Corte o rolo em pedaços pequenos. Sirva estes rolinhos refrescantes de pepino e abacate com shoyu, gengibre em conserva e wasabi."
+  ]
+ },
+ "49": {
+  "name": "Salada mediterrânea de grão-de-bico",
+  "ingredients": [
+   "Grão-de-bico em conserva, escorrido e lavado",
+   "Tomates-cereja cortados ao meio",
+   "Pepino em cubos",
+   "Cebola roxa bem picada",
+   "Azeitonas kalamata fatiadas",
+   "Queijo feta esfarelado",
+   "Azeite",
+   "Suco de limão",
+   "Orégano seco",
+   "Sal e pimenta a gosto"
+  ],
+  "instructions": [
+   "Numa tigela grande, junte o grão-de-bico, os tomates-cereja, o pepino, a cebola roxa, as azeitonas e o feta.",
+   "Numa tigela pequena, bata o azeite, o suco de limão, o orégano, o sal e a pimenta para fazer o molho.",
+   "Despeje o molho sobre a salada e misture com cuidado.",
+   "Leve à geladeira antes de servir. Aproveite esta salada mediterrânea de grão-de-bico, rápida e refrescante."
+  ]
+ },
+ "50": {
+  "name": "Vitamina de abacaxi com coco",
+  "ingredients": [
+   "Pedaços de abacaxi frescos ou congelados",
+   "Leite de coco",
+   "Iogurte grego",
+   "Banana descascada e fatiada",
+   "Mel",
+   "Cubos de gelo"
+  ],
+  "instructions": [
+   "No liquidificador, junte o abacaxi, o leite de coco, o iogurte grego, a banana e o mel.",
+   "Bata até ficar liso e cremoso.",
+   "Adicione o gelo e bata de novo até a vitamina gelar.",
+   "Despeje num copo e aproveite o sabor tropical desta vitamina de abacaxi com coco!"
+  ]
+ }
+}

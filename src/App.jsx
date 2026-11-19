@@ -6,6 +6,7 @@ import Logo from "./components/Logo";
 import Home from "./pages/Home";
 import RecipeDetail from "./pages/RecipeDetail";
 import NotFound from "./pages/NotFound";
+import { LangSwitch, useLang } from "./i18n";
 
 // a partida traz o three.js: só baixa quando alguém vai jogar
 const Play = lazy(() => import("./pages/Play"));
@@ -19,6 +20,7 @@ export default function App() {
   const playing = useMatch("/jogar/:id");
   // na tela de título o logotipo grande já está no meio: o cabeçalho some
   const home = useMatch("/");
+  const { t } = useLang();
   const small = useSyncExternalStore(watchSmall, () => SMALL.matches);
   if (small) {
     return (
@@ -31,10 +33,11 @@ export default function App() {
   }
   return (
     <>
-      <a className="skip-link" href="#main">Pular para o conteúdo</a>
+      <a className="skip-link" href="#main">{t.skip}</a>
+      {!playing && <LangSwitch />}
       {!playing && !home && (
         <header className="site-header">
-          <Link to="/" className="corner-btn" aria-label="Voltar ao início">
+          <Link to="/" className="corner-btn" aria-label={t.home}>
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 5 L4 11 L10 17 M4.5 11 H14 C18 11 20 13.5 20 17 V19" /></svg>
           </Link>
           <Link to="/" className="logo-link"><Logo /></Link>
@@ -54,7 +57,7 @@ export default function App() {
       </main>
       {!playing && (
         <footer className="site-footer">
-          Receitas da <a href="https://dummyjson.com/docs/recipes">DummyJSON</a>. Seis pedidos para cozinhar.
+          {t.footerFrom} <a href="https://dummyjson.com/docs/recipes">DummyJSON</a>. {t.footer}
         </footer>
       )}
     </>

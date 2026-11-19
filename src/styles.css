@@ -100,6 +100,18 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .site-footer { text-align: center; padding: 10px 16px 14px; color: #8a5414; font-size: .85rem; font-weight: 500; }
 .site-footer a { color: var(--pink-dark); font-weight: 600; }
 
+/* seletor de idioma BR / EN no canto de cima, em todas as telas menos a partida */
+.lang-switch {
+  position: fixed; top: 12px; right: 16px; z-index: 50; display: flex; padding: 4px; gap: 2px;
+  background: #fff; border: 3px solid var(--pink-dark); border-radius: 99px; box-shadow: 0 4px 0 #7d1c40, 0 8px 14px #7d1c4033;
+}
+.lang-switch button {
+  border: 0; border-radius: 99px; padding: 3px 12px; cursor: pointer; background: #0000;
+  font-family: var(--display); font-size: 1rem; color: var(--pink-dark);
+}
+.lang-switch button[aria-pressed="true"] { background: linear-gradient(#ffa3c7, #ff5c9a); color: #fff; box-shadow: inset 0 -2px 0 #0002; }
+.lang-switch button:not([aria-pressed="true"]):hover { background: #ffe2ec; }
+
 /* moldura dos painéis: miolo branco, borda grossa azul-clara pontilhada de branco e um fio dourado por fora */
 .panel, .book, .hero-bubble {
   border: 12px solid #0000; border-radius: 30px;
