@@ -6,6 +6,7 @@ import { stepGrade } from "../game/rules";
 import { sfx } from "../game/sound";
 import GestureIcon from "./GestureIcon";
 import Guide, { GUIDE_FOR } from "./Guide";
+import { localize } from "../i18n";
 
 const CANCEL = Symbol("cancel");
 const RESCUE_SCORE = 0.25; // etapa que o chef terminou: conta pouco, mas não zera
@@ -162,9 +163,12 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
 
   if (!view) return null;
   const { mg, spec, stage, i } = view;
-  const english = spec.step != null
-    ? recipe.instructions[spec.step]
-    : spec.items?.map((id) => game.ingredients.find((x) => x.id === id).api).join(" · ");
+  // a partida é toda em português: texto da receita e lista vêm da tradução, não da API
+  const pt = localize(recipe, "pt");
+  const ptIngredient = (api) => pt.ingredients[recipe.ingredients.indexOf(api)] ?? api;
+  const recipeText = spec.step != null
+    ? pt.instructions[spec.step]
+    : spec.items?.map((id) => ptIngredient(game.ingredients.find((x) => x.id === id).api)).join(" · ");
   const low = stage === "live" && hud.left <= 5;
 
   return (
@@ -177,7 +181,7 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
           <h2 className="step-title">{mg.title}</h2>
           <p className="step-how">{mg.how}</p>
           <p className="step-keys">{mg.keys}</p>
-          {english && <p className="step-en" lang="en">{english}</p>}
+          {recipeText && <p className="step-en">{recipeText}</p>}
           <span className="bar-progress" aria-hidden="true"><i style={{ width: `${hud.progress * 100}%` }} /></span>
         </div>
         {combo > 1 && <p className="step-combo" key={combo}>Combo x{combo}</p>}
@@ -190,7 +194,7 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
             {hud.list.map((it) => (
               <li key={it.id} data-got={it.got || undefined}>
                 <span className="check" aria-hidden="true">{it.got ? "✓" : ""}</span>
-                <span lang="en">{it.text}</span>
+                <span>{ptIngredient(it.text)}</span>
                 <span className="visually-hidden">{it.got ? " (na cesta)" : " (falta)"}</span>
               </li>
             ))}

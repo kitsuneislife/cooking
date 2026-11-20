@@ -490,7 +490,7 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .step-title { margin: 0 0 4px; font-family: var(--display); font-weight: 400; font-size: 1.7rem; color: var(--red-dark); }
 .step-how { font-weight: 500; font-size: 1.05rem; }
 .step-keys { font-size: .88rem; color: var(--ink-soft); }
-.step-en { margin-top: 6px !important; padding-top: 6px; border-top: 2px dashed #d9c7a0; font-style: italic; font-size: .88rem; color: var(--ink-soft); }
+.step-en { margin-top: 6px !important; padding-top: 6px; border-top: 2px dashed #d9c7a0; font-size: .88rem; color: var(--ink-soft); }
 .clock, .bar-progress { display: none; }
 
 /* valendo: o cartão fica no mesmo lugar, mais baixo, e troca a mãozinha pelo relógio */
