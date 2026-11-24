@@ -871,6 +871,8 @@ main.main-game { max-width: none; padding: 0; display: block; }
   --chip: #3b3358;
   --line: #4d4468;
   --focus: var(--sun);
+  --frame-night: #24496a; /* moldura azul dos painéis, à noite */
+  --rim: #1d1830;         /* contorno que era branco (botões, adesivos, fotos) */
 }
 :root[data-theme="dark"] body {
   background:
@@ -891,7 +893,7 @@ main.main-game { max-width: none; padding: 0; display: block; }
 [data-theme="dark"] .site-footer a { color: #ff9cc0; }
 
 /* pílulas do canto */
-[data-theme="dark"] .switch { background: var(--paper); border-color: #ff7aa8; box-shadow: 0 4px 0 #7d1c40, 0 8px 14px #0006; }
+[data-theme="dark"] .switch { background: var(--paper); border-color: var(--pink-dark); box-shadow: 0 4px 0 #7d1c40, 0 8px 14px #0006; }
 [data-theme="dark"] .switch button { color: #ff9cc0; }
 [data-theme="dark"] .switch button[aria-pressed="true"] { color: #fff; }
 [data-theme="dark"] .switch button:not([aria-pressed="true"]):hover { background: #ff5c9a33; }
@@ -900,18 +902,18 @@ main.main-game { max-width: none; padding: 0; display: block; }
 [data-theme="dark"] :is(.panel, .book, .hero-bubble) {
   background:
     linear-gradient(var(--paper), var(--paper-2)) padding-box,
-    radial-gradient(circle, #fff9 1.7px, #0000 2.3px) 0 0 / 12px 12px border-box,
-    linear-gradient(#6fb5d6, #4f8fb3 50%, #3f7a9f) border-box;
-  box-shadow: inset 0 0 0 3px #3f7a9f, 0 0 0 3px var(--gold), 0 0 0 6px var(--paper), 0 10px 0 6px #0004, 0 26px 50px #0008;
+    radial-gradient(circle, #ffffff40 1.7px, #0000 2.3px) 0 0 / 12px 12px border-box,
+    linear-gradient(#2f5d7c, var(--frame-night) 50%, #1a3a52) border-box;
+  box-shadow: inset 0 0 0 3px #1a3a52, 0 0 0 3px #8a6a22, 0 0 0 6px #1d1830, 0 10px 0 6px #0004, 0 26px 50px #0008;
 }
 [data-theme="dark"] .hero-bubble { color: #bfe8f8; }
-[data-theme="dark"] .hero-bubble::before { background: #4f8fb3; }
+[data-theme="dark"] .hero-bubble::before { background: var(--frame-night); }
 [data-theme="dark"] .hero-tagline { background: #1d1830cc; }
 
 /* chips, mensagens e carregando */
 [data-theme="dark"] :is(.chips li, .chip) { background: var(--chip); box-shadow: 0 2px 0 #0006; }
 [data-theme="dark"] .tags .chip-meal { background: var(--pink); }
-[data-theme="dark"] .status { background: var(--paper); border-color: #4f8fb3; box-shadow: 0 5px 0 #0005; }
+[data-theme="dark"] .status { background: var(--paper); border-color: var(--frame-night); box-shadow: 0 5px 0 #0005; }
 [data-theme="dark"] .status-error { background: #4a1e26; border-color: #ff7b7b; color: #ffd0cc; }
 [data-theme="dark"] .status-success { background: #1e3f2a; border-color: #7fd889; color: #cdf5cf; }
 
@@ -925,7 +927,13 @@ main.main-game { max-width: none; padding: 0; display: block; }
 }
 [data-theme="dark"] .order:is(:hover, :focus-within) { box-shadow: 0 10px 0 hsl(var(--h) 35% 14%), 0 22px 30px #0007; }
 [data-theme="dark"] .tape { background: repeating-linear-gradient(-45deg, #ffffff30 0 6px, #ffffff1f 6px 12px); box-shadow: 0 2px 0 #0003; }
-[data-theme="dark"] .doily-lace { fill: #f3e6ee; }
+[data-theme="dark"] .doily-lace { fill: #d9cad8; }
+/* contornos brancos viram escuros: botões, adesivo da nota, foto do prato e botão de voltar */
+[data-theme="dark"] .btn { border-color: var(--rim); }
+[data-theme="dark"] .order-rating { border-color: var(--rim); }
+[data-theme="dark"] .doily img { border-color: var(--rim); box-shadow: 0 0 0 2px #5a4a66, 0 6px 10px #0006; }
+[data-theme="dark"] .corner-btn { border-color: var(--rim); }
+[data-theme="dark"] :is(.facts div, .order) { border-color: #ffffff1a; }
 
 /* caderno da receita */
 [data-theme="dark"] .book-title p { background: var(--paper); box-shadow: 0 2px 0 #0005; }
@@ -934,16 +942,16 @@ main.main-game { max-width: none; padding: 0; display: block; }
 [data-theme="dark"] .rings { background: linear-gradient(90deg, #2b2440, #1a1528 35%, #1a2030 65%, #241e37); box-shadow: inset 6px 0 8px -6px #0008, inset -6px 0 8px -6px #0008; }
 [data-theme="dark"] .meter-stars { color: #4a4064; }
 [data-theme="dark"] .facts div { background: hsl(var(--h) 30% 27%); border-color: #ffffff2e; box-shadow: 0 3px 0 hsl(var(--h) 30% 15%); }
-[data-theme="dark"] .ingredients li::before { background: var(--paper-2); border-color: #4f8fb3; }
+[data-theme="dark"] .ingredients li::before { background: var(--paper-2); border-color: var(--frame-night); }
 [data-theme="dark"] .cut { background: #5a4a14; color: #ffe08a; }
 [data-theme="dark"] .station { background: #1f4a3e; color: #9ff0d2; }
 
 /* partida: balão do chef, cartão da etapa, lista e medidores */
-[data-theme="dark"] .bubble { background: var(--paper); border-color: #f4c27c; filter: drop-shadow(0 4px 0 #0008); }
-[data-theme="dark"] .bubble::before { border-right-color: #f4c27c; }
+[data-theme="dark"] .bubble { background: var(--paper); border-color: #8a5a22; filter: drop-shadow(0 4px 0 #0008); }
+[data-theme="dark"] .bubble::before { border-right-color: #8a5a22; }
 [data-theme="dark"] .bubble::after { border-right-color: var(--paper); }
 [data-theme="dark"] .hud-phases .current { background: #fbeedd; color: #4b2a12; }
-[data-theme="dark"] .step-card { border-color: #f4c27c; box-shadow: inset 0 4px 0 #ffffff1a, 0 7px 0 var(--wood-deep), 0 22px 40px #0009; }
+[data-theme="dark"] .step-card { border-color: #8a5a22; box-shadow: inset 0 4px 0 #ffffff1a, 0 7px 0 var(--wood-deep), 0 22px 40px #0009; }
 [data-theme="dark"] .step-count { color: #ffb84a; }
 [data-theme="dark"] .step-title { color: #ff8a8f; }
 [data-theme="dark"] .step-en { border-top-color: var(--line); }
@@ -966,4 +974,4 @@ main.main-game { max-width: none; padding: 0; display: block; }
 [data-theme="dark"] .rate-form { background: #ffffff10; }
 [data-theme="dark"] .star { fill: #4a4064; stroke: #6a5f86; }
 [data-theme="dark"] .star-on { fill: var(--sun); stroke: #b07a10; }
-[data-theme="dark"] .phase-thumb { border-color: var(--paper); background-image: linear-gradient(110deg, #2b2440 30%, #3b3358 50%, #2b2440 70%); }
+[data-theme="dark"] .phase-thumb { border-color: var(--rim); box-shadow: 0 0 0 3px var(--frame-night), 0 6px 10px #0006; background-image: linear-gradient(110deg, #2b2440 30%, #3b3358 50%, #2b2440 70%); }
