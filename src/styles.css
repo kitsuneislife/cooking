@@ -313,6 +313,8 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .book-title .ribbon { font-size: clamp(1.5rem, 3.6vh, 2.1rem); }
 .book-title p { margin: -4px 0 0; padding: 1px 14px; border-radius: 99px; background: #fff; font-size: .82rem; font-weight: 500; color: var(--ink-soft); box-shadow: 0 2px 0 #0000001a; }
 .leaf { min-height: 0; overflow: auto; padding: 52px 26px 20px; scrollbar-width: thin; }
+/* folha focada pelo teclado (para rolar com as setas): o anel fica por dentro da página */
+.leaf:focus-visible { outline-offset: -5px; }
 .leaf-left {
   display: grid; justify-items: center; align-content: start; gap: 10px; border-radius: 18px 0 0 18px;
   background: radial-gradient(#ffd3e299 1.6px, #0000 2.2px) 0 0 / 16px 16px, #fffaf4;
