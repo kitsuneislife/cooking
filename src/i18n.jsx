@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import RECIPES_PT from "./data/recipes-pt.json";
+import Switch from "./components/Switch";
 
 // Idioma das telas de menu e receita. Começa sempre em português (não fica salvo);
 // em inglês o app mostra a receita como veio da API. A partida continua em português.
@@ -93,16 +94,13 @@ export function LangProvider({ children }) {
 
 export const useLang = () => useContext(LangContext);
 
-// Seletor BR / EN: dois botões de pressionar, o ativo fica rosa.
+// Seletor BR / EN: a pílula de opções (components/Switch) com os dois idiomas.
+const LANGS = [
+  { id: "pt", label: "BR", name: "Português", lang: "pt-BR" },
+  { id: "en", label: "EN", name: "English", lang: "en" },
+];
+
 export function LangSwitch() {
   const { lang, setLang, t } = useLang();
-  return (
-    <div className="lang-switch" role="group" aria-label={t.language}>
-      {[["pt", "BR", "Português"], ["en", "EN", "English"]].map(([id, label, name]) => (
-        <button key={id} type="button" aria-pressed={lang === id} aria-label={name} lang={id === "pt" ? "pt-BR" : "en"} onClick={() => setLang(id)}>
-          {label}
-        </button>
-      ))}
-    </div>
-  );
+  return <Switch className="lang-switch" label={t.language} value={lang} options={LANGS} onChange={setLang} />;
 }

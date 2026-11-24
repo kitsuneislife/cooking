@@ -34,7 +34,12 @@ export default function App() {
   return (
     <>
       <a className="skip-link" href="#main">{t.skip}</a>
-      {!playing && <LangSwitch />}
+      {/* seletores do canto de cima, em todas as telas menos a partida */}
+      {!playing && (
+        <div className="top-switches">
+          <LangSwitch />
+        </div>
+      )}
       {!playing && !home && (
         <header className="site-header">
           <Link to="/" className="corner-btn" aria-label={t.home}>
