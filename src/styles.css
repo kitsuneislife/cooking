@@ -26,6 +26,8 @@
   --gold: #f5c451;
   --lilac: #b79cf5;
   --lilac-dark: #6c4fc0;
+  /* anel do foco do teclado: roxo no claro, amarelo no escuro (contraste de 3:1 ou mais com o fundo) */
+  --focus: #6c4fc0;
   --display: "Lilita One", "Fredoka", system-ui, sans-serif;
   --spring: cubic-bezier(.34, 1.56, .64, 1);
   --chunky: 0 5px 0 var(--wood-dark), 0 10px 18px #0005;
@@ -66,7 +68,7 @@ a { color: var(--orange-dark); }
 ul, ol { margin: 0; padding: 0; list-style: none; }
 .muted { color: var(--ink-soft); font-size: .92rem; }
 
-:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; border-radius: 10px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 10px; }
 [tabindex="-1"]:focus { outline: none; }
 
 .visually-hidden {
@@ -281,6 +283,8 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .tab { cursor: pointer; font-size: 1.5rem; transition: transform .2s var(--spring), filter .2s; }
 .tab[aria-selected="false"] { filter: saturate(.35) brightness(1.04); opacity: .8; transform: scale(.88); }
 .tab[aria-selected="false"]:hover { opacity: 1; transform: scale(.94); }
+/* a faixa usa o contorno para a costura branca: no foco ele vira o anel do teclado */
+.tab:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
 .tab-panel { width: 100%; }
 /* o catálogo tem dezenas de cartões: rola dentro da coluna e a tela de título continua cabendo na janela */
 .catalog { max-height: 72vh; overflow-y: auto; padding: 14px 10px 18px; scrollbar-color: var(--pink-dark) #0000; }
@@ -843,7 +847,7 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .stars-input label { cursor: pointer; display: inline-block; border-radius: 8px; }
 .stars-input .star { width: 34px; height: 34px; transition: transform .2s var(--spring); }
 .stars-input label:hover .star { transform: scale(1.2) rotate(-8deg); }
-.stars-input label:has(input:focus-visible) { outline: 3px solid var(--orange); outline-offset: 2px; }
+.stars-input label:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -863,6 +867,7 @@ main.main-game { max-width: none; padding: 0; display: block; }
   --paper-2: #221c34;
   --chip: #3b3358;
   --line: #4d4468;
+  --focus: var(--sun);
 }
 :root[data-theme="dark"] body {
   background:
