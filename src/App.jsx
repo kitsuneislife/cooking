@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import RecipeDetail from "./pages/RecipeDetail";
 import NotFound from "./pages/NotFound";
 import { LangSwitch, useLang } from "./i18n";
+import { ThemeSwitch } from "./theme";
 
 // a partida traz o three.js: só baixa quando alguém vai jogar
 const Play = lazy(() => import("./pages/Play"));
@@ -37,6 +38,7 @@ export default function App() {
       {/* seletores do canto de cima, em todas as telas menos a partida */}
       {!playing && (
         <div className="top-switches">
+          <ThemeSwitch />
           <LangSwitch />
         </div>
       )}
