@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import RECIPES_PT from "./data/recipes-pt.json";
+import Switch from "./components/Switch";
 
 // Idioma das telas de menu e receita. Começa sempre em português (não fica salvo);
 // em inglês o app mostra a receita como veio da API. A partida continua em português.
@@ -17,7 +18,7 @@ const UI = {
     cookNow: "Cozinhar!", stages: (n) => `3 fases · ${n} etapas`, notInGame: "Esta receita ainda não está no jogo.",
     ingredients: "Ingredientes", steps: "Modo de preparo", stepsCount: (n) => `${n} passos`,
     home: "Voltar ao início", skip: "Pular para o conteúdo", footer: "Seis pedidos para cozinhar.", footerFrom: "Receitas da",
-    language: "Idioma",
+    language: "Idioma", theme: "Tema", light: "Claro", dark: "Escuro",
   },
   en: {
     recipes: "Recipes", today: "Today's orders", catalog: "Catalog",
@@ -31,7 +32,7 @@ const UI = {
     cookNow: "Cook!", stages: (n) => `3 phases · ${n} steps`, notInGame: "This recipe is not in the game yet.",
     ingredients: "Ingredients", steps: "Directions", stepsCount: (n) => `${n} steps`,
     home: "Back to the start", skip: "Skip to content", footer: "Six orders to cook.", footerFrom: "Recipes from",
-    language: "Language",
+    language: "Language", theme: "Theme", light: "Light", dark: "Dark",
   },
 };
 
@@ -93,16 +94,13 @@ export function LangProvider({ children }) {
 
 export const useLang = () => useContext(LangContext);
 
-// Seletor BR / EN: dois botões de pressionar, o ativo fica rosa.
+// Seletor BR / EN: a pílula de opções (components/Switch) com os dois idiomas.
+const LANGS = [
+  { id: "pt", label: "BR", name: "Português", lang: "pt-BR" },
+  { id: "en", label: "EN", name: "English", lang: "en" },
+];
+
 export function LangSwitch() {
   const { lang, setLang, t } = useLang();
-  return (
-    <div className="lang-switch" role="group" aria-label={t.language}>
-      {[["pt", "BR", "Português"], ["en", "EN", "English"]].map(([id, label, name]) => (
-        <button key={id} type="button" aria-pressed={lang === id} aria-label={name} lang={id === "pt" ? "pt-BR" : "en"} onClick={() => setLang(id)}>
-          {label}
-        </button>
-      ))}
-    </div>
-  );
+  return <Switch className="lang-switch" label={t.language} value={lang} options={LANGS} onChange={setLang} />;
 }

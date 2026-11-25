@@ -44,7 +44,8 @@ export default function RecipeDetail() {
         {title !== recipe.name && <p lang="en">{recipe.name}</p>}
       </header>
 
-      <div className="leaf leaf-left">
+      {/* as folhas rolam por dentro: com tabIndex dá para focar e rolar com as setas, sem mouse */}
+      <div className="leaf leaf-left" tabIndex={0} role="region" aria-labelledby="recipe-title">
         <Doily className="doily-big" src={recipe.image} alt={t.photo(title)} />
         <p className="score-line">
           <span className="meter-stars" style={{ "--v": recipe.rating / 5 }} role="img" aria-label={t.score(recipe.rating)} />
@@ -68,7 +69,7 @@ export default function RecipeDetail() {
 
       <div className="rings" aria-hidden="true" />
 
-      <div className="leaf leaf-right">
+      <div className="leaf leaf-right" tabIndex={0} role="region" aria-labelledby="ing-title steps-title">
         <section aria-labelledby="ing-title">
           <h2 id="ing-title" className="leaf-head">{t.ingredients} <small>{recipe.ingredients.length}</small></h2>
           <ul className="ingredients">

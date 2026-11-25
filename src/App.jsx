@@ -1,5 +1,5 @@
-import { lazy, Suspense, useSyncExternalStore } from "react";
-import { Link, Route, Routes, useMatch } from "react-router-dom";
+import { lazy, Suspense, useEffect, useRef, useSyncExternalStore } from "react";
+import { Link, Route, Routes, useLocation, useMatch } from "react-router-dom";
 import StatusMessage from "./components/StatusMessage";
 import Chef from "./components/Chef";
 import Logo from "./components/Logo";
@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import RecipeDetail from "./pages/RecipeDetail";
 import NotFound from "./pages/NotFound";
 import { LangSwitch, useLang } from "./i18n";
+import { ThemeSwitch } from "./theme";
 
 // a partida traz o three.js: só baixa quando alguém vai jogar
 const Play = lazy(() => import("./pages/Play"));
@@ -22,6 +23,17 @@ export default function App() {
   const home = useMatch("/");
   const { t } = useLang();
   const small = useSyncExternalStore(watchSmall, () => SMALL.matches);
+
+  // Ao trocar de tela o link clicado some e o foco cairia no começo da página. Quem navega
+  // pelo teclado continua de onde a tela nova começa: o foco vai para o <main>.
+  // A partida cuida do próprio foco (título da fase); a primeira tela não rouba o foco.
+  const { pathname } = useLocation();
+  const lastPath = useRef(pathname);
+  useEffect(() => {
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
+    if (!playing) document.getElementById("main")?.focus({ preventScroll: true });
+  }, [pathname, playing]);
   if (small) {
     return (
       <main className="desktop-only">
@@ -34,7 +46,13 @@ export default function App() {
   return (
     <>
       <a className="skip-link" href="#main">{t.skip}</a>
-      {!playing && <LangSwitch />}
+      {/* seletores do canto de cima, em todas as telas menos a partida */}
+      {!playing && (
+        <div className="top-switches">
+          <ThemeSwitch />
+          <LangSwitch />
+        </div>
+      )}
       {!playing && !home && (
         <header className="site-header">
           <Link to="/" className="corner-btn" aria-label={t.home}>
@@ -43,7 +61,7 @@ export default function App() {
           <Link to="/" className="logo-link"><Logo /></Link>
         </header>
       )}
-      <main id="main" className={playing ? "main-game" : undefined}>
+      <main id="main" tabIndex={-1} className={playing ? "main-game" : undefined}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/receitas/:id" element={<RecipeDetail />} />

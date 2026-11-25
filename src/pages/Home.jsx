@@ -43,10 +43,13 @@ export default function Home() {
   const [params, setParams] = useSearchParams();
   const tab = params.get("aba") === "catalogo" ? "catalogo" : "pedidos";
   const choose = (id) => setParams(id === "pedidos" ? {} : { aba: id }, { replace: true });
-  // setas trocam de aba, como pede o padrão de abas da WAI-ARIA
+  // setas trocam de aba (e Home/End vão à primeira e à última), como pede o padrão de abas da WAI-ARIA
   const onKeyDown = (e) => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    const next = TABS[(TABS.findIndex((x) => x.id === tab) + 1) % TABS.length].id;
+    const at = TABS.findIndex((x) => x.id === tab);
+    const to = { ArrowRight: at + 1, ArrowLeft: at - 1, Home: 0, End: TABS.length - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    const next = TABS[(to + TABS.length) % TABS.length].id;
     choose(next);
     document.getElementById(`tab-${next}`)?.focus();
   };

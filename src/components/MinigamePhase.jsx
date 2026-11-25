@@ -104,6 +104,9 @@ export default function MinigamePhase({ world, specs, game, recipe, combo, good,
       }));
       const onKey = (down) => (e) => {
         if (!live || e.ctrlKey || e.metaKey || e.altKey) return;
+        // Espaço/Enter num botão ou link do topo (Sair, Silenciar) é para ele, não para o
+        // minijogo: senão silenciar pelo teclado também cortaria, mexeria ou serviria
+        if ((e.key === " " || e.key === "Enter") && e.target.closest?.("button, a, input, select, textarea")) return;
         inst.key(e, down);
       };
       const kd = onKey(true), ku = onKey(false);

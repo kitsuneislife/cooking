@@ -26,6 +26,8 @@
   --gold: #f5c451;
   --lilac: #b79cf5;
   --lilac-dark: #6c4fc0;
+  /* anel do foco do teclado: roxo no claro, amarelo no escuro (contraste de 3:1 ou mais com o fundo) */
+  --focus: #6c4fc0;
   --display: "Lilita One", "Fredoka", system-ui, sans-serif;
   --spring: cubic-bezier(.34, 1.56, .64, 1);
   --chunky: 0 5px 0 var(--wood-dark), 0 10px 18px #0005;
@@ -66,7 +68,7 @@ a { color: var(--orange-dark); }
 ul, ol { margin: 0; padding: 0; list-style: none; }
 .muted { color: var(--ink-soft); font-size: .92rem; }
 
-:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; border-radius: 10px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 10px; }
 [tabindex="-1"]:focus { outline: none; }
 
 .visually-hidden {
@@ -80,7 +82,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 /* fora da partida o cabeçalho é só o botão de voltar e o logotipo pequeno, soltos no canto */
 .site-header { display: flex; align-items: center; gap: 14px; padding: 12px max(16px, calc((100% - 1180px) / 2)) 0; }
 .logo-link { display: block; border-radius: 20px; transition: transform .25s var(--spring); }
-.logo-link:hover { transform: rotate(-3deg) scale(1.05); }
+.logo-link:is(:hover, :focus-visible) { transform: rotate(-3deg) scale(1.05); }
 .logo-link .logo { width: 150px; }
 .corner-btn {
   display: grid; place-items: center; width: 54px; height: 54px; flex: none; border-radius: 18px; cursor: pointer;
@@ -89,7 +91,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   transition: transform .2s var(--spring);
 }
 .corner-btn svg { width: 30px; fill: none; stroke: #fff; stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 2px 0 var(--lilac-dark)); }
-.corner-btn:hover { transform: translateY(-2px) rotate(-6deg); }
+.corner-btn:is(:hover, :focus-visible) { transform: translateY(-2px) rotate(-6deg); }
 .corner-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--lilac-dark); }
 main { flex: 1; min-height: 0; width: 100%; max-width: 1180px; margin: 0 auto; padding: 16px; display: grid; align-content: center; }
 main.main-game { max-width: none; padding: 0; display: block; }
@@ -100,17 +102,21 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .site-footer { text-align: center; padding: 10px 16px 14px; color: #8a5414; font-size: .85rem; font-weight: 500; }
 .site-footer a { color: var(--pink-dark); font-weight: 600; }
 
-/* seletor de idioma BR / EN no canto de cima, em todas as telas menos a partida */
-.lang-switch {
-  position: fixed; top: 12px; right: 16px; z-index: 50; display: flex; padding: 4px; gap: 2px;
+/* seletores do canto de cima (idioma, tema), em todas as telas menos a partida */
+.top-switches { position: fixed; top: 12px; right: 16px; z-index: 50; display: flex; gap: 10px; align-items: center; }
+/* pílula de opções (src/components/Switch.jsx): a opção ligada fica rosa */
+.switch {
+  display: flex; padding: 4px; gap: 2px;
   background: #fff; border: 3px solid var(--pink-dark); border-radius: 99px; box-shadow: 0 4px 0 #7d1c40, 0 8px 14px #7d1c4033;
 }
-.lang-switch button {
+.switch button {
+  display: grid; place-items: center; min-height: 28px;
   border: 0; border-radius: 99px; padding: 3px 12px; cursor: pointer; background: #0000;
   font-family: var(--display); font-size: 1rem; color: var(--pink-dark);
 }
-.lang-switch button[aria-pressed="true"] { background: linear-gradient(#ffa3c7, #ff5c9a); color: #fff; box-shadow: inset 0 -2px 0 #0002; }
-.lang-switch button:not([aria-pressed="true"]):hover { background: #ffe2ec; }
+.switch button[aria-pressed="true"] { background: linear-gradient(#ffa3c7, #ff5c9a); color: #fff; box-shadow: inset 0 -2px 0 #0002; }
+.switch button:not([aria-pressed="true"]):hover { background: #ffe2ec; }
+.switch .icon { width: 1.15em; height: 1.15em; }
 
 /* moldura dos painéis: miolo branco, borda grossa azul-clara pontilhada de branco e um fio dourado por fora */
 .panel, .book, .hero-bubble {
@@ -149,7 +155,7 @@ main.main-game { max-width: none; padding: 0; display: block; }
   content: ""; position: absolute; z-index: -1; left: 12%; right: 12%; top: 3px; height: 40%; border-radius: 99px;
   background: linear-gradient(#fffc, #fff2); pointer-events: none;
 }
-.btn:hover { transform: translateY(-2px) scale(1.05); }
+.btn:is(:hover, :focus-visible) { transform: translateY(-2px) scale(1.05); }
 .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--b-dark); }
 .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 .btn-ghost { --b: var(--aqua); --b-top: #a6eef6; --b-low: #29a8bf; --b-dark: var(--aqua-dark); }
@@ -251,8 +257,9 @@ main.main-game { max-width: none; padding: 0; display: block; }
   transition: transform .3s var(--spring), box-shadow .3s;
   animation: card-in .55s calc(var(--n) * 70ms + .2s) var(--spring) both;
 }
-.order:hover { transform: translateY(-6px) rotate(-1deg); box-shadow: 0 10px 0 hsl(var(--h) 40% 74%), 0 22px 30px #5a3a2a33; }
-.order:hover .doily img { rotate: 12deg; scale: 1.06; }
+/* o cartão sobe tanto com o mouse em cima quanto com o foco do teclado num dos botões dele */
+.order:is(:hover, :focus-within) { transform: translateY(-6px) rotate(-1deg); box-shadow: 0 10px 0 hsl(var(--h) 40% 74%), 0 22px 30px #5a3a2a33; }
+.order:is(:hover, :focus-within) .doily img { rotate: 12deg; scale: 1.06; }
 .order .doily { width: clamp(84px, 15vh, 140px); }
 .order-rating {
   position: absolute; right: -8px; top: -10px; margin: 0; padding: 4px 10px; rotate: 10deg;
@@ -276,7 +283,9 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .tabs { display: flex; gap: 10px; justify-content: center; }
 .tab { cursor: pointer; font-size: 1.5rem; transition: transform .2s var(--spring), filter .2s; }
 .tab[aria-selected="false"] { filter: saturate(.35) brightness(1.04); opacity: .8; transform: scale(.88); }
-.tab[aria-selected="false"]:hover { opacity: 1; transform: scale(.94); }
+.tab[aria-selected="false"]:is(:hover, :focus-visible) { opacity: 1; transform: scale(.94); }
+/* a faixa usa o contorno para a costura branca: no foco ele vira o anel do teclado */
+.tab:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
 .tab-panel { width: 100%; }
 /* o catálogo tem dezenas de cartões: rola dentro da coluna e a tela de título continua cabendo na janela */
 .catalog { max-height: 72vh; overflow-y: auto; padding: 14px 10px 18px; scrollbar-color: var(--pink-dark) #0000; }
@@ -305,6 +314,8 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .book-title .ribbon { font-size: clamp(1.5rem, 3.6vh, 2.1rem); }
 .book-title p { margin: -4px 0 0; padding: 1px 14px; border-radius: 99px; background: #fff; font-size: .82rem; font-weight: 500; color: var(--ink-soft); box-shadow: 0 2px 0 #0000001a; }
 .leaf { min-height: 0; overflow: auto; padding: 52px 26px 20px; scrollbar-width: thin; }
+/* folha focada pelo teclado (para rolar com as setas): o anel fica por dentro da página */
+.leaf:focus-visible { outline-offset: -5px; }
 .leaf-left {
   display: grid; justify-items: center; align-content: start; gap: 10px; border-radius: 18px 0 0 18px;
   background: radial-gradient(#ffd3e299 1.6px, #0000 2.2px) 0 0 / 16px 16px, #fffaf4;
@@ -839,8 +850,128 @@ main.main-game { max-width: none; padding: 0; display: block; }
 .stars-input label { cursor: pointer; display: inline-block; border-radius: 8px; }
 .stars-input .star { width: 34px; height: 34px; transition: transform .2s var(--spring); }
 .stars-input label:hover .star { transform: scale(1.2) rotate(-8deg); }
-.stars-input label:has(input:focus-visible) { outline: 3px solid var(--orange); outline-offset: 2px; }
+.stars-input label:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- Modo escuro ---------- */
+/* A mesma cozinha à noite: parede verde-petróleo, azulejos pastel apagados, tampo de madeira
+   escura e papéis cor de ameixa. Liga com data-theme="dark" no <html> (src/theme.jsx).
+   Só a interface muda: a cozinha 3D da partida continua igual. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #fbeedd;
+  --ink-soft: #cdb89f;
+  --cream: #2f2846;
+  --cream-2: #241e37;
+  --paper: #2b2440;
+  --paper-2: #221c34;
+  --chip: #3b3358;
+  --line: #4d4468;
+  --focus: var(--sun);
+  --frame-night: #24496a; /* moldura azul dos painéis, à noite */
+  --rim: #1d1830;         /* contorno que era branco (botões, adesivos, fotos) */
+}
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(80% 60% at 50% 0%, #9fd9f21f, #9fd9f200 70%),
+    linear-gradient(#ffffff26 0 3px, #8a6a2a 3px 8px, #0000 8px) left 0 bottom calc(var(--counter) - 8px) / 100% 8px no-repeat,
+    repeating-linear-gradient(90deg, #0000 0 170px, #00000055 170px 172px) left 0 bottom 0 / 100% var(--counter) no-repeat,
+    linear-gradient(#7a4f1e, #643f15 40%, #52330f) left 0 bottom 0 / 100% var(--counter) no-repeat,
+    linear-gradient(#0000, #00000066) left 0 bottom var(--counter) / 100% 26px no-repeat,
+    repeating-linear-gradient(90deg, #ffffff1f 0 3px, #0000 3px 52px) left 0 bottom var(--counter) / 100% 104px no-repeat,
+    repeating-linear-gradient(#ffffff1f 0 3px, #0000 3px 52px) left 0 bottom var(--counter) / 100% 104px no-repeat,
+    conic-gradient(#5a3048 0 25%, #24524a 0 50%, #5a4c22 0 75%, #3c3466 0) left 0 bottom var(--counter) / 104px 104px repeat-x,
+    repeating-linear-gradient(90deg, #163a3e 0 36px, #1b4448 36px 72px);
+  background-color: #163639;
+}
+[data-theme="dark"] a:not(.btn) { color: #ffb84a; }
+[data-theme="dark"] .skip-link { color: #1d1830; }
+[data-theme="dark"] .site-footer { color: #f4c27c; }
+[data-theme="dark"] .site-footer a { color: #ff9cc0; }
+
+/* pílulas do canto */
+[data-theme="dark"] .switch { background: var(--paper); border-color: var(--pink-dark); box-shadow: 0 4px 0 #7d1c40, 0 8px 14px #0006; }
+[data-theme="dark"] .switch button { color: #ff9cc0; }
+[data-theme="dark"] .switch button[aria-pressed="true"] { color: #fff; }
+[data-theme="dark"] .switch button:not([aria-pressed="true"]):hover { background: #ff5c9a33; }
+
+/* painéis, caderno e balão: miolo ameixa dentro da mesma moldura azul */
+[data-theme="dark"] :is(.panel, .book, .hero-bubble) {
+  background:
+    linear-gradient(var(--paper), var(--paper-2)) padding-box,
+    radial-gradient(circle, #ffffff40 1.7px, #0000 2.3px) 0 0 / 12px 12px border-box,
+    linear-gradient(#2f5d7c, var(--frame-night) 50%, #1a3a52) border-box;
+  box-shadow: inset 0 0 0 3px #1a3a52, 0 0 0 3px #8a6a22, 0 0 0 6px #1d1830, 0 10px 0 6px #0004, 0 26px 50px #0008;
+}
+[data-theme="dark"] .hero-bubble { color: #bfe8f8; }
+[data-theme="dark"] .hero-bubble::before { background: var(--frame-night); }
+[data-theme="dark"] .hero-tagline { background: #1d1830cc; }
+
+/* chips, mensagens e carregando */
+[data-theme="dark"] :is(.chips li, .chip) { background: var(--chip); box-shadow: 0 2px 0 #0006; }
+[data-theme="dark"] .tags .chip-meal { background: var(--pink); }
+[data-theme="dark"] .status { background: var(--paper); border-color: var(--frame-night); box-shadow: 0 5px 0 #0005; }
+[data-theme="dark"] .status-error { background: #4a1e26; border-color: #ff7b7b; color: #ffd0cc; }
+[data-theme="dark"] .status-success { background: #1e3f2a; border-color: #7fd889; color: #cdf5cf; }
+
+/* cartões dos pedidos: o mesmo círculo de cores, só que fundo escuro e costura acesa */
+[data-theme="dark"] .order {
+  --lace: hsl(var(--h) 30% 42%);
+  border-color: #ffffff2e;
+  background: radial-gradient(#ffffff1c 1.6px, #0000 2.2px) 0 0 / 14px 14px, hsl(var(--h) 32% 25%);
+  outline-color: hsl(var(--h) 55% 58%);
+  box-shadow: 0 6px 0 hsl(var(--h) 35% 14%), 0 14px 22px #0006;
+}
+[data-theme="dark"] .order:is(:hover, :focus-within) { box-shadow: 0 10px 0 hsl(var(--h) 35% 14%), 0 22px 30px #0007; }
+[data-theme="dark"] .tape { background: repeating-linear-gradient(-45deg, #ffffff30 0 6px, #ffffff1f 6px 12px); box-shadow: 0 2px 0 #0003; }
+[data-theme="dark"] .doily-lace { fill: #d9cad8; }
+/* contornos brancos viram escuros: botões, adesivo da nota, foto do prato e botão de voltar */
+[data-theme="dark"] .btn { border-color: var(--rim); }
+[data-theme="dark"] .order-rating { border-color: var(--rim); }
+[data-theme="dark"] .doily img { border-color: var(--rim); box-shadow: 0 0 0 2px #5a4a66, 0 6px 10px #0006; }
+[data-theme="dark"] .corner-btn { border-color: var(--rim); }
+[data-theme="dark"] :is(.facts div, .order) { border-color: #ffffff1a; }
+
+/* caderno da receita */
+[data-theme="dark"] .book-title p { background: var(--paper); box-shadow: 0 2px 0 #0005; }
+[data-theme="dark"] .leaf-left { background: radial-gradient(#ff9cc024 1.6px, #0000 2.2px) 0 0 / 16px 16px, var(--paper); }
+[data-theme="dark"] .leaf-right { background: repeating-linear-gradient(#0000 0 27px, #3a4a6a 27px 29px) 0 10px, var(--paper-2); }
+[data-theme="dark"] .rings { background: linear-gradient(90deg, #2b2440, #1a1528 35%, #1a2030 65%, #241e37); box-shadow: inset 6px 0 8px -6px #0008, inset -6px 0 8px -6px #0008; }
+[data-theme="dark"] .meter-stars { color: #4a4064; }
+[data-theme="dark"] .facts div { background: hsl(var(--h) 30% 27%); border-color: #ffffff2e; box-shadow: 0 3px 0 hsl(var(--h) 30% 15%); }
+[data-theme="dark"] .ingredients li::before { background: var(--paper-2); border-color: var(--frame-night); }
+[data-theme="dark"] .cut { background: #5a4a14; color: #ffe08a; }
+[data-theme="dark"] .station { background: #1f4a3e; color: #9ff0d2; }
+
+/* partida: balão do chef, cartão da etapa, lista e medidores */
+[data-theme="dark"] .bubble { background: var(--paper); border-color: #8a5a22; filter: drop-shadow(0 4px 0 #0008); }
+[data-theme="dark"] .bubble::before { border-right-color: #8a5a22; }
+[data-theme="dark"] .bubble::after { border-right-color: var(--paper); }
+[data-theme="dark"] .hud-phases .current { background: #fbeedd; color: #4b2a12; }
+[data-theme="dark"] .step-card { border-color: #8a5a22; box-shadow: inset 0 4px 0 #ffffff1a, 0 7px 0 var(--wood-deep), 0 22px 40px #0009; }
+[data-theme="dark"] .step-count { color: #ffb84a; }
+[data-theme="dark"] .step-title { color: #ff8a8f; }
+[data-theme="dark"] .step-en { border-top-color: var(--line); }
+[data-theme="dark"] .gesture figcaption { color: #f4c27c; }
+[data-theme="dark"] .bar-progress { background: var(--paper-2); }
+[data-theme="dark"] .shop-list { background: var(--paper); box-shadow: 0 4px 0 #0006, 0 14px 22px #0008; }
+[data-theme="dark"] .shop-list li { border-bottom-color: var(--line); }
+[data-theme="dark"] .shop-list .check { background: var(--paper-2); border-color: #f4c27c; }
+[data-theme="dark"] .shop-list li[data-got] { color: #7fd889; }
+[data-theme="dark"] .shop-list li[data-got] .check { background: var(--green); }
+[data-theme="dark"] .gauge-tube { background: #1d1830cc; }
+
+/* pedido e resultado */
+[data-theme="dark"] .grades li { background: #ffffff14; }
+[data-theme="dark"] .grades [data-grade="perfect"] b,
+[data-theme="dark"] .score-total :is(th, td) { color: #ffb84a; }
+[data-theme="dark"] .grades [data-grade="great"] b { color: #7fd889; }
+[data-theme="dark"] .grades [data-grade="good"] b { color: #7cc8f0; }
+[data-theme="dark"] .grades [data-grade="oops"] b { color: #c9b4a8; }
+[data-theme="dark"] .rate-form { background: #ffffff10; }
+[data-theme="dark"] .star { fill: #4a4064; stroke: #6a5f86; }
+[data-theme="dark"] .star-on { fill: var(--sun); stroke: #b07a10; }
+[data-theme="dark"] .phase-thumb { border-color: var(--rim); box-shadow: 0 0 0 3px var(--frame-night), 0 6px 10px #0006; background-image: linear-gradient(110deg, #2b2440 30%, #3b3358 50%, #2b2440 70%); }
